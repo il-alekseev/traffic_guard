@@ -1,0 +1,43 @@
+app:
+  name: 'usercontrol'
+  version: '1.0.0'
+
+swagger:
+  host: '127.0.0.1'
+  
+http:
+  host: '127.0.0.1'
+  port: '8002'
+
+logger:
+  log_level: 'debug'
+  rollbar_env: 'usercontrol'
+
+bizlogrepo:
+  pool_max: 2
+  host: "172.17.134.91"
+  user: "blog"
+  pass: "blogpassword"
+  dbname: "blog"
+  port: "5432"
+  sslmode: "disable"
+
+keycloak:
+  proto: "https"
+  host: "172.17.134.91"
+  port: "8443"
+  login: "system_admin"
+  password: "admin"
+  system_realm: "master"
+  realm: "tsum"
+  grafana_client_id: "grafana-sso"
+  grafana_client_secret: "uAgEvDTaFYvzqr287p2qZFIi7habElf8"
+  grafana_client_uuid: "b1918cad-e6a8-40b0-9c2a-5ab016d79c39"
+
+grafana:
+  proto: "https"
+  host: "172.17.134.91"
+  port: "3000"
+  auth_path: "/login/generic_oauth"
+  username: "system_admin"
+  pass: "admin"

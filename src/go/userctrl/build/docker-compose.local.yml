@@ -1,0 +1,11 @@
+services:
+  fiermon-usercontrol:
+    container_name: ${USER_CTRL_IMAGE_NAME}
+    build:
+      context: ..
+      dockerfile: "build/Dockerfile"
+    image: ${USER_CTRL_IMAGE_NAME}
+    ports:
+      - '${USER_CTRL_HTTP_PORT}:${USER_CTRL_HTTP_PORT}'
+    restart: always
+    env_file: local.env

@@ -1,0 +1,700 @@
+openapi: '3.0.3'
+info:
+  title: API usercontrol
+  description: Описание эндпоинтов для API usercontrol
+  version: '1.0.0'
+servers:
+  - url: localhost:8000
+paths:
+  /v1/auth/sign-in:
+    post:
+      description: >
+        <h1>Эндпоинт для авторизации пользователя в системе</h1>
+        Для авторизации требуется <B>логин</B> и <B>пароль</B>. В случае успешной авторизации 
+        пользователю выдается <B>токен</B> OAuth. <br>Время жизни токена <B>24 часа.</B>
+      summary: Авторизация пользователя в системе
+      tags:
+        - auth
+      requestBody:
+        content: 
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogUser"
+      responses:
+        '200':
+          description: Токены доступа OAuth
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Token"
+        '400':
+          $ref: "#/components/responses/BadRequestResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '500':
+          $ref: "#/components/responses/InternalErrorResponse"
+  /v1/auth/sign-out:
+    get:
+      description: >
+        <h1>Эндпоинт для выхода пользователя из системы</h1>
+        Для успешного завершения запроса пользователю необходимо передать 
+        валидный <B>токен</B> OAuth.
+      summary: Выход пользователя из системы
+      tags:
+        - auth
+      security:
+        - oauth2:
+          - read
+      parameters:
+        - $ref: "#/components/parameters/Token"
+      responses:
+        '200':
+          $ref: "#/components/responses/SuccessResponse"
+        '400':
+          $ref: "#/components/responses/BadRequestResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '500':
+          $ref: "#/components/responses/InternalErrorResponse"
+  /v1/users:
+    get:
+      description: >
+        <h1>Эндпоинт для получения информации о пользователях системы</h1>
+        Получение списка всех пользователей системы. В случае, если используются 
+        параметры <I>page</I> и <I>per_page</I>, будет использоваться пагинация.
+        Если использются параметры <I>like</I> или <i>role</i>, будет применена фильтрация пользователей.
+        Если пользователь передает невалидный <B>токен</B> OAuth, запрос завершается ошибкой.
+      summary: Получение информации о пользователях системы
+      tags:
+        - users
+      security:
+        - oauth2:
+          - read
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PerPage"
+        - $ref: "#/components/parameters/LikeFilter"
+        - $ref: "#/components/parameters/RoleFilter"
+        - $ref: "#/components/parameters/Token"
+      responses:
+          '200':
+            description: Список пользователей в системе
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/User"
+          '400':
+            $ref: "#/components/responses/BadRequestResponse"
+          '401':
+            $ref: "#/components/responses/UnauthorizedResponse"
+          '403':
+            $ref: "#/components/responses/ForbiddenResponse"
+          '500':
+            $ref: "#/components/responses/InternalErrorResponse"
+    post:
+      description: >
+        <h1>Эндпоинт добавления нового пользователя в систему</h1>
+        Запрос для добавления нового пользователя в систему.
+        Запрос завершается ошибкой, если:
+        <ul>
+        <li>имя пользователя уже присутствует в системе
+        <li>email в невалидном формате
+        <li>id контекста не существует
+        <li>роль не соотвествует ни одной из списка
+        </ul>
+        В случае успешного завершения запроса возвращается <B>id</B> созданного пользователя
+        Если пользователь передает невалидный <B>токен</B> OAuth, запрос завершается ошибкой.
+      summary: Добавление нового пользователя в систему
+      tags:
+        - users
+      security:
+        - oauth2:
+          - read
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      parameters:
+        - $ref: "#/components/parameters/Token"
+      responses:
+          '200':
+            description: Идентификатор пользователя
+            content:
+              text/plain:
+                schema:
+                  $ref: "#/components/schemas/Id"
+          '400':
+            $ref: "#/components/responses/BadRequestResponse"
+          '401':
+            $ref: "#/components/responses/UnauthorizedResponse"
+          '403':
+            $ref: "#/components/responses/ForbiddenResponse"
+          '500':
+            $ref: "#/components/responses/InternalErrorResponse"
+  /v1/users/profile:
+    get:
+      description: >
+        <h1>Эндпоинт для получения информации о текущем пользователе</h1>
+        Получение информации об авторизованном в системе ползователе
+        Если пользователь передает невалидный <B>токен</B> OAuth, запрос завершается ошибкой.
+      summary: Получение информации о текущем пользователе
+      tags:
+        - users
+      security:
+        - oauth2:
+          - read
+      parameters:
+        - $ref: "#/components/parameters/Token"
+      responses:
+          '200':
+            description: Информация о пользователе
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/User"
+          '400':
+            $ref: "#/components/responses/BadRequestResponse"
+          '401':
+            $ref: "#/components/responses/UnauthorizedResponse"
+          '403':
+            $ref: "#/components/responses/ForbiddenResponse"
+          '500':
+            $ref: "#/components/responses/InternalErrorResponse"
+  /v1/users/profile/pass:
+    put:
+      description: >
+        <h1>Эндпоинт для изменения собственного пароля пользователем системы</h1>
+        Пользователю необходимо отправить в теле запроса новый пароль. 
+        Пароль должен удовлетворять <B>требованиям безопасности</B> системы.
+        В противном запрос на смену пароля будет отклонен.
+        В случае успешного запроса возвращается новый <B>токен</B> OAuth.
+      summary: Изменение пароля текущего пользователя системы
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: string
+              example: password
+      tags:
+        - users
+      security:
+        - oauth2:
+          - read
+      parameters:
+        - $ref: "#/components/parameters/Token"
+      responses:
+          '200':
+            description: Новый токен доступа OAuth
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Token"
+          '400':
+            $ref: "#/components/responses/BadRequestResponse"
+          '401':
+            $ref: "#/components/responses/UnauthorizedResponse"
+          '403':
+            $ref: "#/components/responses/ForbiddenResponse"
+          '500':
+            $ref: "#/components/responses/InternalErrorResponse"
+  /v1/users/{userId}:
+    get:
+      description: >
+        <h1>Эндпоинт для получения информации о конкретном пользователем системы</h1>
+        Запрос для получения информации о существующем пользователе.
+        Запрос завершается ошибкой, если:
+        <ul>
+        <li>пользователя с указанным <b>id</b> не существует
+        </ul>
+        В случае успешного завершения запроса возвращается информация о пользователе. 
+        Если пользователь передает невалидный <B>токен</B> OAuth, запрос завершается ошибкой.
+      summary: Получение информации о пользователе системы по его идентификатору
+      tags:
+        - users
+      security:
+        - oauth2:
+          - read
+      parameters: 
+        - $ref: "#/components/parameters/UserId"
+        - $ref: "#/components/parameters/Token"
+      responses:
+        '200':
+            description: "Информация о пользователе"
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/User"
+        '400':
+          $ref: "#/components/responses/BadRequestResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '404':
+          $ref: "#/components/responses/NotFoundResponse"
+        '500':
+          $ref: "#/components/responses/InternalErrorResponse"
+    put:
+      description: >
+        <h1>Эндпоинт обновления информации о пользователе системы</h1>
+        Запрос для обновления существующего пользователя системы.
+        Запрос завершается ошибкой, если:
+        <ul>
+        <li>пользователя с указанным <b>id</b> не существует
+        <li>email в невалидном формате
+        </ul>
+        Если пользователь передает невалидный <B>токен</B> OAuth, запрос завершается ошибкой.
+      summary: 'Обновление информации о пользователе системы'
+      tags:
+        - users
+      security:
+        - oauth2:
+          - read
+      parameters: 
+        - $ref: "#/components/parameters/UserId"
+        - $ref: "#/components/parameters/Token"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        '200':
+          $ref: "#/components/responses/SuccessResponse"
+        '400':
+          $ref: "#/components/responses/BadRequestResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '404':
+          $ref: "#/components/responses/NotFoundResponse"
+        '500':
+          $ref: "#/components/responses/InternalErrorResponse"
+    delete:
+      description: >
+        <h1>Эндпоинт для удаления пользователя из системы</h1>
+        Запрос для удаления существущего пользователя из систему.
+        Запрос завершается ошибкой, если:
+        <ul>
+        <li>пользователя с указанным <b>id</b> не существует
+        </ul>
+        Если пользователь передает невалидный <B>токен</B> OAuth, запрос завершается ошибкой.
+      summary: Удаление пользователя из системы
+      tags:
+        - users
+      security:
+        - oauth2:
+          - read
+      parameters: 
+        - $ref: "#/components/parameters/UserId"
+        - $ref: "#/components/parameters/Token"
+      responses:
+        '200':
+          $ref: "#/components/responses/SuccessResponse"
+        '400':
+          $ref: "#/components/responses/BadRequestResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '404':
+          $ref: "#/components/responses/NotFoundResponse"
+        '500':
+          $ref: "#/components/responses/InternalErrorResponse"
+  /v1/users/{userId}/pass/otp:
+    put:
+      description: >
+        <h1>Эндпоинт для изменения пароля пользователю </h1>
+        Запрос для изменения пароля пользователя.
+        Запрос завершается ошибкой, если:
+        <ul>
+        <li>пользователя с указанным <b>id</b> не существует
+        </ul>
+        Если пользователь передает невалидный <B>токен</B> OAuth, запрос завершается ошибкой.
+      summary: Сброс пользовательского пароля
+      tags:
+        - users
+      security:
+        - oauth2:
+          - read
+      parameters: 
+        - name: userId
+          description: "Идентификатор пользователя"
+          in: path
+          required: true
+          schema: 
+            $ref: "#/components/schemas/Id"
+        - $ref: "#/components/parameters/Token"
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        '200':
+          $ref: "#/components/responses/SuccessResponse"
+        '400':
+          $ref: "#/components/responses/BadRequestResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '404':
+          $ref: "#/components/responses/NotFoundResponse"
+        '500':
+          $ref: "#/components/responses/InternalErrorResponse"
+  /v1/users/count:
+    get:
+      description: >
+        <h1>Эндпоинт для получения числа пользователей системы</h1>
+        Получение числа всех пользователей системы. 
+        Если пользователь передает невалидный <B>токен</B> OAuth, запрос завершается ошибкой.
+      summary: Получение числа всех пользователей системы
+      tags:
+        - users
+      security:
+        - oauth2:
+          - read
+      parameters:
+        - $ref: "#/components/parameters/Token"
+      responses:
+          '200':
+            description: Число пользователей в системе
+            content:
+              text/plain::
+                schema:
+                  type: integer
+                  example: 5
+          '400':
+            $ref: "#/components/responses/BadRequestResponse"
+          '401':
+            $ref: "#/components/responses/UnauthorizedResponse"
+          '403':
+            $ref: "#/components/responses/ForbiddenResponse"
+          '500':
+            $ref: "#/components/responses/InternalErrorResponse"
+  /v1/users/{userId}/roles:
+    put:
+      description: >
+        <h1>Эндпоинт добавления пользователю ролей в системе</h1>
+        Запрос для обновления списка ролей пользователя системы.
+        Запрос завершается ошибкой, если:
+        <ul>
+        <li>пользователя с указанным <b>id</b> не существует
+        <li>роль не соотвествует ни одной из списка
+        </ul>
+        Если пользователь передает невалидный <B>токен</B> OAuth, запрос завершается ошибкой.
+      summary: 'Обновление ролей пользователя системы'
+      tags:
+        - users
+        - roles
+      security:
+        - oauth2:
+          - read
+      parameters: 
+        - $ref: "#/components/parameters/UserId"
+        - $ref: "#/components/parameters/Token"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Roles"
+      responses:
+        '200':
+          $ref: "#/components/responses/SuccessResponse"
+        '400':
+          $ref: "#/components/responses/BadRequestResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '404':
+          $ref: "#/components/responses/NotFoundResponse"
+        '500':
+          $ref: "#/components/responses/InternalErrorResponse"
+    delete:
+      description: >
+        <h1>Эндпоинт для удаления отзыва ролей пользователя в системе</h1>
+        Запрос для отзыва ролей пользователя из системы.
+        Запрос завершается ошибкой, если:
+        <ul>
+        <li>пользователя с указанным <b>id</b> не существует
+        </ul>
+        Если пользователь передает невалидный <B>токен</B> OAuth, запрос завершается ошибкой.
+      summary: Отзыв ролей пользователя в системе
+      tags:
+        - users
+        - roles
+      security:
+        - oauth2:
+          - read
+      parameters: 
+        - $ref: "#/components/parameters/UserId"
+        - $ref: "#/components/parameters/Token"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Roles"
+      responses:
+        '200':
+          $ref: "#/components/responses/SuccessResponse"
+        '400':
+          $ref: "#/components/responses/BadRequestResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '404':
+          $ref: "#/components/responses/NotFoundResponse"
+        '500':
+          $ref: "#/components/responses/InternalErrorResponse"
+components:
+  schemas:
+    LogUser:
+      type: object
+      properties:
+        username: 
+          type: string
+        password: 
+          type: string
+      example:
+        username: admin
+        password: admin
+    Roles:
+      description: Список ролей
+      type: object
+      properties:
+        roles:
+          type: array
+          items:
+            type: string
+          example: 
+            - context_1_administrator
+            - context_2_administrator
+    User:
+      type: object
+      properties:
+        id: 
+          type: integer
+        username:
+          type: string
+        login:
+          type: string
+        email:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        create_at:
+          type: string
+      example:
+        id: 1
+        username: Vasya
+        login: vasya
+        email: vasya@gmail.com
+        roles: 
+          - context_2_operator
+          - context_1_operator 
+        create_at: 22.04.2025 23:29:15
+    UserInput:
+      type: object
+      properties:
+        username:
+          type: string
+        login:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+      example:
+        username: Vasya
+        login: vasya
+        email: vasya@gmail.com
+        password: 123456
+        roles: 
+          - context_1_administrator
+          - context_2_administrator
+        context_id: 2
+    UserUpdate:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+      example:
+        username: Vasya
+        email: vasya@gmail.com
+    Context:
+      type: object
+      properties:
+        name: 
+          type: string
+        alias:
+          type: string
+        context_id:
+          type: integer
+        context_admins_count:
+          type: integer
+        context_operators_count:
+          type: integer
+        create_at: 
+          type: string
+      example:
+        name: Контекст 1
+        alias: Context_1
+        context_id: 1
+        context_admins_count: 2
+        context_operators_count: 5
+        create_at: 22.04.2025 23:50:12
+    ContextStat:
+      type: object
+      properties:
+        id:
+          type: integer
+        context_admins_count: 
+          type: integer
+        context_operators_count:
+          type: integer
+      example:
+        id: 1
+        context_admins_count: 2
+        context_operators_count: 5
+    System:
+      type: object
+      properties:
+        contexts_count:
+          type: integer
+        users_count:
+          type: integer
+        admins_count:
+          type: integer
+        context_stats:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContextStat"
+      example:
+        contexts_count: 15
+        users_count: 25
+        admins_count: 4
+        context_stats:
+    Id:
+      type: integer
+      format: uint32
+      example: 1
+    Page:
+      type: integer
+      format: uint32
+      example: 2
+    PerPage:
+      type: integer
+      format: uint32
+      example: 5
+    Role:
+      type: object
+      properties:
+        id: 
+          type: integer
+        name:
+          type: string
+      example:
+        id: 1
+        name: system_administrator
+    Token:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refersh_token:
+          type: string
+      example: 
+        access_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9. eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6 IkpvaG4gSmltYW5vdiIsImFkbWluIjp0cnVl LCJpYXQiOjE1MTYyMzkwMjJ9. SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c.
+        refresh_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9. eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6 IkpvaG4gSmltYW5vdiIsImFkbWluIjp0cnVl LCJpYXQiOjE1MTYyMzkwMjJ9. SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c.
+  parameters:
+    ContextId:
+      name: context_id
+      description: Идентификатор контекста
+      in: path
+      required: true
+      schema: 
+        $ref: "#/components/schemas/Id"
+    RoleId:
+      name: role_id
+      description: Идентификатор роли
+      in: path
+      required: true
+      schema: 
+        $ref: "#/components/schemas/Id"
+    UserId:
+      name: userId
+      description: Идентификатор пользователя
+      in: path
+      required: true
+      schema: 
+        $ref: "#/components/schemas/Id"
+    Page:
+      name: page
+      description: Номер страницы, которую необходимо вывести
+      in: query
+      required: false
+      schema:
+        $ref: "#/components/schemas/Page"
+    PerPage:
+      name: per_page 
+      description: Количество записей, которые необходимо выводить на странице
+      in: query
+      required: false
+      schema:
+        $ref: "#/components/schemas/PerPage"
+    LikeFilter:
+      name: like
+      description: Фильтр типа like для имени пользователя, его email и логина
+      in: query
+      required: false
+      schema:
+        type: string
+        example: Vasya
+    RoleFilter:
+      name: role
+      description: Фильтр типа "=" для ролей пользователей
+      in: query
+      required: false
+      schema:
+        type: string
+        example: system_administrator
+    Token:
+      name: token
+      description: Токен доступа OAuth
+      in: header
+      required: true
+      schema:
+        type: string
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9. eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6 IkpvaG4gSmltYW5vdiIsImFkbWluIjp0cnVl LCJpYXQiOjE1MTYyMzkwMjJ9. SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c.
+  responses:
+    SuccessResponse:
+      description: OK
+    BadRequestResponse:
+      description: "Bad Request - вернет json {\"error\" : \"описание ошибки\" }"
+    UnauthorizedResponse:
+      description: Unauthorized
+    ForbiddenResponse:
+      description: Access is denied
+    NotFoundResponse:
+      description: Not Found
+    InternalErrorResponse:
+      description: Internal Server Error

@@ -1,0 +1,992 @@
+basePath: /
+definitions:
+  dto.CountResponse:
+    properties:
+      count:
+        type: integer
+    type: object
+  dto.CountUserByRoleResponse:
+    properties:
+      count_ca:
+        type: integer
+      count_co:
+        type: integer
+      count_sa:
+        type: integer
+    type: object
+  dto.CountUserForContextResponse:
+    properties:
+      count_ca:
+        type: integer
+      count_co:
+        type: integer
+    type: object
+  dto.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  dto.LogUser:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    required:
+    - login
+    - password
+    type: object
+  dto.PaginationMeta:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      pages:
+        type: integer
+      total:
+        type: integer
+    type: object
+  dto.RolesListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Role'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
+  dto.SuccessResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  dto.UserCreateRequest:
+    properties:
+      email:
+        example: john.doe@example.com
+        type: string
+      first_name:
+        example: John
+        maxLength: 50
+        minLength: 1
+        type: string
+      last_name:
+        example: Doe
+        maxLength: 50
+        minLength: 1
+        type: string
+      login:
+        example: johndoe
+        maxLength: 50
+        minLength: 4
+        type: string
+      password:
+        maxLength: 50
+        minLength: 4
+        type: string
+      patronymic:
+        example: Ivanovich
+        type: string
+      role:
+        example: SA
+        type: string
+    required:
+    - first_name
+    - last_name
+    - login
+    - password
+    - role
+    type: object
+  dto.UserResetPass:
+    properties:
+      new_password:
+        type: string
+    required:
+    - new_password
+    type: object
+  dto.UserUpdateData:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      patronymic:
+        type: string
+      role:
+        type: string
+    type: object
+  dto.UserUpdatePass:
+    properties:
+      new_password:
+        type: string
+      old_password:
+        type: string
+    required:
+    - new_password
+    - old_password
+    type: object
+  dto.UsersListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
+  models.Role:
+    properties:
+      role:
+        type: string
+    required:
+    - role
+    type: object
+  models.Token:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      grafana_session:
+        type: string
+      grafana_session_expiry:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  models.User:
+    properties:
+      created_at:
+        example: "2023-04-01T12:00:00Z"
+        type: string
+      email:
+        example: john.doe@example.com
+        type: string
+      first_name:
+        example: John
+        type: string
+      is_need_to_change_password:
+        example: true
+        type: boolean
+      is_super_admin:
+        example: false
+        type: boolean
+      last_name:
+        example: Doe
+        type: string
+      login:
+        example: johndoe
+        type: string
+      patronymic:
+        example: Ivanovich
+        type: string
+      role:
+        example: SA
+        type: string
+      user_id:
+        example: a71032a2-87eb-4d4e-a2a0-d86404672799
+        type: string
+    type: object
+host: localhost:8000
+info:
+  contact: {}
+  description: API для управления пользователями, ролями и аутентификации
+  title: User Control API
+  version: "1.0"
+paths:
+  /v1/auth/refresh:
+    post:
+      description: Для успешного обновления токена пользователю необходимо передать
+        валидный токен OAuth в заголовке Authorization и refresh-токен в заголовке
+        X-Refresh-Token.
+      parameters:
+      - description: Refresh токен
+        in: header
+        name: X-Refresh-Token
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Token'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Обновление токена
+      tags:
+      - auth
+  /v1/auth/sign-in:
+    post:
+      consumes:
+      - application/json
+      description: Для авторизации требуется логин и пароль. В случае успешной авторизации
+        пользователю выдается токен OAuth. Время жизни токена 24 часа.
+      parameters:
+      - description: Данные для авторизации
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LogUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Token'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Авторизация пользователя в системе
+      tags:
+      - auth
+  /v1/auth/sign-out:
+    post:
+      description: Для успешного завершения запроса пользователю необходимо передать
+        валидный токен OAuth в заголовке Authorization и refresh-токен в заголовке
+        X-Refresh-Token.
+      parameters:
+      - description: Refresh токен
+        in: header
+        name: X-Refresh-Token
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Выход пользователя из системы
+      tags:
+      - auth
+  /v1/roles:
+    get:
+      description: Возвращает список ролей с возможностью пагинации и фильтрации по
+        названию
+      parameters:
+      - default: 1
+        description: Номер страницы
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Количество элементов на странице
+        in: query
+        name: limit
+        type: integer
+      - description: Поиск по названию роли
+        in: query
+        name: search
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.RolesListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение списка ролей с пагинацией и фильтрацией
+      tags:
+      - roles
+  /v1/roles/context:
+    delete:
+      description: Обратное действие к <i>/v1/roles/context [put]</i>
+      parameters:
+      - description: ID контекста
+        in: query
+        name: contextID
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Удаление ролей и групп ролей для контекста
+      tags:
+      - roles
+    put:
+      description: |-
+        Создает роли CA и CO для клиента Grafana. Создает группу с именем контекста и в ней подругппы ca и co.
+        В группы добавляет соответствующие роли.
+      parameters:
+      - description: ID контекста
+        in: query
+        name: contextID
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Создание ролей и групп ролей для контекста
+      tags:
+      - roles
+  /v1/roles/count:
+    get:
+      description: Получение числа всех ролей системы.
+      responses:
+        "200":
+          description: Количество ролей
+          schema:
+            $ref: '#/definitions/dto.CountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение числа всех ролей системы
+      tags:
+      - roles
+  /v1/users:
+    get:
+      description: Возвращает список пользователей с возможностью пагинации и фильтрации
+        по ролям
+      parameters:
+      - default: 1
+        description: Номер страницы с 1
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Количество элементов на странице
+        in: query
+        name: limit
+        type: integer
+      - description: Фильтр по роли
+        enum:
+        - SA
+        - CA
+        - CO
+        in: query
+        name: role
+        type: string
+      - description: Фильтр по contextID
+        in: query
+        name: contextID
+        type: string
+      - description: Поиск по имени/email/login
+        in: query
+        name: search
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UsersListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение списка пользователей с пагинацией и фильтрацией
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Создает нового пользователя с указанными данными
+      parameters:
+      - description: Данные пользователя
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Пользователь с таким email/логином уже существует
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Создание нового пользователя
+      tags:
+      - users
+  /v1/users/{userId}:
+    delete:
+      description: Запрос для удаления существующего пользователя из систему.
+      parameters:
+      - description: ID пользователя
+        in: path
+        name: userId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Удаление пользователя из системы
+      tags:
+      - users
+    get:
+      description: Возвращает полную информацию о пользователе по его ID
+      parameters:
+      - description: ID пользователя
+        in: path
+        name: userId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Пользователь не найден
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение информации о пользователе
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Запрос для обновления существующего пользователя системы.
+      parameters:
+      - description: ID пользователя
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Данные для обновления
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserUpdateData'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Обновление информации о пользователе системы
+      tags:
+      - users
+  /v1/users/{userId}/pass/otp:
+    put:
+      consumes:
+      - application/json
+      description: Запрос для изменения пароля пользователя.
+      parameters:
+      - description: ID пользователя
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Новый пароль
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserResetPass'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Сброс пользовательского пароля
+      tags:
+      - users
+  /v1/users/{userId}/roles:
+    delete:
+      consumes:
+      - application/json
+      description: Запрос для отзыва ролей пользователя из системы.
+      parameters:
+      - description: ID пользователя
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Список ролей для отзыва
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.Role'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Отзыв ролей пользователя в системе
+      tags:
+      - users
+      - roles
+    put:
+      consumes:
+      - application/json
+      description: Запрос для обновления списка ролей пользователя системы.
+      parameters:
+      - description: ID пользователя
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Список ролей
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/models.Role'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Обновление ролей пользователя системы
+      tags:
+      - users
+      - roles
+  /v1/users/count:
+    get:
+      description: Получение числа всех пользователей системы.
+      responses:
+        "200":
+          description: Количество пользователей
+          schema:
+            $ref: '#/definitions/dto.CountResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение числа всех пользователей системы
+      tags:
+      - users
+  /v1/users/count-by-role:
+    get:
+      description: Получение информации сколько в системе SA, CA и CO
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.CountUserByRoleResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение информации о числе пользователй по ролям
+      tags:
+      - users
+  /v1/users/count/context/{contextID}:
+    get:
+      description: Получение числа CA и CO в контексте.
+      parameters:
+      - description: ID контекста
+        in: path
+        name: contextID
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Количество пользователей
+          schema:
+            $ref: '#/definitions/dto.CountUserForContextResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение числа CA и CO в контексте
+      tags:
+      - users
+      - context
+  /v1/users/profile:
+    get:
+      description: Получение информации об авторизованном в системе пользователе
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение информации о текущем пользователе
+      tags:
+      - users
+  /v1/users/profile/pass:
+    put:
+      consumes:
+      - application/json
+      description: Пользователю необходимо отправить в теле запроса новый пароль.
+      parameters:
+      - description: Новый пароль
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserUpdatePass'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Изменение пароля текущего пользователя системы
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
