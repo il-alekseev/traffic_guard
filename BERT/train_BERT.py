@@ -23,6 +23,7 @@ from clearml import Task, Logger
 print("CUDA available" if torch.cuda.is_available() else "CUDA not available")
 import kagglehub
 
+
 dataset_path = kagglehub.dataset_download("mikhailklemin/kinopoisks-movies-reviews")
 dataset_path = os.path.join(dataset_path, "dataset")
 
@@ -43,14 +44,14 @@ kinopoisk_data = DatasetDict({
 
 # ради скорости обучаемся на части данных
 small_ds = DatasetDict({
-    "train": kinopoisk_data["train"].train_test_split(train_size=0.2, seed=42)["train"],
-    "test": kinopoisk_data["test"].train_test_split(test_size=0.2, seed=42)["test"]
+    "train": kinopoisk_data["train"].train_test_split(train_size=0.1, seed=42)["train"],
+    "test": kinopoisk_data["test"].train_test_split(test_size=0.1, seed=42)["test"]
 })
 
 models_to_train = [
-    "DeepPavlov/rubert-base-cased",
-    "cointegrated/rubert-tiny",
-    "ai-forever/ruBert-base",
+    # "DeepPavlov/rubert-base-cased",
+    # "cointegrated/rubert-tiny",
+    # "ai-forever/ruBert-base",
     "ai-forever/ruBert-large",
 ]
 
@@ -85,10 +86,10 @@ for checkpoint in models_to_train:
         lambda x: tokenizer(x["text"], truncation=True, padding="max_length", max_length=512), batched=True)
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
     output_dir = "models" + checkpoint.split("/")[-1] + "_finetuned"
-    n_steps = 200                           # каждые n_steps шагов eval-делаем логгирование-сохранение
+    n_steps = 5000                          # каждые n_steps шагов eval-делаем логгирование-сохранение
 
     training_args = TrainingArguments(
-        num_train_epochs=5,                 # число эпох
+        num_train_epochs=3,                 # число эпох
         output_dir=output_dir,              # папка для сохранения модели и чекпоинтов
         per_device_train_batch_size=16,     # батч на одном устройстве для обучения
         per_device_eval_batch_size=32,      # батч для оценки
