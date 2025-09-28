@@ -1,0 +1,17 @@
+# Всё запретим
+*
+# Разрешаем эти файлы
+!*/
+!*.py
+!*.ipynb
+!*.txt
+
+!.gitignore
+!TODO
+!README
+!.gitattributes
+
+# Исключим жирные каталоги
+**/__pycache__/
+**/.ipynb_checkpoints/
+*model*
