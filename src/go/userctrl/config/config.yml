@@ -15,28 +15,28 @@ logger:
 
 bizlogrepo:
   pool_max: 2
-  host: "172.17.134.91"
-  user: "blog"
-  pass: "blogpassword"
+  host: "192.168.130.112"
+  user: "config_user"
+  pass: "config_password"
   dbname: "blog"
-  port: "5432"
+  port: "5433"
   sslmode: "disable"
 
 keycloak:
   proto: "https"
-  host: "172.17.134.91"
+  host: "192.168.130.112"
   port: "8443"
   login: "system_admin"
   password: "admin"
   system_realm: "master"
-  realm: "tsum"
+  realm: "grafanasso"
   grafana_client_id: "grafana-sso"
   grafana_client_secret: "uAgEvDTaFYvzqr287p2qZFIi7habElf8"
-  grafana_client_uuid: "b1918cad-e6a8-40b0-9c2a-5ab016d79c39"
+  grafana_client_uuid: "29a7ef53-ad36-44f3-93be-a70270f439a2"
 
 grafana:
   proto: "https"
-  host: "172.17.134.91"
+  host: "192.168.130.112"
   port: "3000"
   auth_path: "/login/generic_oauth"
   username: "system_admin"
