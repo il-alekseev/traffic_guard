@@ -1,0 +1,32 @@
+app:
+  name: 'api-gw'
+  version: '1.0.0'
+
+swagger:
+  host: '127.0.0.1'
+
+http:
+  host: '127.0.0.1'
+  port: '8001'
+
+logger:
+  log_level: 'debug'
+  rollbar_env: 'api-gw'
+
+usercontrol:
+  proto: "http"
+  host: "127.0.0.1"
+  port: "8002"
+
+ctxcontrol:
+  proto: "http"
+  host: "127.0.0.1"
+  port: "8003"  
+
+blog_serv:
+  proto: "http"
+  host: "127.0.0.1"
+  port: "8004"  
+
+keycloak:
+  pem_fiel_path: "./data/keycloak/key.RS256.pub.pem"

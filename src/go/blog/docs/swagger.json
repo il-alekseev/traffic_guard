@@ -1,0 +1,200 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "app for get logs",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/api/v1/healthcheck": {
+            "get": {
+                "summary": "Проверка здоровья сервиса",
+                "responses": {
+                    "200": {
+                        "description": "ready",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoSuccessResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/logs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает массив логов",
+                "summary": "Получение логов из БД с возможностью фильтрации и пагинации",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Номер страницы с 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Колличесвто отображаемых элементов на странице",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по роли",
+                        "name": "role",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по contextID",
+                        "name": "context_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "фильтр по username/entity/description",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Отфильтрованные логи",
+                        "schema": {
+                            "$ref": "#/definitions/models.Logs"
+                        }
+                    },
+                    "400": {
+                        "description": "query params is not valid",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "internal error",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIError"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.APIError": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.BusinessLog": {
+            "type": "object",
+            "properties": {
+                "context": {
+                    "type": "string"
+                },
+                "context_str": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "entity": {
+                    "description": "user, context",
+                    "type": "string"
+                },
+                "entity_id": {
+                    "description": "userID or ContextID",
+                    "type": "string"
+                },
+                "event_type": {
+                    "description": "CREATE, UPDATE, DELETE",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "new_value": {
+                    "$ref": "#/definitions/models.JSONB"
+                },
+                "old_value": {
+                    "$ref": "#/definitions/models.JSONB"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "user_name": {
+                    "type": "string"
+                },
+                "user_role": {
+                    "description": "SA, CA",
+                    "type": "string"
+                }
+            }
+        },
+        "models.DtoSuccessResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "description": "message",
+                    "type": "string"
+                }
+            }
+        },
+        "models.JSONB": {
+            "type": "object",
+            "additionalProperties": true
+        },
+        "models.Logs": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.BusinessLog"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/models.Meta"
+                }
+            }
+        },
+        "models.Meta": {
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "type": "integer"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "pages": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Type \"Bearer\" followed by a space and JWT token",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

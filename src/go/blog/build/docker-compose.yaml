@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: blog_local
+    restart: no
+    environment:
+      - POSTGRES_USER=${BLOG_PG_USER}
+      - POSTGRES_PASSWORD=${BLOG_PG_PASSWORD}
+      - POSTGRES_DB=${BLOG_PG_DBNAME}
+    ports:
+      - "${BLOG_PG_PORT}:${BLOG_PG_PORT}"
+    volumes:
+      - /var/lib/docker-volume/postgres_blog:/var/lib/postgresql/data
+  fiermon-blog:
+    container_name: ${BLOG_APP_NAME}
+    build:
+      context: ../
+      dockerfile: "build/Dockerfile"
+    image: ${BLOG_APP_NAME}:${BLOG_APP_VERSION}
+    restart: no
+    ports:
+      - '${BLOG_HTTP_PORT}:${BLOG_HTTP_PORT}'
+    environment:
+      - BLOG_APP_NAME=${BLOG_APP_NAME}
+      - BLOG_APP_VERSION=${BLOG_APP_VERSION}
+      - BLOG_HTTP_HOST=${BLOG_HTTP_HOST}
+      - BLOG_HTTP_PORT=${BLOG_HTTP_PORT}
+      - BLOG_HTTP_TIMEOUT=${BLOG_HTTP_TIMEOUT}
+      - BLOG_HTTP_IDLE_TIMEOUT=${BLOG_HTTP_IDLE_TIMEOUT}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - BLOG_PG_POOL_MAX=${BLOG_PG_POOL_MAX}
+      - BLOG_PG_HOST=${BLOG_PG_HOST}
+      - BLOG_PG_PORT=${BLOG_PG_PORT}
+      - BLOG_PG_USER=${BLOG_PG_USER}
+      - BLOG_PG_PASSWORD=${BLOG_PG_PASSWORD}
+      - BLOG_PG_DBNAME=${BLOG_PG_DBNAME}
+      - BLOG_PG_SSLMODE=${BLOG_PG_SSLMODE}
+      - BLOG_SWAGGER_HOST=${BLOG_SWAGGER_HOST}

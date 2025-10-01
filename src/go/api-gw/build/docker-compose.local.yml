@@ -1,0 +1,17 @@
+services:
+  api-gw:
+    container_name: ${API_GW_IMAGE_NAME}
+    build:
+      context: ..
+      dockerfile: "build/Dockerfile"
+    image: ${API_GW_IMAGE_NAME}
+    ports:
+      - '${API_GW_HTTP_PORT}:${API_GW_HTTP_PORT}'
+    restart: always
+    env_file: local.env
+    networks:
+      - fiermon_network
+
+networks:
+  fiermon_network:
+    driver: bridge

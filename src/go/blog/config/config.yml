@@ -1,0 +1,25 @@
+app:
+  name: 'blog'
+  version: '1.0.0'
+
+postgres:
+  pool_max: 2
+  host: "192.168.130.112"
+  port: "5433"
+  user: "config_user"
+  password: "config_password"
+  dbname: "blog"
+  sslmode: "disable"
+
+http:
+  host: "127.0.0.1"
+  port: "8004"
+  timeout: 4s
+  idle-timeout: 60s
+
+logger:
+  log_level: 'debug'
+  rollbar_env: 'api-gw'
+
+swagger:
+  host: "127.0.0.1"

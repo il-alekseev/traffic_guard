@@ -1,0 +1,132 @@
+basePath: /
+definitions:
+  models.APIError:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  models.BusinessLog:
+    properties:
+      context:
+        type: string
+      context_str:
+        type: string
+      description:
+        type: string
+      entity:
+        description: user, context
+        type: string
+      entity_id:
+        description: userID or ContextID
+        type: string
+      event_type:
+        description: CREATE, UPDATE, DELETE
+        type: string
+      id:
+        type: integer
+      new_value:
+        $ref: '#/definitions/models.JSONB'
+      old_value:
+        $ref: '#/definitions/models.JSONB'
+      timestamp:
+        type: string
+      user_name:
+        type: string
+      user_role:
+        description: SA, CA
+        type: string
+    type: object
+  models.DtoSuccessResponse:
+    properties:
+      message:
+        description: message
+        type: string
+    type: object
+  models.JSONB:
+    additionalProperties: true
+    type: object
+  models.Logs:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.BusinessLog'
+        type: array
+      meta:
+        $ref: '#/definitions/models.Meta'
+    type: object
+  models.Meta:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      pages:
+        type: integer
+      total:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  title: app for get logs
+  version: "1.0"
+paths:
+  /api/v1/healthcheck:
+    get:
+      responses:
+        "200":
+          description: ready
+          schema:
+            $ref: '#/definitions/models.DtoSuccessResponse'
+      summary: Проверка здоровья сервиса
+  /api/v1/logs:
+    get:
+      description: Возвращает массив логов
+      parameters:
+      - default: 1
+        description: Номер страницы с 1
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Колличесвто отображаемых элементов на странице
+        in: query
+        name: limit
+        type: integer
+      - description: Фильтр по роли
+        in: query
+        name: role
+        type: string
+      - description: Фильтр по contextID
+        in: query
+        name: context_id
+        type: string
+      - description: фильтр по username/entity/description
+        in: query
+        name: search
+        type: string
+      responses:
+        "200":
+          description: Отфильтрованные логи
+          schema:
+            $ref: '#/definitions/models.Logs'
+        "400":
+          description: query params is not valid
+          schema:
+            $ref: '#/definitions/models.APIError'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/models.APIError'
+      security:
+      - BearerAuth: []
+      summary: Получение логов из БД с возможностью фильтрации и пагинации
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
