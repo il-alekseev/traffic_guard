@@ -1,0 +1,93 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table session {
+  id integer [primary key]
+  datetime_utc timestamp
+  datetime_node timestamp
+  node_id integer
+  type varchar
+  status_id integer
+  src_id integer
+  dst_id integer
+  protocol varchar
+  attack_hash float
+  trigger_count integer
+  detection_id integer
+}
+
+Table node_info{
+  id varchar [primary key]
+  node varchar
+  host varchar
+}
+
+Table source{
+  id integer [primary key]
+  ip varchar
+  port integer
+  country varchar
+  username varchar
+}
+
+Table domain{
+  id integer [primary key]
+  ip varchar
+  port integer
+  country varchar
+  url varchar
+  categoty_id integer
+  access_count integer
+  analysis_attemps_count integer
+  content_analysis_counter integer
+  decision_id integer
+  decision_datetime timestamp
+  last_access_datetime timestamp
+}
+
+Table decision{
+  id integer
+  decision varchar
+}
+
+Table detection{
+  id integer [primary key]
+  description varchar
+  last_access_datetime timestamp
+  node_id integer
+  domain_id integer
+  action_id integer
+}
+
+Table status{
+  id integer [primary key]
+  status varchar
+}
+
+Table category_info{
+  id integer [primary key]
+  category varchar
+  percent float
+}
+
+
+
+Ref: "node_info"."id" < "session"."id"
+
+Ref: "source"."id" < "session"."src_id"
+
+Ref: "domain"."id" < "session"."dst_id"
+
+Ref: "status"."id" < "session"."status_id"
+
+
+Ref: "detection"."domain_id" < "domain"."id"
+
+Ref: "detection"."node_id" < "node_info"."id"
+
+
+Ref: "detection"."id" < "session"."detection_id"
+
+Ref: "category_info"."id" < "domain"."categoty_id"
+
+Ref: "decision"."id" < "domain"."decision_id"

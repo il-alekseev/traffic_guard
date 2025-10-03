@@ -1,0 +1,40 @@
+services:  
+  postgres:
+    image: postgres:15
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=system_admin
+      - POSTGRES_PASSWORD=postgrespassword
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U system_admin"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    command: [
+      "sh", "-c",
+      "echo \"CREATE USER etl WITH PASSWORD 'etlpassword';\n\" > /docker-entrypoint-initdb.d/init.sql &&
+      echo \"CREATE DATABASE etl OWNER etl ;\n\" >> /docker-entrypoint-initdb.d/init.sql &&
+      docker-entrypoint.sh postgres "
+    ]
+    networks:
+      - tg_network
+  tg-elt:
+    container_name: tg-elt
+    build:
+      context: ..
+      dockerfile: "build/Dockerfile"
+    image: tg-elt
+    #restart: always
+    #env_file: local.env
+    networks:
+      - tg_network
+networks:
+  tg_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
