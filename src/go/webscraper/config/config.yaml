@@ -1,0 +1,13 @@
+input_path: "urls.txt"
+db_path: "data/ipinfo_lite.mmdb"
+workers: 1000
+request_timeout: 15s
+http_timeout: 10s
+content:
+  strategies:
+    - trafilatura
+    - http
+  min_text_length: 200
+  repository_path: data/attempts.jsonl
+logging:
+  file: logs/scraper.log
