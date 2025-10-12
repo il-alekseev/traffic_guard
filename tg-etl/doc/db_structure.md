@@ -138,7 +138,7 @@ Ref: management_log_index_deletion_queue.id > management_log.id
 
 На рисунке ниже представлена структура БД ядра ETL
 
-![alt text](image-2.png)
+![alt text](image.png)
 
 Декларативное описание структуры в формате DBML
 
@@ -149,21 +149,21 @@ Ref: management_log_index_deletion_queue.id > management_log.id
 Table session {
   id integer [primary key]
   datetime_utc timestamp
-  datetime_node timestamp
-  node_id integer
+  datetime_device timestamp
+  device_id integer
   type varchar
   status_id integer
-  src_id integer
+  url varchar
   dst_id integer
+  src_id integer
   protocol varchar
   attack_hash float
   trigger_count integer
-  detection_id integer
 }
 
-Table node_info{
+Table device{
   id varchar [primary key]
-  node varchar
+  name varchar
   host varchar
 }
 
@@ -180,8 +180,7 @@ Table domain{
   ip varchar
   port integer
   country varchar
-  url varchar
-  categoty_id integer
+  path varchar
   access_count integer
   analysis_attemps_count integer
   content_analysis_counter integer
@@ -198,9 +197,7 @@ Table decision{
 Table detection{
   id integer [primary key]
   description varchar
-  last_access_datetime timestamp
-  node_id integer
-  domain_id integer
+  session_id integer
   action_id integer
 }
 
@@ -209,15 +206,17 @@ Table status{
   status varchar
 }
 
-Table category_info{
+Table category{
   id integer [primary key]
   category varchar
   percent float
 }
 
-
-
-Ref: "node_info"."id" < "session"."id"
+Table category_domain{
+  category_id integer
+  domain_id integer
+  primary key(categoty_id, domain_id)
+}
 
 Ref: "source"."id" < "session"."src_id"
 
@@ -225,15 +224,13 @@ Ref: "domain"."id" < "session"."dst_id"
 
 Ref: "status"."id" < "session"."status_id"
 
-
-Ref: "detection"."domain_id" < "domain"."id"
-
-Ref: "detection"."node_id" < "node_info"."id"
-
-
-Ref: "detection"."id" < "session"."detection_id"
-
-Ref: "category_info"."id" < "domain"."categoty_id"
-
 Ref: "decision"."id" < "domain"."decision_id"
+
+Ref: "category_domain"."category_id" > "category"."id" 
+
+Ref: "category_domain"."domain_id" > "domain"."id"  
+
+Ref: "detection"."session_id" < "session"."id"
+
+Ref: "device"."id" < "session"."device_id"
 ```
