@@ -44,13 +44,17 @@ func Run(cfg *config.Config) {
 		cfg.PG.DBName, cfg.PG.Port, cfg.PG.SSLMode)
 	db, err := createConnection(dsn, cfg.PG.PoolMax, l,
 		// Автомиграция только базовых таблиц
-		models.SecurityEvent{},
-		models.SecurityDevice{},
-		models.SendersInfo{},
-		models.ReceiversInfo{},
-		models.EventType{},
 		models.Category{},
-		models.Importance{},
+		models.CategoryDomain{},
+		models.Decision{},
+		models.Detection{},
+		models.Device{},
+		models.Domain{},
+		models.Session{},
+		models.Source{},
+		models.Status{},
+		// В release убрать!
+		models.IdsLog{},
 	)
 
 	if err != nil {
@@ -58,4 +62,18 @@ func Run(cfg *config.Config) {
 		return
 	}
 	l.Debug("db info %v", db)
+
+	// Заполняем структуру тестовыми данными
+	//logs, err := parser.ParseCSVFileToIdsLog("C:/Users/Asus/Projects/VS Code/Continent/traffic_guard/src/go/tg-etl/test_data/security_log-2025-9-20_15-58.csv")
+	//if err != nil {
+	//	l.Fatal("could not parse csv file: %v", err)
+	//	return
+	//}
+	//l.Debug("got %d logs", len(logs))
+	//ctx := context.Background()
+	//for _, log := range logs {
+	//	if err := db.CreateLog(&ctx, &log); err != nil {
+	//		fmt.Printf("failed to create log: %s\n", err)
+	//	}
+	//}
 }
