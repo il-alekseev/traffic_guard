@@ -17,6 +17,5 @@ WORKDIR /app
 COPY --from=builder /app/usercontrol /app/usercontrol
 COPY --from=builder /app/docs/ /app/docs/
 COPY --from=builder /app/config/config.yml /app/config/config.yml
-COPY --from=builder /app/pkg/clixonclient/nacm/ /app/pkg/clixonclient/nacm/
 
 CMD ["./usercontrol"]
