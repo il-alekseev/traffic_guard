@@ -3,63 +3,83 @@ package v1
 import (
 	"context"
 	"tg-dbd/internal/models"
+	"time"
 )
 
 type UseCaseInterface interface {
-	GetRequestStat(dateStart string,
-		dateStop string,
-		// TODO: спросить про возможные фильтры
-		filter string) (models.RequestStat, error)
-	GetNotifications(сtx context.Context,
-		dateStart string,
-		dateStop string,
-		// TODO: спросить про возможные фильтры
-		filter string,
-		topCount int64) ([]models.Notification, error)
-	GetTopCategories(сtx context.Context,
-		dateStart string,
-		dateStop string,
-		// TODO: спросить про возможные фильтры
-		filter string,
-		topCount int64) (map[string]int, error)
-	GetTopResources(сtx context.Context,
-		dateStart string,
-		dateStop string,
-		// TODO: спросить про возможные фильтры
-		filter string,
-		topCount int64) (map[string]int, error)
-	GetDetectionCount(сtx context.Context,
-		dateStart string,
-		dateStop string,
-		// TODO: спросить про возможные фильтры
-		filter string) (int64, error)
-	GetAcceptCount(сtx context.Context,
-		dateStart string,
-		dateStop string,
-		// TODO: спросить про возможные фильтры
-		filter string) (int64, error)
-	GetDenyCount(сtx context.Context,
-		dateStart string,
-		dateStop string,
-		// TODO: спросить про возможные фильтры
-		filter string) (int64, error)
-	GetUnresolvedDetectionCount(сtx context.Context,
-		dateStart string,
-		dateStop string,
-		// TODO: спросить про возможные фильтры
-		filter string) (int64, error)
-	GetTopDetectionsInfo(сtx context.Context,
-		dateStart string,
-		dateStop string,
-		// TODO: спросить про возможные фильтры
-		filter string,
-		topCount int64) ([]models.Detection, error)
 	GetSessions(ctx context.Context,
-		dateStart string,
-		dateStop string,
+		start time.Time,
+		end time.Time,
 		page int,
 		limit int,
 		filter string,
 		orderBy string,
 		orderDir string) ([]models.Session, int64, error)
+
+	GetDetections(ctx context.Context,
+		start time.Time,
+		end time.Time,
+		// TODO: спросить про возможные фильтры
+		count int,
+		filter string,
+	) ([]models.Detection, error)
+
+	GetDetectionsStat(ctx context.Context,
+		start time.Time,
+		end time.Time,
+		// TODO: спросить про возможные фильтры
+		filter string,
+	) (models.DetectionStat, error)
+
+	GetCategories(ctx context.Context,
+		start time.Time,
+		end time.Time,
+		// TODO: спросить про возможные фильтры
+		count int,
+		filter string,
+	) (map[string]int, error)
+
+	GetResources(ctx context.Context,
+		start time.Time,
+		end time.Time,
+		// TODO: спросить про возможные фильтры
+		count int,
+		filter string,
+	) ([]models.Resource, error)
+
+	// TODO: Логика добавления в уведомления бизнес-логов
+	GetEvents(ctx context.Context,
+		start time.Time,
+		end time.Time,
+		// TODO: спросить про возможные фильтры
+		count int,
+		filter string,
+	) ([]models.Notification, error)
+
+	GetDevicesStat(ctx context.Context,
+		start time.Time,
+		end time.Time,
+	) ([]models.DeviceStat, error)
+
+	GetTrafficStat(ctx context.Context,
+		start time.Time,
+		end time.Time,
+		filter string,
+	) ([]models.TrafficPoint, error)
+
+	GetRequestsStat(ctx context.Context,
+		start time.Time,
+		end time.Time,
+		filter string,
+	) (models.RequestsStat, error)
+
+	GetProhActSchedule(ctx context.Context,
+		start time.Time,
+		filter string,
+	) (map[int64]int, error)
+
+	GetAnomalies(ctx context.Context,
+		start time.Time,
+		end time.Time,
+	) (models.Anomaly, error)
 }

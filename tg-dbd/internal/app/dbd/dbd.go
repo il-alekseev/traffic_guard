@@ -7,13 +7,17 @@ import (
 	"os/signal"
 	"tg-dbd/config"
 	httpserver "tg-dbd/internal/controllers/http/v1"
+	"tg-dbd/internal/usecase"
 	"tg-dbd/pkg/logger"
 	"time"
 )
 
 func Run(cfg *config.Config) {
 	l := logger.New(cfg.Log.Level)
-	server := httpserver.New(&cfg.HTTP, l)
+
+	u := usecase.New(l)
+
+	server := httpserver.New(&cfg.HTTP, l, u)
 
 	go func() {
 		if err := server.Start(); err != nil && err != http.ErrServerClosed {

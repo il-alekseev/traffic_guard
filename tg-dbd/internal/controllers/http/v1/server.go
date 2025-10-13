@@ -9,14 +9,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TODO: переделать под slog
 type Server struct {
 	server *http.Server
 	router *gin.Engine
 	logger logger.Interface
+	u      UseCaseInterface
 }
 
-func New(cfg *config.HTTP, l logger.Interface) *Server {
+func New(cfg *config.HTTP, l logger.Interface, u UseCaseInterface) *Server {
+	gin.SetMode(gin.DebugMode)
+
 	r := gin.New()
+
 	s := http.Server{
 		Addr:    cfg.Host + ":" + cfg.Port,
 		Handler: r,
@@ -25,6 +30,7 @@ func New(cfg *config.HTTP, l logger.Interface) *Server {
 		server: &s,
 		router: r,
 		logger: l,
+		u:      u,
 	}
 	server.configureRouter()
 	return &server
