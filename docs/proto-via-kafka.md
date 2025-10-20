@@ -13,12 +13,58 @@
 Данные в очередь класть в виде JSON
 Предлагайте структуры данных
 
+## Жизненный цикл запроса:
+1. ETL Ядро генерирует новый `request_id` (UUID) и отправляет запрос в очередь `url-processing-requests`
+2. Сервис получения контента получает запрос, извлекает контент и метаданные, затем отправляет:
+- Метаданные в `url-metadata-results` с тем же `request_id`
+- Контент для анализа в `url-content-analysis` с тем же `request_id`
+3. ML Сервис получает контент, выполняет анализ и отправляет результаты в `ml-analysis-results` с тем же `request_id`
+4. ETL Ядро получает результаты из обеих очередей (`url-metadata-results` и `ml-analysis-results`) и связывает их по `request_id`
+
+```mermaid
+graph TB
+    %% Сервисы
+    ETL[ETL Ядро]
+    CONTENT[Сервис получения контента]
+    ML[ML Сервис]
+    
+    %% Очереди Kafka
+    subgraph Kafka [Apache Kafka Topics]
+        REQ[url-processing-requests<br/>ETL → Content]
+        META[url-metadata-results<br/>Content → ETL]
+        CONTENT_REQ[url-content-analysis<br/>Content → ML]
+        ML_RES[ml-analysis-results<br/>ML → ETL]
+    end
+    
+    %% Потоки данных
+    ETL -- request_id: UUID --> REQ
+    REQ -- request_id: UUID --> CONTENT
+    
+    CONTENT -- request_id: UUID --> META
+    META -- request_id: UUID --> ETL
+    
+    CONTENT -- request_id: UUID --> CONTENT_REQ
+    CONTENT_REQ -- request_id: UUID --> ML
+    
+    ML -- request_id: UUID --> ML_RES
+    ML_RES -- request_id: UUID --> ETL
+    
+    %% Стили
+    classDef service fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef kafka fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    
+    class ETL,CONTENT,ML service
+    class REQ,META,CONTENT_REQ,ML_RES kafka
+```
+
 ## Общение через `url-processing-requests`
 Отличная задача! Приведу несколько примеров JSON-структур, соответствующие структуры на Go и их описание.
 
 ### Описание структуры
 
 #### Назначение полей:
+
+**`request_id`** - UUID запроса на аниз контента
 
 **`src`** - источник запроса:
 - `ip` - IP-адрес клиента, с которого выполняется запрос
@@ -42,6 +88,7 @@
 #### Пример 1: Полный URL с контентом
 ```json
 {
+  "request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "src": {
     "ip": "192.168.1.100"
   },
@@ -58,6 +105,7 @@
 #### Пример 2: Домен без порта
 ```json
 {
+  "request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "src": {
     "ip": "10.0.0.50"
   },
@@ -72,6 +120,7 @@
 #### Пример 3: IP с портом
 ```json
 {
+  "request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "src": {
     "ip": "172.16.254.10"
   },
@@ -87,6 +136,7 @@
 #### Пример 4: Минимальные данные
 ```json
 {
+  "request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "src": {
     "ip": "127.0.0.1"
   },
@@ -100,6 +150,7 @@
 Или
 ```json
 {
+  "request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "src": {
     "ip": "127.0.0.1"
   },
@@ -114,6 +165,7 @@
 #### Пример 5: URL с HTTP
 ```json
 {
+  "request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "src": {
     "ip": "192.168.0.15"
   },
@@ -135,12 +187,14 @@ package main
 import (
     "encoding/json"
     "fmt"
+    "github.com/google/uuid"
 )
 
 // AnalysisRequest представляет структуру запроса на анализ
 type AnalysisRequest struct {
-    Src Source `json:"src"`
-    Dst Destination `json:"dst"`
+    RequestID uuid.UUID   `json:"request_id"` // UUID для трассировки запроса через все сервисы
+    Src       Source      `json:"src"`
+    Dst       Destination `json:"dst"`
 }
 
 // Source содержит информацию об источнике запроса
@@ -174,48 +228,31 @@ const (
     ProtocolHTTPS Protocol = "https"
 )
 
-// Методы для удобства работы со структурой
-
-// GetDefaultPorts возвращает стандартные порты для проверки в зависимости от протокола
-func (d *Destination) GetDefaultPorts() []int {
-    if d.Proto != nil && *d.Proto == ProtocolHTTP {
-        return []int{80, 8080, 443, 8443}
+// Метод для создания нового запроса с автоматической генерацией UUID
+func NewAnalysisRequest(srcIP string, dstType DestinationType, resource string) *AnalysisRequest {
+    return &AnalysisRequest{
+        RequestID: uuid.New(),
+        Src:       Source{IP: srcIP},
+        Dst:       Destination{
+            Type:     dstType,
+            Resource: resource,
+        },
     }
-    // По умолчанию для HTTPS или когда протокол не указан
-    return []int{443, 8443, 80, 8080}
-}
-
-// GetEffectiveProtocol возвращает эффективный протокол (указанный или по умолчанию)
-func (d *Destination) GetEffectiveProtocol() Protocol {
-    if d.Proto != nil {
-        return *d.Proto
-    }
-    // По умолчанию начинаем с HTTPS
-    return ProtocolHTTPS
-}
-
-// HasContent проверяет, есть ли контент для анализа
-func (d *Destination) HasContent() bool {
-    return d.ContentID != nil && *d.ContentID != ""
 }
 
 // Пример использования
 func main() {
-    // Создание запроса
+    // Создание запроса с автоматической генерацией UUID
+    request := NewAnalysisRequest("192.168.1.100", DestinationURL, "pupok.xxx.com/se/be/me/bi.html")
+    
+    // Установка опциональных полей
     port := 8080
     proto := ProtocolHTTP
     contentID := "2b325e4b-49ea-4659-82bb-7a8385a1ed8d"
     
-    request := AnalysisRequest{
-        Src: Source{IP: "192.168.1.100"},
-        Dst: Destination{
-            Type:      DestinationURL,
-            Resource:  "pupok.xxx.com/se/be/me/bi.html",
-            Port:      &port,
-            Proto:     &proto,
-            ContentID: &contentID,
-        },
-    }
+    request.Dst.Port = &port
+    request.Dst.Proto = &proto
+    request.Dst.ContentID = &contentID
     
     // Сериализация в JSON
     jsonData, err := json.MarshalIndent(request, "", "  ")
@@ -223,14 +260,7 @@ func main() {
         panic(err)
     }
     
+    fmt.Println("Request JSON:")
     fmt.Println(string(jsonData))
-    
-    // Десериализация из JSON
-    var newRequest AnalysisRequest
-    if err := json.Unmarshal(jsonData, &newRequest); err != nil {
-        panic(err)
-    }
-    
-    fmt.Printf("Parsed request: %+v\n", newRequest)
 }
 ```
