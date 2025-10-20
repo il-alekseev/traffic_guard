@@ -10,38 +10,6 @@ import (
 	"tg-dbd/pkg/trparser"
 )
 
-func (u *Usecase) GetTopCategories(ctx context.Context, tr *trparser.TimeRange, f models.CategoryFilter, count int) ([]dto.Category, error) {
-	method := "GetTopCategories"
-	u.l.InfoContext(ctx,
-		method,
-		slog.Any("time_range", tr),
-		slog.Any("filter", f),
-		slog.Int("count", count),
-	)
-
-	// Устанавливаем значение по умолчанию для count
-	if count <= 0 {
-		count = 5
-	}
-
-	categories, err := u.db.GetTopCategories(ctx, tr, f, count)
-	if err != nil {
-		err = fmt.Errorf("%s: failed to get top categories: %w", method, err)
-		u.l.ErrorContext(ctx, "Database operation failed",
-			wsl.String("method", method),
-			wsl.String("error", err.Error()),
-		)
-		return nil, err
-	}
-
-	u.l.InfoContext(ctx, "Top categories retrieved",
-		slog.String("method", method),
-		slog.Int("categories_count", len(categories)),
-		slog.Int("requested_count", count),
-	)
-	return categories, nil
-}
-
 func (u *Usecase) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, p models.Pagination) ([]dto.Detection, int64, error) {
 	method := "GetTopDetections"
 	u.l.InfoContext(ctx,

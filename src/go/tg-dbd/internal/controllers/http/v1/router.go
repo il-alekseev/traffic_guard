@@ -14,6 +14,8 @@ func (s *Server) configureRouter() {
 	s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	v1 := s.router.Group("/api/v1")
 	{
+		// Common
+		v1.GET("/devices", s.GetDevices)
 		// Вкладка Сессии
 		v1.GET("/sessions", s.GetSessions)
 		// Вкладка dashboard
@@ -34,6 +36,6 @@ func (s *Server) configureRouter() {
 			detections.GET("/stat", s.GetDetectionStat)
 		}
 		// Утилиты
-		v1.GET("healthcheck", s.Healthcheck)
+		v1.GET("/healthcheck", s.Healthcheck)
 	}
 }

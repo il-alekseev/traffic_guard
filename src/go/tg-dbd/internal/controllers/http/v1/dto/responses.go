@@ -21,3 +21,9 @@ type ListResponse struct {
 	Data interface{}    `json:"data"` // Список однотипных данных
 	Meta PaginationMeta `json:"meta"` // Метаданные пагинации
 }
+
+type DataPointsResponse struct {
+	Type  string `json:"type"`  // Тип данных
+	Data  []uint `json:"data"`  // Список однотипных данных
+	Count uint   `json:"count"` // Число точек с данными
+}

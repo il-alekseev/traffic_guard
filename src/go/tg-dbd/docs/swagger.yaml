@@ -107,6 +107,61 @@ info:
   title: Dashboard API
   version: "1.0"
 paths:
+  /dashboards/requests:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает статистику запросов за указанный период с фильтрацией
+        по статусу, хосту и категории
+      parameters:
+      - default: now-10m
+        description: 'Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)'
+        in: query
+        name: from
+        type: string
+      - default: now
+        description: 'Конец временного диапазона (формат: now, 2024-01-01T00:00:00Z)'
+        in: query
+        name: to
+        type: string
+      - default: prohibited
+        description: Статус запросов (allowed, blocked, prohibited, waiting)
+        in: query
+        name: status
+        type: string
+      - description: Фильтр по имени хоста
+        in: query
+        name: hostname
+        type: string
+      - description: Фильтр по категории
+        in: query
+        name: top_category
+        type: string
+      - default: 10
+        description: Количество интервалов
+        in: query
+        name: count
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Статистика запросов (массив чисел)
+          schema:
+            items:
+              type: integer
+            type: array
+        "400":
+          description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Получить статистику запросов
+      tags:
+      - statistics
   /dashboards/top-categories:
     get:
       consumes:
@@ -262,6 +317,29 @@ paths:
       summary: Получение статистики по детекциям
       tags:
       - detections
+  /devices:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список всех уникальных имен устройств (хостов) из системы
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список имен устройств
+          schema:
+            items:
+              type: string
+            type: array
+        "500":
+          description: Ошибка при получении имен устройств
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить список имен устройств
+      tags:
+      - common
   /sessions:
     get:
       consumes:

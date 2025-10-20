@@ -7,48 +7,6 @@ import (
 	"time"
 )
 
-// GetCategories возвращает топ категорий
-func (u *Usecase) GetCategories(ctx context.Context, start time.Time, end time.Time, count int, filter string) (map[string]int, error) {
-	u.l.InfoContext(ctx,
-		"GetTopCategories called",
-		slog.String("start", start.String()),
-		slog.String("end", end.String()),
-		slog.String("filter", filter),
-		slog.Int("topCount", count),
-	)
-
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-
-	categories := map[string]int{
-		"Социальные сети":    156,
-		"Электронная почта":  142,
-		"Облачные хранилища": 128,
-		"Финансы":            115,
-		"Новости":            98,
-		"Развлечения":        87,
-		"Игры":               76,
-		"Образование":        65,
-	}
-
-	// Ограничиваем количество согласно topCount
-	if count > 0 {
-		limited := make(map[string]int)
-		count1 := 0
-		for k, v := range categories {
-			if count1 >= count {
-				break
-			}
-			limited[k] = v
-			count1++
-		}
-		return limited, nil
-	}
-
-	return categories, nil
-}
-
 // GetResources возвращает список ресурсов с статистикой запросов
 func (u *Usecase) GetResources(ctx context.Context, start time.Time, end time.Time, count int, filter string) ([]models.Resource, error) {
 	u.l.InfoContext(ctx,
@@ -113,67 +71,6 @@ func (u *Usecase) GetResources(ctx context.Context, start time.Time, end time.Ti
 	}
 
 	return resources, nil
-}
-
-// GetEvents возвращает список событий за указанный период
-func (u *Usecase) GetEvents(ctx context.Context, start time.Time, end time.Time, count int, filter string) ([]models.Notification, error) {
-	u.l.InfoContext(ctx,
-		"GetEvents called",
-		slog.String("start", start.String()),
-		slog.String("end", end.String()),
-		slog.Int("count", count),
-		slog.String("filter", filter),
-	)
-
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-
-	// Заглушка с тестовыми данными событий
-	events := []models.Notification{
-		{
-			Description: "Обнаружена подозрительная активность пользователя",
-			Username:    "ivanov",
-			DateTime:    "2024-01-20 14:30:25",
-		},
-		{
-			Description: "Превышено количество попыток входа в систему",
-			Username:    "petrov",
-			DateTime:    "2024-01-20 13:15:10",
-		},
-		{
-			Description: "Попытка доступа к запрещенному ресурсу",
-			Username:    "sidorov",
-			DateTime:    "2024-01-20 12:45:33",
-		},
-		{
-			Description: "Необычная активность в нерабочее время",
-			Username:    "smirnov",
-			DateTime:    "2024-01-20 11:20:47",
-		},
-		{
-			Description: "Обнаружена DDoS атака на внешний интерфейс",
-			Username:    "system",
-			DateTime:    "2024-01-20 10:35:15",
-		},
-		{
-			Description: "Подозрительный трафик с рабочей станции",
-			Username:    "kuznetsov",
-			DateTime:    "2024-01-20 09:50:22",
-		},
-		{
-			Description: "Попытка обхода системы безопасности",
-			Username:    "popov",
-			DateTime:    "2024-01-20 08:15:18",
-		},
-	}
-
-	// Ограничиваем количество согласно count
-	if count > 0 && count < len(events) {
-		events = events[:count]
-	}
-
-	return events, nil
 }
 
 // GetDevicesStat возвращает статистику по устройствам за указанный период
@@ -267,54 +164,6 @@ func (u *Usecase) GetTrafficStat(ctx context.Context, start time.Time, end time.
 	}
 
 	return traffic, nil
-}
-
-// GetRequestsStat возвращает статистику запросов за указанный период
-func (u *Usecase) GetRequestsStat(ctx context.Context, start time.Time, end time.Time, filter string) (models.RequestsStat, error) {
-	u.l.InfoContext(ctx,
-		"GetRequestsStat called",
-		slog.String("start", start.String()),
-		slog.String("end", end.String()),
-		slog.String("filter", filter),
-	)
-
-	if err := ctx.Err(); err != nil {
-		return models.RequestsStat{}, err
-	}
-
-	// Заглушка с тестовыми данными статистики запросов
-	stat := models.RequestsStat{
-		Accepted: []models.RequestPoint{
-			{Date: 1705759200, Count: 1240},
-			{Date: 1705845600, Count: 1320},
-			{Date: 1705932000, Count: 1180},
-			{Date: 1706018400, Count: 1450},
-			{Date: 1706104800, Count: 1280},
-		},
-		Blocked: []models.RequestPoint{
-			{Date: 1705759200, Count: 89},
-			{Date: 1705845600, Count: 76},
-			{Date: 1705932000, Count: 102},
-			{Date: 1706018400, Count: 68},
-			{Date: 1706104800, Count: 94},
-		},
-		BeforeBlocked: []models.RequestPoint{
-			{Date: 1705759200, Count: 245},
-			{Date: 1705845600, Count: 198},
-			{Date: 1705932000, Count: 312},
-			{Date: 1706018400, Count: 187},
-			{Date: 1706104800, Count: 276},
-		},
-		Delayed: []models.RequestPoint{
-			{Date: 1705759200, Count: 45},
-			{Date: 1705845600, Count: 38},
-			{Date: 1705932000, Count: 52},
-			{Date: 1706018400, Count: 41},
-			{Date: 1706104800, Count: 49},
-		},
-	}
-
-	return stat, nil
 }
 
 // GetProhActSchedule возвращает расписание запрещенных активностей по дням за указанный период

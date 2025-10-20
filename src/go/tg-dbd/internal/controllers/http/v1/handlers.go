@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"tg-dbd/internal/controllers/http/v1/dto"
 	"tg-dbd/internal/models"
+	"tg-dbd/internal/pkg/status"
 	"tg-dbd/pkg/trparser"
 	"time"
 
@@ -279,28 +280,90 @@ func (s *Server) GetDetectionStat(c *gin.Context) {
 	c.JSON(http.StatusOK, stat)
 }
 
+// @Summary Получить статистику запросов
+// @Description Возвращает статистику запросов за указанный период с фильтрацией по статусу, хосту и категории
+// @Tags statistics
+// @Accept json
+// @Produce json
+// @Param from query string false "Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)" default(now-10m)
+// @Param to query string false "Конец временного диапазона (формат: now, 2024-01-01T00:00:00Z)" default(now)
+// @Param status query string false "Статус запросов (allowed, blocked, prohibited, waiting)" default(prohibited)
+// @Param hostname query string false "Фильтр по имени хоста"
+// @Param top_category query string false "Фильтр по категории"
+// @Param count query integer false "Количество интервалов" default(10)
+// @Success 200 {array} integer "Статистика запросов (массив чисел)"
+// @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
+// @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
+// @Router /dashboards/requests [get]
 func (s *Server) GetRequestsStat(c *gin.Context) {
-	// Парсим временные метки
-	//from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
-	//to := c.DefaultQuery("to", "now")
-	//
-	//parser := &trparser.TimeRangeParser{}
-	//now := time.Now()
-	//timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", from, to), now)
-	//if err != nil {
-	//	c.JSON(http.StatusBadRequest, gin.H{
-	//		"error": "Неверный формат временного диапазона",
-	//	})
-	//	return
-	//}
-	//// Парсим тип запросов (по умолчанию - запрещено/prohibited)
-	//status := status.Status(c.DefaultQuery("status", "prohibited"))
-	//// Парсим фильтры
-	//filter := models.DetectionFilter{
-	//	HostName:    c.DefaultQuery("hostname", ""),
-	//	TopCategory: c.DefaultQuery("top_category", ""),
-	//}
+	//Парсим временные метки
+	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
+	to := c.DefaultQuery("to", "now")
 
+	parser := &trparser.TimeRangeParser{}
+	now := time.Now()
+	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", from, to), now)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Неверный формат временного диапазона",
+		})
+		return
+	}
+	// Парсим тип запросов (по умолчанию - запрещено/prohibited)
+	status, err := status.ParseStatus(c.DefaultQuery("status", "prohibited"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Неверныф тип запроса",
+		})
+		return
+	}
+	// Парсим фильтры
+	filter := models.DashboardFilter{
+		HostName:    c.DefaultQuery("hostname", ""),
+		TopCategory: c.DefaultQuery("top_category", ""),
+	}
+	// Парсим колтчество точек
+	count, err := strconv.ParseUint(c.DefaultQuery("count", "20"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Неверный формат count",
+		})
+		return
+	}
+	// Получем данные
+	stat, err := s.u.GetRequestsStat(c, timeRange, filter, status, uint(count))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "ошибка при получении статистики запросов",
+		})
+		return
+	}
+	resp := dto.DataPointsResponse{
+		Type:  fmt.Sprintf("requests_%s", status.ToJSONString()),
+		Data:  stat,
+		Count: uint(count),
+	}
+	c.JSON(http.StatusOK, resp)
+}
+
+// @Summary Получить список имен устройств
+// @Description Возвращает список всех уникальных имен устройств (хостов) из системы
+// @Tags common
+// @Accept json
+// @Produce json
+// @Success 200 {array} string "Список имен устройств"
+// @Failure 500 {object} map[string]string "Ошибка при получении имен устройств"
+// @Router /devices [get]
+func (s *Server) GetDevices(c *gin.Context) {
+	// Получем данные
+	devices, err := s.u.GetDevices(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "ошибка при получении имен устройств",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, devices)
 }
 
 //Устарело!

@@ -13,6 +13,11 @@ type CategoryFilter struct {
 	Type     string `form:"type"`
 }
 
+type DashboardFilter struct {
+	HostName    string `form:"hostname"`
+	TopCategory string `form:"top_category"`
+}
+
 // Detections
 type DetectionFilter struct {
 	HostName    string `form:"hostname"`
