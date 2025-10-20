@@ -10,314 +10,9 @@
         "version": "1.0"
     },
     "host": "127.0.0.1:7000",
-    "basePath": "/",
+    "basePath": "/api/v1",
     "paths": {
-        "/v1/dashboards/anomalies": {
-            "get": {
-                "description": "Получение списка обнаруженных аномалий в сетевом трафике за указанный период",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dashboard"
-                ],
-                "summary": "Получение информации об аномалиях",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Начало периода в timestamp",
-                        "name": "start",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Конец периода в timestamp",
-                        "name": "end",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Список обнаруженных аномалий",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Anomaly"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Неверный формат параметров",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/dashboards/devices": {
-            "get": {
-                "description": "Получение агрегированной статистики по сетевым узлам за указанный период",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dashboard"
-                ],
-                "summary": "Получение статистики по устройствам",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Начало периода в timestamp",
-                        "name": "start",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Конец периода в timestamp",
-                        "name": "end",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Статистика по устройствам",
-                        "schema": {
-                            "$ref": "#/definitions/models.DeviceStat"
-                        }
-                    },
-                    "400": {
-                        "description": "Неверный формат параметров",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/dashboards/events": {
-            "get": {
-                "description": "Получение списка уведомлений системы безопасности за указанный период",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dashboard"
-                ],
-                "summary": "Получение списка уведомлений",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Начало периода в timestamp",
-                        "name": "start",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Конец периода в timestamp",
-                        "name": "end",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Количество возвращаемых уведомлений (по умолчанию 5)",
-                        "name": "count",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Список уведомлений",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Notification"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Неверный формат параметров",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/dashboards/proh_activity": {
-            "get": {
-                "description": "Получение расписания запрещенной активности начиная с указанной даты",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dashboard"
-                ],
-                "summary": "Получение графика запрещенной активности",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Дата начала в timestamp",
-                        "name": "start",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "График запрещенной активности",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "integer"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Неверный формат параметров",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/dashboards/requests": {
-            "get": {
-                "description": "Получение агрегированной статистики по HTTP-запросам за указанный период",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dashboard"
-                ],
-                "summary": "Получение статистики HTTP-запросов",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Начало периода в timestamp",
-                        "name": "start",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Конец периода в timestamp",
-                        "name": "end",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Статистика HTTP-запросов",
-                        "schema": {
-                            "$ref": "#/definitions/models.RequestsStat"
-                        }
-                    },
-                    "400": {
-                        "description": "Неверный формат параметров",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/dashboards/resources": {
-            "get": {
-                "description": "Получение топ ресурсов с указанием количества обращений за указанный период",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dashboard"
-                ],
-                "summary": "Получение списка популярных ресурсов",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Начало периода в timestamp",
-                        "name": "start",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Конец периода в timestamp",
-                        "name": "end",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Количество возвращаемых ресурсов (по умолчанию 5)",
-                        "name": "count",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "JSON объект, где ключ - URL ресурса, значение - количество обращений",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "integer"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Неверный формат параметров",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/dashboards/top-categories": {
+        "/dashboards/top-categories": {
             "get": {
                 "description": "Возвращает наиболее часто встречаемые категории в сессиях с возможностью фильтрации",
                 "consumes": [
@@ -392,58 +87,7 @@
                 }
             }
         },
-        "/v1/dashboards/traffic": {
-            "get": {
-                "description": "Получение агрегированной статистики по сетевому трафику за указанный период",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dashboard"
-                ],
-                "summary": "Получение статистики сетевого трафика",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Начало периода в timestamp",
-                        "name": "start",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Конец периода в timestamp",
-                        "name": "end",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Статистика сетевого трафика",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.TrafficPoint"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Неверный формат параметров",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/detections": {
+        "/detections": {
             "get": {
                 "description": "Возвращает список наиболее частых детекций за указанный временной период с пагинацией",
                 "consumes": [
@@ -453,7 +97,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Detections"
+                    "detections"
                 ],
                 "summary": "Получить список топ выявлений",
                 "parameters": [
@@ -523,7 +167,7 @@
                 }
             }
         },
-        "/v1/detections/stat": {
+        "/detections/stat": {
             "get": {
                 "description": "Возвращает статистику детекций по категориям (обнаружено, принято, отклонено, неразрешено) за указанный период",
                 "consumes": [
@@ -592,27 +236,7 @@
                 }
             }
         },
-        "/v1/healthcheck": {
-            "get": {
-                "description": "Проверка, что сервер работает",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "utils"
-                ],
-                "summary": "Проверка работоспособности сервера",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.SuccessResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/sessions": {
+        "/sessions": {
             "get": {
                 "description": "Возвращает список сессий с возможностью фильтрации, поиска, сортировки и пагинации",
                 "consumes": [
@@ -717,6 +341,277 @@
                         "description": "Внутренняя ошибка сервера",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/dashboards/anomalies": {
+            "get": {
+                "description": "Получение списка обнаруженных аномалий в сетевом трафике за указанный период",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboard"
+                ],
+                "summary": "Получение информации об аномалиях",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Начало периода в timestamp",
+                        "name": "start",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Конец периода в timestamp",
+                        "name": "end",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список обнаруженных аномалий",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Anomaly"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/dashboards/devices": {
+            "get": {
+                "description": "Получение агрегированной статистики по сетевым узлам за указанный период",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboard"
+                ],
+                "summary": "Получение статистики по устройствам",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Начало периода в timestamp",
+                        "name": "start",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Конец периода в timestamp",
+                        "name": "end",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Статистика по устройствам",
+                        "schema": {
+                            "$ref": "#/definitions/models.DeviceStat"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/dashboards/proh_activity": {
+            "get": {
+                "description": "Получение расписания запрещенной активности начиная с указанной даты",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboard"
+                ],
+                "summary": "Получение графика запрещенной активности",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Дата начала в timestamp",
+                        "name": "start",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "График запрещенной активности",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/dashboards/resources": {
+            "get": {
+                "description": "Получение топ ресурсов с указанием количества обращений за указанный период",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboard"
+                ],
+                "summary": "Получение списка популярных ресурсов",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Начало периода в timestamp",
+                        "name": "start",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Конец периода в timestamp",
+                        "name": "end",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Количество возвращаемых ресурсов (по умолчанию 5)",
+                        "name": "count",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "JSON объект, где ключ - URL ресурса, значение - количество обращений",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/dashboards/traffic": {
+            "get": {
+                "description": "Получение агрегированной статистики по сетевому трафику за указанный период",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboard"
+                ],
+                "summary": "Получение статистики сетевого трафика",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Начало периода в timestamp",
+                        "name": "start",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Конец периода в timestamp",
+                        "name": "end",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Статистика сетевого трафика",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.TrafficPoint"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/healthcheck": {
+            "get": {
+                "description": "Проверка, что сервер работает",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "utils"
+                ],
+                "summary": "Проверка работоспособности сервера",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
                         }
                     }
                 }
@@ -847,60 +742,6 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/models.ResourcePoint"
-                    }
-                }
-            }
-        },
-        "models.Notification": {
-            "type": "object",
-            "properties": {
-                "dateTime": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.RequestPoint": {
-            "type": "object",
-            "properties": {
-                "count": {
-                    "type": "integer"
-                },
-                "date": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.RequestsStat": {
-            "type": "object",
-            "properties": {
-                "accepted": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.RequestPoint"
-                    }
-                },
-                "before_blocked": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.RequestPoint"
-                    }
-                },
-                "blocked": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.RequestPoint"
-                    }
-                },
-                "delayed": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.RequestPoint"
                     }
                 }
             }

@@ -32,7 +32,7 @@ import (
 // @Success 200 {object} dto.ListResponse "Успешный ответ"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /v1/sessions [get]
+// @Router /sessions [get]
 func (s *Server) GetSessions(c *gin.Context) {
 	// Парсим временные метки
 	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
@@ -121,7 +121,7 @@ func (s *Server) GetSessions(c *gin.Context) {
 // @Success 200 {array} models.CategoryCount
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
-// @Router /v1/dashboards/top-categories [get]
+// @Router /dashboards/top-categories [get]
 func (s *Server) GetTopCategories(c *gin.Context) {
 	// Парсим временные метки
 	from := c.DefaultQuery("from", "now-10m")
@@ -166,7 +166,7 @@ func (s *Server) GetTopCategories(c *gin.Context) {
 // GetTopDetections godoc
 // @Summary Получить список топ выявлений
 // @Description Возвращает список наиболее частых детекций за указанный временной период с пагинацией
-// @Tags Detections
+// @Tags detections
 // @Accept json
 // @Produce json
 // @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)" default(now-10m)
@@ -178,7 +178,7 @@ func (s *Server) GetTopCategories(c *gin.Context) {
 // @Success 200 {object} dto.ListResponse "Успешный ответ"
 // @Failure 400 {object} object "Неверный формат параметров"
 // @Failure 500 {object} object "Внутренняя ошибка сервера"
-// @Router /v1/detections [get]
+// @Router /detections [get]
 func (s *Server) GetTopDetections(c *gin.Context) {
 	// Парсим временные метки
 	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
@@ -249,7 +249,7 @@ func (s *Server) GetTopDetections(c *gin.Context) {
 // @Success 200 {object} dto.DetectionStat "Статистика детекций"
 // @Failure 400 {object} map[string]string "Неверный формат временного диапазона"
 // @Failure 500 {object} map[string]string "Ошибка при получении статистики выявлений"
-// @Router /v1/detections/stat [get]
+// @Router /detections/stat [get]
 func (s *Server) GetDetectionStat(c *gin.Context) {
 	// Парсим временные метки
 	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
@@ -354,61 +354,6 @@ func (s *Server) GetResources(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "ошибка при получении ресурсов",
-		})
-		return
-	}
-	c.JSON(http.StatusOK, response)
-}
-
-// @Summary Получение списка уведомлений
-// @Description Получение списка уведомлений системы безопасности за указанный период
-// @Tags dashboard
-// @Produce application/json
-// @Param start query int64 true "Начало периода в timestamp"
-// @Param end query int64 true "Конец периода в timestamp"
-// @Param count query int false "Количество возвращаемых уведомлений (по умолчанию 5)"
-// @Success 200 {array} models.Notification "Список уведомлений"
-// @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
-// @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /v1/dashboards/events [get]
-func (s *Server) GetEvents(c *gin.Context) {
-	start, err := strconv.ParseInt(c.Query("start"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат start timestamp",
-		})
-		return
-	}
-
-	end, err := strconv.ParseInt(c.Query("end"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат end timestamp",
-		})
-		return
-	}
-
-	count, err := strconv.Atoi(c.DefaultQuery("count", "5"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат count",
-		})
-		return
-	}
-
-	startTime := time.Unix(start, 0)
-	endTime := time.Unix(end, 0)
-
-	response, err := s.u.GetEvents(
-		c,
-		startTime,
-		endTime,
-		count,
-		"",
-	)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "ошибка при получении уведомлений",
 		})
 		return
 	}

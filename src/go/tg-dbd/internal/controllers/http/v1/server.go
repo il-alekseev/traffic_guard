@@ -13,7 +13,7 @@ import (
 // @version         1.0
 // @description     API для получения дашбордов
 // @host            127.0.0.1:7000
-// @BasePath        /
+// @BasePath        /api/v1
 // @schemes         http
 type Server struct {
 	server *http.Server

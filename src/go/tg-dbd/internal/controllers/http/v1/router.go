@@ -12,7 +12,7 @@ func (s *Server) configureRouter() {
 	s.router.Use(middleware.CorsMiddleware())
 	// Сваггер
 	s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	v1 := s.router.Group("/v1")
+	v1 := s.router.Group("/api/v1")
 	{
 		// Вкладка Сессии
 		v1.GET("/sessions", s.GetSessions)
@@ -21,7 +21,6 @@ func (s *Server) configureRouter() {
 		{
 			dashboards.GET("/top-categories", s.GetTopCategories)
 			dashboards.GET("/resources", s.GetResources)
-			dashboards.GET("/events", s.GetEvents)
 			dashboards.GET("/anomalies", s.GetAnomalies)
 			dashboards.GET("/proh_activity", s.GetProhActivity)
 			dashboards.GET("/devices", s.GetDevicesStat)
