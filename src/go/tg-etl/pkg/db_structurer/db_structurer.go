@@ -21,7 +21,7 @@ type ColumnInfo struct {
 	IsPrimary  bool
 }
 
-func main() {
+func GetDBStructure() {
 	// Параметры подключения
 	connStr := "host=192.168.130.112 port=5432 user=ksu_user password=ksu_password dbname=ksu sslmode=disable"
 

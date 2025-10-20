@@ -2,22 +2,27 @@ package v1
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"tg-dbd/config"
-	"tg-dbd/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
 
-// TODO: переделать под slog
+// @title           Dashboard API
+// @version         1.0
+// @description     API для получения дашбордов
+// @host            127.0.0.1:7000
+// @BasePath        /
+// @schemes         http
 type Server struct {
 	server *http.Server
 	router *gin.Engine
-	logger logger.Interface
+	l      slog.Logger
 	u      UseCaseInterface
 }
 
-func New(cfg *config.HTTP, l logger.Interface, u UseCaseInterface) *Server {
+func New(cfg *config.HTTP, l slog.Logger, u UseCaseInterface) *Server {
 	gin.SetMode(gin.DebugMode)
 
 	r := gin.New()
@@ -29,7 +34,7 @@ func New(cfg *config.HTTP, l logger.Interface, u UseCaseInterface) *Server {
 	server := Server{
 		server: &s,
 		router: r,
-		logger: l,
+		l:      l,
 		u:      u,
 	}
 	server.configureRouter()
@@ -37,7 +42,7 @@ func New(cfg *config.HTTP, l logger.Interface, u UseCaseInterface) *Server {
 }
 
 func (s *Server) Start() error {
-	s.logger.Info("dashboard http server started")
+	s.l.Info("dashboard http server started")
 	s.server.ListenAndServe()
 	return nil
 }

@@ -1,9 +1,30 @@
+basePath: /
 definitions:
+  dto.DetectionStat:
+    properties:
+      accepted:
+        type: integer
+      denied:
+        type: integer
+      detected:
+        type: integer
+      unresolved:
+        type: integer
+    type: object
   dto.ErrorResponse:
     properties:
       error:
         description: Описание ошибки
         type: string
+    type: object
+  dto.ListResponse:
+    properties:
+      data:
+        description: Список однотипных данных
+      meta:
+        allOf:
+        - $ref: '#/definitions/dto.PaginationMeta'
+        description: Метаданные пагинации
     type: object
   dto.PaginationMeta:
     properties:
@@ -19,18 +40,6 @@ definitions:
       total:
         description: Общее количество элементов
         type: integer
-    type: object
-  dto.SessionListResponse:
-    properties:
-      data:
-        description: Список контекстов
-        items:
-          $ref: '#/definitions/models.Session'
-        type: array
-      meta:
-        allOf:
-        - $ref: '#/definitions/dto.PaginationMeta'
-        description: Метаданные пагинации
     type: object
   dto.SuccessResponse:
     properties:
@@ -55,34 +64,11 @@ definitions:
       unblocked_requests:
         type: integer
     type: object
-  models.Detection:
+  models.CategoryCount:
     properties:
-      accessCount:
-        type: integer
-      action:
-        type: string
       category:
         type: string
-      dateTime:
-        type: string
-      description:
-        type: string
-      host:
-        type: string
-      ngfw:
-        type: string
-      url:
-        type: string
-    type: object
-  models.DetectionStat:
-    properties:
-      accepted:
-        type: integer
-      denied:
-        type: integer
-      detected:
-        type: integer
-      unresolved:
+      count:
         type: integer
     type: object
   models.DeviceStat:
@@ -140,25 +126,6 @@ definitions:
       locked:
         type: integer
     type: object
-  models.Session:
-    properties:
-      category:
-        type: string
-      dateTime:
-        type: string
-      ip:
-        type: string
-      ngfw:
-        type: string
-      sessionType:
-        type: string
-      status:
-        type: string
-      url:
-        type: string
-      username:
-        type: string
-    type: object
   models.TrafficPoint:
     properties:
       date:
@@ -168,8 +135,12 @@ definitions:
       output:
         type: integer
     type: object
+host: 127.0.0.1:7000
 info:
   contact: {}
+  description: API для получения дашбордов
+  title: Dashboard API
+  version: "1.0"
 paths:
   /v1/dashboards/anomalies:
     get:
@@ -204,46 +175,6 @@ paths:
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
       summary: Получение информации об аномалиях
-      tags:
-      - dashboard
-  /v1/dashboards/categories:
-    get:
-      description: Получение топ категорий с указанием количества обращений за указанный
-        период
-      parameters:
-      - description: Начало периода в timestamp
-        in: query
-        name: start
-        required: true
-        type: integer
-      - description: Конец периода в timestamp
-        in: query
-        name: end
-        required: true
-        type: integer
-      - description: Количество возвращаемых категорий (по умолчанию 5)
-        in: query
-        name: count
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: JSON объект, где ключ - название категории, значение - количество
-            обращений
-          schema:
-            additionalProperties:
-              type: integer
-            type: object
-        "400":
-          description: Неверный формат параметров
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "500":
-          description: Внутренняя ошибка сервера
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-      summary: Получение списка категорий
       tags:
       - dashboard
   /v1/dashboards/devices:
@@ -421,6 +352,58 @@ paths:
       summary: Получение списка популярных ресурсов
       tags:
       - dashboard
+  /v1/dashboards/top-categories:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает наиболее часто встречаемые категории в сессиях с возможностью
+        фильтрации
+      parameters:
+      - default: now-24h
+        description: Начало временного диапазона
+        in: query
+        name: from
+        type: string
+      - default: now
+        description: Конец временного диапазона
+        in: query
+        name: to
+        type: string
+      - description: Фильтр по имени хоста
+        in: query
+        name: hostname
+        type: string
+      - description: Фильтр по типу сессии
+        in: query
+        name: type
+        type: string
+      - default: 5
+        description: Количество возвращаемых категорий
+        in: query
+        maximum: 50
+        minimum: 1
+        name: count
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.CategoryCount'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Получить топ категорий сессий
+      tags:
+      - analytics
   /v1/dashboards/traffic:
     get:
       description: Получение агрегированной статистики по сетевому трафику за указанный
@@ -458,72 +441,107 @@ paths:
       - dashboard
   /v1/detections:
     get:
-      description: Получение списка обнаружений с фильтрацией по дате
+      consumes:
+      - application/json
+      description: Возвращает список наиболее частых детекций за указанный временной
+        период с пагинацией
       parameters:
-      - description: Начало периода в timestamp
+      - default: now-10m
+        description: 'Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)'
         in: query
-        name: start
-        required: true
+        name: from
+        type: string
+      - default: now
+        description: 'Конец временного диапазона (формат: now, 2023-12-01T11:00:00Z)'
+        in: query
+        name: to
+        type: string
+      - description: Фильтр по имени хоста
+        in: query
+        name: hostname
+        type: string
+      - description: Фильтр по категории
+        in: query
+        name: top_category
+        type: string
+      - default: 1
+        description: Номер страницы
+        in: query
+        minimum: 1
+        name: page
         type: integer
-      - description: Конец периода в timestamp
+      - default: 10
+        description: Количество записей на странице
         in: query
-        name: end
-        required: true
-        type: integer
-      - description: Количество записей (по умолчанию 5)
-        in: query
-        name: count
+        maximum: 100
+        minimum: 1
+        name: limit
         type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Успешный ответ
           schema:
-            $ref: '#/definitions/models.Detection'
+            $ref: '#/definitions/dto.ListResponse'
         "400":
           description: Неверный формат параметров
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            type: object
         "500":
           description: Внутренняя ошибка сервера
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-      summary: Получение информации об обнаружениях
+            type: object
+      summary: Получить список топ выявлений
       tags:
-      - detection
+      - Detections
   /v1/detections/stat:
     get:
-      description: Получение агрегированной статистики обнаружений за указанный период
+      consumes:
+      - application/json
+      description: Возвращает статистику детекций по категориям (обнаружено, принято,
+        отклонено, неразрешено) за указанный период
       parameters:
-      - description: Начало периода в timestamp
+      - default: now-10m
+        description: 'Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)'
         in: query
-        name: start
-        required: true
-        type: integer
-      - description: Конец периода в timestamp
+        name: from
+        type: string
+      - default: now
+        description: 'Конец временного диапазона (формат: now, 2024-01-01T00:00:00Z)'
         in: query
-        name: end
-        required: true
-        type: integer
+        name: to
+        type: string
+      - description: Фильтр по имени хоста
+        in: query
+        name: hostname
+        type: string
+      - description: Фильтр по категории
+        in: query
+        name: top_category
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Статистика детекций
           schema:
-            $ref: '#/definitions/models.DetectionStat'
+            $ref: '#/definitions/dto.DetectionStat'
         "400":
-          description: Неверный формат параметров
+          description: Неверный формат временного диапазона
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
+            additionalProperties:
+              type: string
+            type: object
         "500":
-          description: Внутренняя ошибка сервера
+          description: Ошибка при получении статистики выявлений
           schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-      summary: Получение статистики обнаружений
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получение статистики по детекциям
       tags:
-      - detection
+      - detections
   /v1/healthcheck:
     get:
       description: Проверка, что сервер работает
@@ -541,31 +559,60 @@ paths:
     get:
       consumes:
       - application/json
-      description: Метод возвращает список сессий с поддержкой пагинации и сортировки
+      description: Возвращает список сессий с возможностью фильтрации, поиска, сортировки
+        и пагинации
       parameters:
-      - description: Начальный timestamp диапазона
+      - default: now-10m
+        description: 'Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z).
+          По умолчанию: now-10m'
         in: query
-        name: start
-        required: true
-        type: integer
-      - description: Конечный timestamp диапазона
+        name: from
+        type: string
+      - default: now
+        description: 'Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z).
+          По умолчанию: now'
         in: query
-        name: end
-        required: true
-        type: integer
-      - description: Номер страницы
+        name: to
+        type: string
+      - description: Фильтр по имени хоста
         in: query
+        name: hostname
+        type: string
+      - description: Фильтр по категории
+        in: query
+        name: category
+        type: string
+      - description: Фильтр по типу сессии
+        in: query
+        name: type
+        type: string
+      - description: Поиск по частичному совпадению
+        in: query
+        name: search
+        type: string
+      - default: 1
+        description: Номер страницы
+        in: query
+        minimum: 1
         name: page
         type: integer
-      - description: Количество записей на странице
+      - default: 10
+        description: Количество записей на странице
         in: query
+        maximum: 100
+        minimum: 1
         name: limit
         type: integer
-      - description: Поле для сортировки
+      - default: id
+        description: Поле для сортировки
         in: query
         name: order_by
         type: string
-      - description: Направление сортировки
+      - default: desc
+        description: Направление сортировки (asc/desc)
+        enum:
+        - asc
+        - desc
         in: query
         name: order_dir
         type: string
@@ -575,16 +622,18 @@ paths:
         "200":
           description: Успешный ответ
           schema:
-            $ref: '#/definitions/dto.SessionListResponse'
+            $ref: '#/definitions/dto.ListResponse'
         "400":
           description: Неверный формат параметров
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
         "500":
-          description: Ошибка сервера
+          description: Внутренняя ошибка сервера
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Получение списка сессий в заданном временном диапазоне
+      summary: Получить список сессий
       tags:
-      - session
+      - sessions
+schemes:
+- http
 swagger: "2.0"

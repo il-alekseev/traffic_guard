@@ -2,177 +2,20 @@ package usecase
 
 import (
 	"context"
+	"log/slog"
 	"tg-dbd/internal/models"
 	"time"
 )
 
-// GetSessions возвращает список сессий с пагинацией
-func (u *Usecase) GetSessions(ctx context.Context, start time.Time, end time.Time, page int, limit int, filter string, orderBy string, orderDir string) ([]models.Session, int64, error) {
-	u.l.Info("GetSessions called",
-		"start", start, "end", end,
-		"page", page, "limit", limit, "filter", filter,
-		"orderBy", orderBy, "orderDir", orderDir)
-
-	if err := ctx.Err(); err != nil {
-		return nil, 0, err
-	}
-
-	// Тестовые данные сессий
-	sessions := []models.Session{
-		{
-			Status:      "active",
-			URL:         "https://corporate-app.com/dashboard",
-			IP:          "192.168.1.100",
-			NGFW:        "fw-01",
-			Username:    "ivanov",
-			SessionType: "web",
-			Category:    "Корпоративные приложения",
-			DateTime:    "2024-01-20 14:35:20",
-		},
-		{
-			Status:      "blocked",
-			URL:         "http://malicious-site.com",
-			IP:          "192.168.1.101",
-			NGFW:        "fw-02",
-			Username:    "petrov",
-			SessionType: "web",
-			Category:    "Вредоносные сайты",
-			DateTime:    "2024-01-20 14:20:15",
-		},
-		{
-			Status:      "completed",
-			URL:         "https://email-service.com/inbox",
-			IP:          "192.168.1.102",
-			NGFW:        "fw-01",
-			Username:    "sidorov",
-			SessionType: "web",
-			Category:    "Электронная почта",
-			DateTime:    "2024-01-20 14:10:45",
-		},
-		{
-			Status:      "active",
-			URL:         "https://cloud-storage.com/files",
-			IP:          "192.168.1.103",
-			NGFW:        "fw-03",
-			Username:    "smirnov",
-			SessionType: "web",
-			Category:    "Облачные хранилища",
-			DateTime:    "2024-01-20 13:55:30",
-		},
-		{
-			Status:      "warned",
-			URL:         "https://social-network.com/feed",
-			IP:          "192.168.1.104",
-			NGFW:        "fw-02",
-			Username:    "kuznetsov",
-			SessionType: "web",
-			Category:    "Социальные сети",
-			DateTime:    "2024-01-20 13:40:10",
-		},
-	}
-
-	// Применяем пагинацию
-	startIdx := (page - 1) * limit
-	endIdx := startIdx + limit
-
-	if startIdx >= len(sessions) {
-		return []models.Session{}, int64(len(sessions)), nil
-	}
-
-	if endIdx > len(sessions) {
-		endIdx = len(sessions)
-	}
-
-	paginatedSessions := sessions[startIdx:endIdx]
-	totalCount := int64(len(sessions))
-
-	return paginatedSessions, totalCount, nil
-}
-
-// GetTopDetectionsInfo возвращает информацию о топ обнаружениях
-func (u *Usecase) GetDetections(ctx context.Context, start time.Time, end time.Time, count int, filter string) ([]models.Detection, error) {
-	u.l.Info("GetDetections called", "start", start, "end", end, "filter", filter, "topCount", count)
-
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-
-	detections := []models.Detection{
-		{
-			URL:         "http://malicious-site.com/download.exe",
-			DateTime:    "2024-01-20 14:25:30",
-			Category:    "Вредоносное ПО",
-			Description: "Попытка загрузки потенциально опасного файла",
-			Host:        "ws-1245",
-			NGFW:        "fw-01",
-			AccessCount: 15,
-			Action:      "blocked",
-		},
-		{
-			URL:         "https://phishing-bank.com/login",
-			DateTime:    "2024-01-20 13:40:22",
-			Category:    "Фишинг",
-			Description: "Доступ к фишинговому сайту",
-			Host:        "ws-0678",
-			NGFW:        "fw-02",
-			AccessCount: 8,
-			Action:      "blocked",
-		},
-		{
-			URL:         "http://torrent-tracker.org/movie.torrent",
-			DateTime:    "2024-01-20 12:15:45",
-			Category:    "P2P",
-			Description: "Попытка доступа к торрент-трекеру",
-			Host:        "ws-3321",
-			NGFW:        "fw-01",
-			AccessCount: 12,
-			Action:      "warned",
-		},
-		{
-			URL:         "https://social-media.com/private",
-			DateTime:    "2024-01-20 11:30:15",
-			Category:    "Социальные сети",
-			Description: "Доступ к социальной сети в рабочее время",
-			Host:        "ws-4456",
-			NGFW:        "fw-03",
-			AccessCount: 45,
-			Action:      "allowed",
-		},
-	}
-
-	// Ограничиваем количество согласно topCount
-	if count > 0 && int(count) < len(detections) {
-		detections = detections[:count]
-	}
-
-	return detections, nil
-}
-
-// GetDetectionsStat возвращает статистику обнаружений за указанный период
-func (u *Usecase) GetDetectionsStat(ctx context.Context, start time.Time, end time.Time, filter string) (models.DetectionStat, error) {
-	u.l.Info("GetDetectionsStat called",
-		"start", start,
-		"end", end,
-		"filter", filter)
-
-	if err := ctx.Err(); err != nil {
-		return models.DetectionStat{}, err
-	}
-
-	// Заглушка с тестовыми данными
-	stat := models.DetectionStat{
-		Detected:   156,
-		Accepted:   1240,
-		Denied:     89,
-		Unresolved: 23,
-	}
-
-	return stat, nil
-}
-
 // GetCategories возвращает топ категорий
 func (u *Usecase) GetCategories(ctx context.Context, start time.Time, end time.Time, count int, filter string) (map[string]int, error) {
-	u.l.Info("GetTopCategories called", "start", start, "end", end, "filter", filter, "topCount", count)
+	u.l.InfoContext(ctx,
+		"GetTopCategories called",
+		slog.String("start", start.String()),
+		slog.String("end", end.String()),
+		slog.String("filter", filter),
+		slog.Int("topCount", count),
+	)
 
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -208,11 +51,13 @@ func (u *Usecase) GetCategories(ctx context.Context, start time.Time, end time.T
 
 // GetResources возвращает список ресурсов с статистикой запросов
 func (u *Usecase) GetResources(ctx context.Context, start time.Time, end time.Time, count int, filter string) ([]models.Resource, error) {
-	u.l.Info("GetResources called",
-		"start", start,
-		"end", end,
-		"count", count,
-		"filter", filter)
+	u.l.InfoContext(ctx,
+		"GetResources called",
+		slog.String("start", start.String()),
+		slog.String("end", end.String()),
+		slog.Int("count", count),
+		slog.String("filter", filter),
+	)
 
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -272,11 +117,13 @@ func (u *Usecase) GetResources(ctx context.Context, start time.Time, end time.Ti
 
 // GetEvents возвращает список событий за указанный период
 func (u *Usecase) GetEvents(ctx context.Context, start time.Time, end time.Time, count int, filter string) ([]models.Notification, error) {
-	u.l.Info("GetEvents called",
-		"start", start,
-		"end", end,
-		"count", count,
-		"filter", filter)
+	u.l.InfoContext(ctx,
+		"GetEvents called",
+		slog.String("start", start.String()),
+		slog.String("end", end.String()),
+		slog.Int("count", count),
+		slog.String("filter", filter),
+	)
 
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -331,9 +178,11 @@ func (u *Usecase) GetEvents(ctx context.Context, start time.Time, end time.Time,
 
 // GetDevicesStat возвращает статистику по устройствам за указанный период
 func (u *Usecase) GetDevicesStat(ctx context.Context, start time.Time, end time.Time) ([]models.DeviceStat, error) {
-	u.l.Info("GetDevicesStat called",
-		"start", start,
-		"end", end)
+	u.l.InfoContext(ctx,
+		"GetDevicesStat called",
+		slog.String("start", start.String()),
+		slog.String("end", end.String()),
+	)
 
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -392,10 +241,12 @@ func (u *Usecase) GetDevicesStat(ctx context.Context, start time.Time, end time.
 
 // GetTrafficStat возвращает статистику трафика за указанный период
 func (u *Usecase) GetTrafficStat(ctx context.Context, start time.Time, end time.Time, filter string) ([]models.TrafficPoint, error) {
-	u.l.Info("GetTrafficStat called",
-		"start", start,
-		"end", end,
-		"filter", filter)
+	u.l.InfoContext(ctx,
+		"GetTrafficStat called",
+		slog.String("start", start.String()),
+		slog.String("end", end.String()),
+		slog.String("filter", filter),
+	)
 
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -420,10 +271,12 @@ func (u *Usecase) GetTrafficStat(ctx context.Context, start time.Time, end time.
 
 // GetRequestsStat возвращает статистику запросов за указанный период
 func (u *Usecase) GetRequestsStat(ctx context.Context, start time.Time, end time.Time, filter string) (models.RequestsStat, error) {
-	u.l.Info("GetRequestsStat called",
-		"start", start,
-		"end", end,
-		"filter", filter)
+	u.l.InfoContext(ctx,
+		"GetRequestsStat called",
+		slog.String("start", start.String()),
+		slog.String("end", end.String()),
+		slog.String("filter", filter),
+	)
 
 	if err := ctx.Err(); err != nil {
 		return models.RequestsStat{}, err
@@ -466,9 +319,11 @@ func (u *Usecase) GetRequestsStat(ctx context.Context, start time.Time, end time
 
 // GetProhActSchedule возвращает расписание запрещенных активностей по дням за указанный период
 func (u *Usecase) GetProhActSchedule(ctx context.Context, start time.Time, filter string) (map[int64]int, error) {
-	u.l.Info("GetProhActSchedule called",
-		"start", start,
-		"filter", filter)
+	u.l.InfoContext(ctx,
+		"GetProhActSchedule called",
+		slog.String("start", start.String()),
+		slog.String("filter", filter),
+	)
 
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -498,9 +353,11 @@ func (u *Usecase) GetProhActSchedule(ctx context.Context, start time.Time, filte
 
 // GetAnomaly возвращает статистику аномалий за указанный период
 func (u *Usecase) GetAnomalies(ctx context.Context, start time.Time, end time.Time) (models.Anomaly, error) {
-	u.l.Info("GetAnomaly called",
-		"start", start,
-		"end", end)
+	u.l.InfoContext(ctx,
+		"GetAnomaly called",
+		slog.String("start", start.String()),
+		slog.String("end", end.String()),
+	)
 
 	if err := ctx.Err(); err != nil {
 		return models.Anomaly{}, err

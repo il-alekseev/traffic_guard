@@ -1,47 +1,64 @@
 package v1
 
 import (
+	"fmt"
 	"math"
 	"net/http"
 	"strconv"
 	"tg-dbd/internal/controllers/http/v1/dto"
+	"tg-dbd/internal/models"
+	"tg-dbd/pkg/trparser"
 	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
-// @Summary Получение списка сессий в заданном временном диапазоне
-// @Description Метод возвращает список сессий с поддержкой пагинации и сортировки
-// @Tags session
-// @Accept  json
-// @Produce  json
-// @Param start query int64 true "Начальный timestamp диапазона"
-// @Param end query int64 true "Конечный timestamp диапазона"
-// @Param page query int false "Номер страницы" Default: 1
-// @Param limit query int false "Количество записей на странице" Default: 10
-// @Param order_by query string false "Поле для сортировки" Default: url
-// @Param order_dir query string false "Направление сортировки" Enum: asc,desc Default: desc
-// @Success 200 {object} dto.SessionListResponse "Успешный ответ"
+// GetSessions godoc
+// @Summary Получить список сессий
+// @Description Возвращает список сессий с возможностью фильтрации, поиска, сортировки и пагинации
+// @Tags sessions
+// @Accept json
+// @Produce json
+// @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z). По умолчанию: now-10m" default(now-10m)
+// @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z). По умолчанию: now" default(now)
+// @Param hostname query string false "Фильтр по имени хоста"
+// @Param category query string false "Фильтр по категории"
+// @Param type query string false "Фильтр по типу сессии"
+// @Param search query string false "Поиск по частичному совпадению"
+// @Param page query int false "Номер страницы" default(1) minimum(1)
+// @Param limit query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
+// @Param order_by query string false "Поле для сортировки" default(id)
+// @Param order_dir query string false "Направление сортировки (asc/desc)" default(desc) Enums(asc, desc)
+// @Success 200 {object} dto.ListResponse "Успешный ответ"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
-// @Failure 500 {object} dto.ErrorResponse "Ошибка сервера"
+// @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /v1/sessions [get]
-func (s *Server) getSessions(c *gin.Context) {
-	start, err := strconv.ParseInt(c.Query("start"), 10, 64)
+func (s *Server) GetSessions(c *gin.Context) {
+	// Парсим временные метки
+	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
+	to := c.DefaultQuery("to", "now")
+
+	parser := &trparser.TimeRangeParser{}
+	now := time.Now()
+	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", from, to), now)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат start timestamp",
+			"error": "Неверный формат временного диапазона",
 		})
 		return
 	}
 
-	end, err := strconv.ParseInt(c.Query("end"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат end timestamp",
-		})
-		return
+	// Парсим по фильтрам
+	filter := models.SessionFilter{
+		HostName: c.DefaultQuery("hostname", ""),
+		Category: c.DefaultQuery("category", ""),
+		Type:     c.DefaultQuery("type", ""),
 	}
 
+	// Парсим параметры для поиска по части названия
+	search := c.DefaultQuery("search", "")
+
+	// Парсим параметры для пагинации
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -49,7 +66,6 @@ func (s *Server) getSessions(c *gin.Context) {
 		})
 		return
 	}
-
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -57,23 +73,21 @@ func (s *Server) getSessions(c *gin.Context) {
 		})
 		return
 	}
+	pagination := models.Pagination{
+		Page:  page,
+		Limit: limit,
+	}
 
-	orderBy := c.DefaultQuery("order_by", "url")
+	// Парсим параметры для сортировки
+	// TODO: добавить валидацию по названию колонки
+	orderBy := c.DefaultQuery("order_by", "id")
 	orderDir := c.DefaultQuery("order_dir", "desc")
+	sorting := models.Sorting{
+		OrderBy:  orderBy,
+		OrderDir: orderDir,
+	}
 
-	// Конвертация в time.Time
-	startTime := time.Unix(start, 0)
-	endTime := time.Unix(end, 0)
-
-	sessions, total, err := s.u.GetSessions(c,
-		startTime,
-		endTime,
-		page,
-		limit,
-		"", // TODO: добавить обработку фильтров
-		orderBy,
-		orderDir,
-	)
+	sessions, total, err := s.u.GetSessions(c, timeRange, filter, search, pagination, sorting)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "ошибка при получении сессий",
@@ -81,7 +95,7 @@ func (s *Server) getSessions(c *gin.Context) {
 		return
 	}
 
-	response := dto.SessionListResponse{
+	response := dto.ListResponse{
 		Data: sessions,
 		Meta: dto.PaginationMeta{
 			Page:  page,
@@ -93,160 +107,203 @@ func (s *Server) getSessions(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// @Summary Получение информации об обнаружениях
-// @Description Получение списка обнаружений с фильтрацией по дате
-// @Tags detection
-// @Produce application/json
-// @Param start query int64 true "Начало периода в timestamp"
-// @Param end query int64 true "Конец периода в timestamp"
-// @Param count query int false "Количество записей (по умолчанию 5)"
-// @Success 200 {object} models.Detection
-// @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
-// @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /v1/detections [get]
-func (s *Server) getDetections(c *gin.Context) {
-	start, err := strconv.ParseInt(c.Query("start"), 10, 64)
+// GetTopCategories godoc
+// @Summary Получить топ категорий сессий
+// @Description Возвращает наиболее часто встречаемые категории в сессиях с возможностью фильтрации
+// @Tags analytics
+// @Accept json
+// @Produce json
+// @Param from query string false "Начало временного диапазона" default(now-24h)
+// @Param to query string false "Конец временного диапазона" default(now)
+// @Param hostname query string false "Фильтр по имени хоста"
+// @Param type query string false "Фильтр по типу сессии"
+// @Param count query int false "Количество возвращаемых категорий" default(5) minimum(1) maximum(50)
+// @Success 200 {array} models.CategoryCount
+// @Failure 400 {object} dto.ErrorResponse
+// @Failure 500 {object} dto.ErrorResponse
+// @Router /v1/dashboards/top-categories [get]
+func (s *Server) GetTopCategories(c *gin.Context) {
+	// Парсим временные метки
+	from := c.DefaultQuery("from", "now-10m")
+	to := c.DefaultQuery("to", "now")
+
+	parser := &trparser.TimeRangeParser{}
+	now := time.Now()
+	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", from, to), now)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат start timestamp",
+			"error": "Неверный формат временного диапазона",
 		})
 		return
 	}
 
-	end, err := strconv.ParseInt(c.Query("end"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат end timestamp",
-		})
-		return
+	// Парсим фильтры
+	filter := models.CategoryFilter{
+		HostName: c.DefaultQuery("hostname", ""),
+		Type:     c.DefaultQuery("type", ""),
 	}
 
+	// Парсим количество категорий
 	count, err := strconv.Atoi(c.DefaultQuery("count", "5"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат count",
-		})
-		return
+	if err != nil || count <= 0 {
+		count = 5
+	}
+	if count > 50 {
+		count = 50 // ограничение для защиты от больших запросов
 	}
 
-	startTime := time.Unix(start, 0)
-	endTime := time.Unix(end, 0)
-
-	response, err := s.u.GetDetections(
-		c,
-		startTime,
-		endTime,
-		count,
-		"",
-	)
+	categories, err := s.u.GetTopCategories(c.Request.Context(), timeRange, filter, count)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "ошибка при получении выявлений",
+			"error": "Ошибка при получении топ категорий",
 		})
 		return
+	}
+
+	c.JSON(http.StatusOK, categories)
+}
+
+// GetTopDetections godoc
+// @Summary Получить список топ выявлений
+// @Description Возвращает список наиболее частых детекций за указанный временной период с пагинацией
+// @Tags Detections
+// @Accept json
+// @Produce json
+// @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)" default(now-10m)
+// @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T11:00:00Z)" default(now)
+// @Param hostname query string false "Фильтр по имени хоста"
+// @Param top_category query string false "Фильтр по категории"
+// @Param page query int false "Номер страницы" default(1) minimum(1)
+// @Param limit query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
+// @Success 200 {object} dto.ListResponse "Успешный ответ"
+// @Failure 400 {object} object "Неверный формат параметров"
+// @Failure 500 {object} object "Внутренняя ошибка сервера"
+// @Router /v1/detections [get]
+func (s *Server) GetTopDetections(c *gin.Context) {
+	// Парсим временные метки
+	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
+	to := c.DefaultQuery("to", "now")
+
+	parser := &trparser.TimeRangeParser{}
+	now := time.Now()
+	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", from, to), now)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Неверный формат временного диапазона",
+		})
+		return
+	}
+	// Парсим фильтры
+	filter := models.DetectionFilter{
+		HostName:    c.DefaultQuery("hostname", ""),
+		TopCategory: c.DefaultQuery("top_category", ""),
+	}
+	// Парсим параметры для пагинации
+	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Неверный формат page",
+		})
+		return
+	}
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Неверный формат limit",
+		})
+		return
+	}
+	pagination := models.Pagination{
+		Page:  page,
+		Limit: limit,
+	}
+	detections, total, err := s.u.GetTopDetections(c, timeRange, filter, pagination)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "ошибка при получении сессий",
+		})
+		return
+	}
+
+	response := dto.ListResponse{
+		Data: detections,
+		Meta: dto.PaginationMeta{
+			Page:  page,
+			Limit: limit,
+			Total: total,
+			Pages: int(math.Ceil(float64(total) / float64(limit))),
+		},
 	}
 	c.JSON(http.StatusOK, response)
 }
 
-// @Summary Получение статистики обнаружений
-// @Description Получение агрегированной статистики обнаружений за указанный период
-// @Tags detection
-// @Produce application/json
-// @Param start query int64 true "Начало периода в timestamp"
-// @Param end query int64 true "Конец периода в timestamp"
-// @Success 200 {object} models.DetectionStat
-// @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
-// @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
+// @Summary Получение статистики по детекциям
+// @Description Возвращает статистику детекций по категориям (обнаружено, принято, отклонено, неразрешено) за указанный период
+// @Tags detections
+// @Accept json
+// @Produce json
+// @Param from query string false "Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)" default(now-10m)
+// @Param to query string false "Конец временного диапазона (формат: now, 2024-01-01T00:00:00Z)" default(now)
+// @Param hostname query string false "Фильтр по имени хоста"
+// @Param top_category query string false "Фильтр по категории"
+// @Success 200 {object} dto.DetectionStat "Статистика детекций"
+// @Failure 400 {object} map[string]string "Неверный формат временного диапазона"
+// @Failure 500 {object} map[string]string "Ошибка при получении статистики выявлений"
 // @Router /v1/detections/stat [get]
-func (s *Server) getDetectionStat(c *gin.Context) {
-	start, err := strconv.ParseInt(c.Query("start"), 10, 64)
+func (s *Server) GetDetectionStat(c *gin.Context) {
+	// Парсим временные метки
+	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
+	to := c.DefaultQuery("to", "now")
+
+	parser := &trparser.TimeRangeParser{}
+	now := time.Now()
+	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", from, to), now)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат start timestamp",
+			"error": "Неверный формат временного диапазона",
 		})
 		return
 	}
-
-	end, err := strconv.ParseInt(c.Query("end"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат end timestamp",
-		})
-		return
+	// Парсим фильтры
+	filter := models.DetectionFilter{
+		HostName:    c.DefaultQuery("hostname", ""),
+		TopCategory: c.DefaultQuery("top_category", ""),
 	}
-
-	startTime := time.Unix(start, 0)
-	endTime := time.Unix(end, 0)
-
-	response, err := s.u.GetDetectionsStat(
-		c,
-		startTime,
-		endTime,
-		"",
-	)
+	stat, err := s.u.GetDetectionStat(c, timeRange, filter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "ошибка при получении статистики выявлений",
 		})
 		return
 	}
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, stat)
 }
 
-// @Summary Получение списка категорий
-// @Description Получение топ категорий с указанием количества обращений за указанный период
-// @Tags dashboard
-// @Produce application/json
-// @Param start query int64 true "Начало периода в timestamp"
-// @Param end query int64 true "Конец периода в timestamp"
-// @Param count query int false "Количество возвращаемых категорий (по умолчанию 5)"
-// @Success 200 {object} map[string]int "JSON объект, где ключ - название категории, значение - количество обращений"
-// @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
-// @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /v1/dashboards/categories [get]
-func (s *Server) getCategories(c *gin.Context) {
-	start, err := strconv.ParseInt(c.Query("start"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат start timestamp",
-		})
-		return
-	}
+func (s *Server) GetRequestsStat(c *gin.Context) {
+	// Парсим временные метки
+	//from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
+	//to := c.DefaultQuery("to", "now")
+	//
+	//parser := &trparser.TimeRangeParser{}
+	//now := time.Now()
+	//timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", from, to), now)
+	//if err != nil {
+	//	c.JSON(http.StatusBadRequest, gin.H{
+	//		"error": "Неверный формат временного диапазона",
+	//	})
+	//	return
+	//}
+	//// Парсим тип запросов (по умолчанию - запрещено/prohibited)
+	//status := status.Status(c.DefaultQuery("status", "prohibited"))
+	//// Парсим фильтры
+	//filter := models.DetectionFilter{
+	//	HostName:    c.DefaultQuery("hostname", ""),
+	//	TopCategory: c.DefaultQuery("top_category", ""),
+	//}
 
-	end, err := strconv.ParseInt(c.Query("end"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат end timestamp",
-		})
-		return
-	}
-
-	count, err := strconv.Atoi(c.DefaultQuery("count", "5"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат count",
-		})
-		return
-	}
-
-	startTime := time.Unix(start, 0)
-	endTime := time.Unix(end, 0)
-
-	response, err := s.u.GetCategories(
-		c,
-		startTime,
-		endTime,
-		count,
-		"",
-	)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "ошибка при получении категорий",
-		})
-		return
-	}
-	c.JSON(http.StatusOK, response)
 }
+
+//Устарело!
 
 // @Summary Получение списка популярных ресурсов
 // @Description Получение топ ресурсов с указанием количества обращений за указанный период
@@ -441,51 +498,6 @@ func (s *Server) GetTrafficStat(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "ошибка при получении статистики по трафику",
-		})
-		return
-	}
-	c.JSON(http.StatusOK, response)
-}
-
-// @Summary Получение статистики HTTP-запросов
-// @Description Получение агрегированной статистики по HTTP-запросам за указанный период
-// @Tags dashboard
-// @Produce application/json
-// @Param start query int64 true "Начало периода в timestamp"
-// @Param end query int64 true "Конец периода в timestamp"
-// @Success 200 {object} models.RequestsStat "Статистика HTTP-запросов"
-// @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
-// @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /v1/dashboards/requests [get]
-func (s *Server) GetRequestsStat(c *gin.Context) {
-	start, err := strconv.ParseInt(c.Query("start"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат start timestamp",
-		})
-		return
-	}
-
-	end, err := strconv.ParseInt(c.Query("end"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат end timestamp",
-		})
-		return
-	}
-
-	startTime := time.Unix(start, 0)
-	endTime := time.Unix(end, 0)
-
-	response, err := s.u.GetRequestsStat(
-		c,
-		startTime,
-		endTime,
-		"",
-	)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "ошибка при получении статистики по запросам",
 		})
 		return
 	}

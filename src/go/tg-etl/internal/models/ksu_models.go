@@ -33,3 +33,8 @@ type IdsLog struct {
 	Username       string    `gorm:"type:varchar" json:"username"`
 	Vrf            string    `gorm:"type:varchar;not null" json:"vrf"`
 }
+
+// TableName задает имя таблицы в БД
+func (IdsLog) TableName() string {
+	return "ids_log"
+}

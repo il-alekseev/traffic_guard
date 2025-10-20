@@ -10,9 +10,11 @@ import (
 type (
 	// Config -.
 	Config struct {
-		App `yaml:"app"`
-		Log `yaml:"logger"`
-		PG  `yaml:"postgres"`
+		App           `yaml:"app"`
+		Log           `yaml:"logger"`
+		KSU           `yaml:"ksu_postgres"`
+		ETL           `yaml:"etl_postgres"`
+		EtlController `yaml:"etl_controller"`
 	}
 	// App -.
 	App struct {
@@ -24,8 +26,19 @@ type (
 		Level string `env-required:"true" yaml:"log_level"   env:"ETL_LOG_LEVEL"`
 	}
 
-	// PG -.
-	PG struct {
+	// KSU PG -.
+	KSU struct {
+		PoolMax int    `env-required:"true" yaml:"pool_max" env:"KSU_PG_POOL_MAX"`
+		Host    string `env-required:"true" yaml:"host" env:"KSU_PG_HOST"`
+		Port    string `env-required:"true" yaml:"port" env:"KSU_PG_PORT"`
+		User    string `env-required:"true" yaml:"user" env:"KSU_USER"`
+		Pass    string `env-required:"true" yaml:"pass" env:"KSU_PASS"`
+		DBName  string `env-required:"true" yaml:"dbname" env:"KSU_DBNAME"`
+		SSLMode string `env-required:"true" yaml:"sslmode" env:"KSU_SSLMODE"`
+	}
+
+	// ETL PG -.
+	ETL struct {
 		PoolMax int    `env-required:"true" yaml:"pool_max" env:"ETL_PG_POOL_MAX"`
 		Host    string `env-required:"true" yaml:"host" env:"ETL_PG_HOST"`
 		Port    string `env-required:"true" yaml:"port" env:"ETL_PG_PORT"`
@@ -33,6 +46,15 @@ type (
 		Pass    string `env-required:"true" yaml:"pass" env:"ETL_PASS"`
 		DBName  string `env-required:"true" yaml:"dbname" env:"ETL_DBNAME"`
 		SSLMode string `env-required:"true" yaml:"sslmode" env:"ETL_SSLMODE"`
+	}
+
+	Cache struct {
+	}
+
+	EtlController struct {
+		TTL      int  `env-required:"true" yaml:"ttl" env:"ETL_TTL"`
+		Refresh  uint `env-required:"true" yaml:"refresh" env:"ETL_REFRESH"`
+		MaxCount uint `env-required:"true" yaml:"max_count" env:"ETL_MAX_COUNT"`
 	}
 )
 
@@ -45,7 +67,8 @@ func NewConfig() (*Config, error) {
 	}
 	fmt.Printf("Текущая директория: %s\n", currentDir)
 
-	cfgPath := "./config/config.yaml"
+	//cfgPath := "./config/config.yaml"
+	cfgPath := "C:/Users/Asus/Projects/VS Code/Continent/traffic_guard/src/go/tg-etl/config/config.yaml"
 
 	if _, err := os.Stat(cfgPath); err == nil {
 		fmt.Printf("Файл %s существует\n", cfgPath)

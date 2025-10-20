@@ -66,63 +66,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/dashboards/categories": {
-            "get": {
-                "description": "Получение топ категорий с указанием количества обращений за указанный период",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dashboard"
-                ],
-                "summary": "Получение списка категорий",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Начало периода в timestamp",
-                        "name": "start",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Конец периода в timestamp",
-                        "name": "end",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Количество возвращаемых категорий (по умолчанию 5)",
-                        "name": "count",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "JSON объект, где ключ - название категории, значение - количество обращений",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "integer"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Неверный формат параметров",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/v1/dashboards/devices": {
             "get": {
                 "description": "Получение агрегированной статистики по сетевым узлам за указанный период",
@@ -377,6 +320,81 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/dashboards/top-categories": {
+            "get": {
+                "description": "Возвращает наиболее часто встречаемые категории в сессиях с возможностью фильтрации",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "analytics"
+                ],
+                "summary": "Получить топ категорий сессий",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "now-24h",
+                        "description": "Начало временного диапазона",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени хоста",
+                        "name": "hostname",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по типу сессии",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 50,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 5,
+                        "description": "Количество возвращаемых категорий",
+                        "name": "count",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.CategoryCount"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/dashboards/traffic": {
             "get": {
                 "description": "Получение агрегированной статистики по сетевому трафику за указанный период",
@@ -430,53 +448,79 @@ const docTemplate = `{
         },
         "/v1/detections": {
             "get": {
-                "description": "Получение списка обнаружений с фильтрацией по дате",
+                "description": "Возвращает список наиболее частых детекций за указанный временной период с пагинацией",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "detection"
+                    "Detections"
                 ],
-                "summary": "Получение информации об обнаружениях",
+                "summary": "Получить список топ выявлений",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Начало периода в timestamp",
-                        "name": "start",
-                        "in": "query",
-                        "required": true
+                        "type": "string",
+                        "default": "now-10m",
+                        "description": "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)",
+                        "name": "from",
+                        "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "description": "Конец периода в timestamp",
-                        "name": "end",
-                        "in": "query",
-                        "required": true
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона (формат: now, 2023-12-01T11:00:00Z)",
+                        "name": "to",
+                        "in": "query"
                     },
                     {
+                        "type": "string",
+                        "description": "Фильтр по имени хоста",
+                        "name": "hostname",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по категории",
+                        "name": "top_category",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
                         "type": "integer",
-                        "description": "Количество записей (по умолчанию 5)",
-                        "name": "count",
+                        "default": 1,
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Количество записей на странице",
+                        "name": "limit",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Успешный ответ",
                         "schema": {
-                            "$ref": "#/definitions/models.Detection"
+                            "$ref": "#/definitions/dto.ListResponse"
                         }
                     },
                     "400": {
                         "description": "Неверный формат параметров",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "type": "object"
                         }
                     },
                     "500": {
                         "description": "Внутренняя ошибка сервера",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "type": "object"
                         }
                     }
                 }
@@ -484,47 +528,68 @@ const docTemplate = `{
         },
         "/v1/detections/stat": {
             "get": {
-                "description": "Получение агрегированной статистики обнаружений за указанный период",
+                "description": "Возвращает статистику детекций по категориям (обнаружено, принято, отклонено, неразрешено) за указанный период",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "detection"
+                    "detections"
                 ],
-                "summary": "Получение статистики обнаружений",
+                "summary": "Получение статистики по детекциям",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Начало периода в timestamp",
-                        "name": "start",
-                        "in": "query",
-                        "required": true
+                        "type": "string",
+                        "default": "now-10m",
+                        "description": "Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)",
+                        "name": "from",
+                        "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "description": "Конец периода в timestamp",
-                        "name": "end",
-                        "in": "query",
-                        "required": true
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона (формат: now, 2024-01-01T00:00:00Z)",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени хоста",
+                        "name": "hostname",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по категории",
+                        "name": "top_category",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Статистика детекций",
                         "schema": {
-                            "$ref": "#/definitions/models.DetectionStat"
+                            "$ref": "#/definitions/dto.DetectionStat"
                         }
                     },
                     "400": {
-                        "description": "Неверный формат параметров",
+                        "description": "Неверный формат временного диапазона",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "500": {
-                        "description": "Внутренняя ошибка сервера",
+                        "description": "Ошибка при получении статистики выявлений",
                         "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     }
                 }
@@ -552,7 +617,7 @@ const docTemplate = `{
         },
         "/v1/sessions": {
             "get": {
-                "description": "Метод возвращает список сессий с поддержкой пагинации и сортировки",
+                "description": "Возвращает список сессий с возможностью фильтрации, поиска, сортировки и пагинации",
                 "consumes": [
                     "application/json"
                 ],
@@ -560,45 +625,80 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "session"
+                    "sessions"
                 ],
-                "summary": "Получение списка сессий в заданном временном диапазоне",
+                "summary": "Получить список сессий",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Начальный timestamp диапазона",
-                        "name": "start",
-                        "in": "query",
-                        "required": true
+                        "type": "string",
+                        "default": "now-10m",
+                        "description": "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z). По умолчанию: now-10m",
+                        "name": "from",
+                        "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "description": "Конечный timestamp диапазона",
-                        "name": "end",
-                        "in": "query",
-                        "required": true
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z). По умолчанию: now",
+                        "name": "to",
+                        "in": "query"
                     },
                     {
+                        "type": "string",
+                        "description": "Фильтр по имени хоста",
+                        "name": "hostname",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по категории",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по типу сессии",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поиск по частичному совпадению",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 1,
                         "description": "Номер страницы",
                         "name": "page",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 10,
                         "description": "Количество записей на странице",
                         "name": "limit",
                         "in": "query"
                     },
                     {
                         "type": "string",
+                        "default": "id",
                         "description": "Поле для сортировки",
                         "name": "order_by",
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
                         "type": "string",
-                        "description": "Направление сортировки",
+                        "default": "desc",
+                        "description": "Направление сортировки (asc/desc)",
                         "name": "order_dir",
                         "in": "query"
                     }
@@ -607,7 +707,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Успешный ответ",
                         "schema": {
-                            "$ref": "#/definitions/dto.SessionListResponse"
+                            "$ref": "#/definitions/dto.ListResponse"
                         }
                     },
                     "400": {
@@ -617,7 +717,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Ошибка сервера",
+                        "description": "Внутренняя ошибка сервера",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -627,12 +727,45 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.DetectionStat": {
+            "type": "object",
+            "properties": {
+                "accepted": {
+                    "type": "integer"
+                },
+                "denied": {
+                    "type": "integer"
+                },
+                "detected": {
+                    "type": "integer"
+                },
+                "unresolved": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.ErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
                     "description": "Описание ошибки",
                     "type": "string"
+                }
+            }
+        },
+        "dto.ListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Список однотипных данных"
+                },
+                "meta": {
+                    "description": "Метаданные пагинации",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.PaginationMeta"
+                        }
+                    ]
                 }
             }
         },
@@ -654,26 +787,6 @@ const docTemplate = `{
                 "total": {
                     "description": "Общее количество элементов",
                     "type": "integer"
-                }
-            }
-        },
-        "dto.SessionListResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "description": "Список контекстов",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Session"
-                    }
-                },
-                "meta": {
-                    "description": "Метаданные пагинации",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/dto.PaginationMeta"
-                        }
-                    ]
                 }
             }
         },
@@ -713,48 +826,13 @@ const docTemplate = `{
                 }
             }
         },
-        "models.Detection": {
+        "models.CategoryCount": {
             "type": "object",
             "properties": {
-                "accessCount": {
-                    "type": "integer"
-                },
-                "action": {
-                    "type": "string"
-                },
                 "category": {
                     "type": "string"
                 },
-                "dateTime": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "host": {
-                    "type": "string"
-                },
-                "ngfw": {
-                    "type": "string"
-                },
-                "url": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.DetectionStat": {
-            "type": "object",
-            "properties": {
-                "accepted": {
-                    "type": "integer"
-                },
-                "denied": {
-                    "type": "integer"
-                },
-                "detected": {
-                    "type": "integer"
-                },
-                "unresolved": {
+                "count": {
                     "type": "integer"
                 }
             }
@@ -844,35 +922,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.Session": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "type": "string"
-                },
-                "dateTime": {
-                    "type": "string"
-                },
-                "ip": {
-                    "type": "string"
-                },
-                "ngfw": {
-                    "type": "string"
-                },
-                "sessionType": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "url": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
         "models.TrafficPoint": {
             "type": "object",
             "properties": {
@@ -893,17 +942,14 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:7000",
+	Host:             "127.0.0.1:7000",
 	BasePath:         "/",
-	Schemes:          []string{},
-	Title:            "Dashboards API",
+	Schemes:          []string{"http"},
+	Title:            "Dashboard API",
 	Description:      "API для получения дашбордов",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-	//LeftDelim:        "{{",
-	//RightDelim:       "}}",
 }
-
 
 func init() {
 	swag.Register(SwaggerInfo.InstanceName(), SwaggerInfo)
