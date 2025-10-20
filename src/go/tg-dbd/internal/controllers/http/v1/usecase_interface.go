@@ -2,42 +2,20 @@ package v1
 
 import (
 	"context"
+	"tg-dbd/internal/controllers/http/v1/dto"
 	"tg-dbd/internal/models"
+	"tg-dbd/pkg/trparser"
 	"time"
 )
 
 type UseCaseInterface interface {
-	GetSessions(ctx context.Context,
-		start time.Time,
-		end time.Time,
-		page int,
-		limit int,
-		filter string,
-		orderBy string,
-		orderDir string) ([]models.Session, int64, error)
-
-	GetDetections(ctx context.Context,
-		start time.Time,
-		end time.Time,
-		// TODO: спросить про возможные фильтры
-		count int,
-		filter string,
-	) ([]models.Detection, error)
-
-	GetDetectionsStat(ctx context.Context,
-		start time.Time,
-		end time.Time,
-		// TODO: спросить про возможные фильтры
-		filter string,
-	) (models.DetectionStat, error)
-
-	GetCategories(ctx context.Context,
-		start time.Time,
-		end time.Time,
-		// TODO: спросить про возможные фильтры
-		count int,
-		filter string,
-	) (map[string]int, error)
+	// Сессии
+	GetSessions(ctx context.Context, tr *trparser.TimeRange, f models.SessionFilter, search string, p models.Pagination, s models.Sorting) ([]dto.Session, int64, error)
+	// Dashboard
+	GetTopCategories(ctx context.Context, tr *trparser.TimeRange, f models.CategoryFilter, count int) ([]dto.Category, error)
+	GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, p models.Pagination) ([]dto.Detection, int64, error)
+	GetDetectionStat(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter) (dto.DetectionStat, error)
+	// TODO:  Переделать
 
 	GetResources(ctx context.Context,
 		start time.Time,

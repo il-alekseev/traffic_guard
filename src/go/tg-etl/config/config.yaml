@@ -5,12 +5,33 @@ app:
 logger:
   log_level: 'debug'
 
-postgres:
+ksu_postgres:
   pool_max: 2
-  host: "localhost"
-  user: "etl"
-  pass: "etlpassword"
-  dbname: "etl"
+  host: "192.168.130.112"
+  user: "ksu_user"
+  pass: "ksu_password"
+  dbname: "ksu"
   port: "5432"
   sslmode: "disable"
 
+etl_postgres:
+  #pool_max: 2
+  #host: "localhost"
+  #user: "etl"
+  #pass: "etlpassword"
+  #dbname: "etl"
+  #port: "5432"
+  #sslmode: "disable"
+  pool_max: 2
+  host: "192.168.130.112"
+  user: "config_user"
+  pass: "config_password"
+  dbname: "etl"
+  port: "5433"
+  sslmode: "disable"
+
+
+etl_controller:
+  refresh: 10
+  ttl: 10
+  max_count: 100

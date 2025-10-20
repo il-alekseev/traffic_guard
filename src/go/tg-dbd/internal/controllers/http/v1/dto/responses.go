@@ -1,7 +1,5 @@
 package dto
 
-import "tg-dbd/internal/models"
-
 type SuccessResponse struct {
 	Message string `json:"message"`
 }
@@ -19,7 +17,7 @@ type PaginationMeta struct {
 	Pages int   `json:"pages"` // Общее количество страниц
 }
 
-type SessionListResponse struct {
-	Data []models.Session `json:"data"` // Список контекстов
-	Meta PaginationMeta   `json:"meta"` // Метаданные пагинации
+type ListResponse struct {
+	Data interface{}    `json:"data"` // Список однотипных данных
+	Meta PaginationMeta `json:"meta"` // Метаданные пагинации
 }
