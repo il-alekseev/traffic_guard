@@ -24,7 +24,6 @@ func getDSN(host, user, pass, dbname, port, sslmode string) string {
 	)
 }
 
-// TODO: переделать под slog
 func createConnection(ctx context.Context,
 	dsn string,
 	maxPoolSize int,

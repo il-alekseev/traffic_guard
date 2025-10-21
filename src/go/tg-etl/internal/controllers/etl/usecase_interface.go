@@ -19,7 +19,7 @@ type UsecaseInterface interface {
 // SourceUseCase определяет методы для работы с источниками
 type SourceUseCase interface {
 	// GetSourceByAddr получает источник по IP и порту с кешированием
-	GetSourceByAddr(ctx context.Context, ip string, port int) (*models.Source, error)
+	GetSourceByAddr(ctx context.Context, ip string) (*models.Source, error)
 	// GetSourceByID получает источник по ID с кешированием
 	GetSourceByID(ctx context.Context, id uint) (*models.Source, error)
 	// CreateSource создает новый источник с инвалидацией кеша

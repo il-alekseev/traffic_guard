@@ -27,9 +27,9 @@ type Device struct {
 
 // Source представляет таблицу source
 type Source struct {
-	ID       uint   `gorm:"primaryKey" json:"id"`
-	IP       string `gorm:"type:varchar" json:"ip"`
-	Port     int    `gorm:"type:integer" json:"port"`
+	ID uint   `gorm:"primaryKey" json:"id"`
+	IP string `gorm:"type:varchar" json:"ip"`
+	//Port     int    `gorm:"type:integer" json:"port"`
 	Country  string `gorm:"type:varchar" json:"country"`
 	Username string `gorm:"type:varchar" json:"username"`
 }

@@ -5,7 +5,6 @@ import (
 	"cmd/etl/pkg/slogger/wsl"
 	"context"
 	"fmt"
-	"log/slog"
 	"time"
 )
 
@@ -15,11 +14,11 @@ func (uc *UseCase) GetDomainByID(ctx context.Context, id uint) (*models.Domain, 
 
 	// Пытаемся получить из кеша
 	if cached, exists := uc.c.Get(cacheKey); exists {
-		uc.l.DebugContext(ctx, "cache hit for domain by id", wsl.Int("id", int(id)))
+		//uc.l.DebugContext(ctx, "cache hit for domain by id", wsl.Int("id", int(id)))
 		return cached.(*models.Domain), nil
 	}
 
-	uc.l.DebugContext(ctx, "cache miss for domain by id", slog.Int("id", int(id)))
+	//uc.l.DebugContext(ctx, "cache miss for domain by id", slog.Int("id", int(id)))
 
 	// Если нет в кеше, ищем в БД
 	domain, err := uc.etlDB.GetDomainByID(ctx, id)
@@ -31,10 +30,32 @@ func (uc *UseCase) GetDomainByID(ctx context.Context, id uint) (*models.Domain, 
 
 	// Если домен есть в базе, добавляем в кеш
 	if domain != nil {
-		uc.l.DebugContext(ctx, "success got domain by id", slog.Int("id", int(id)))
+		//uc.l.DebugContext(ctx, "success got domain by id", slog.Int("id", int(id)))
 		uc.c.Set(cacheKey, domain)
 	}
 
+	return domain, nil
+}
+func (uc *UseCase) GetDomainByPath(ctx context.Context, path string) (*models.Domain, error) {
+	cacheKey := fmt.Sprintf("domain:path:%s", path)
+	// Пытаемся получить из кеша
+	if cached, exists := uc.c.Get(cacheKey); exists {
+		//uc.l.DebugContext(ctx, "cache hit for domain by path",
+		//	wsl.String("path", path))
+		return cached.(*models.Domain), nil
+	}
+	// Если нет в кеше, ищем в БД
+	domain, err := uc.etlDB.GetDomainByPath(ctx, path)
+	if err != nil {
+		uc.l.ErrorContext(ctx, "get domain by path from db",
+			wsl.String("path", path), wsl.Err(err))
+		return nil, err
+	}
+	// Если домен есть в базе, добавляем в кеш
+	if domain != nil {
+		//uc.l.DebugContext(ctx, "success got domain by path", slog.String("path", path))
+		uc.c.Set(cacheKey, domain)
+	}
 	return domain, nil
 }
 
@@ -44,13 +65,13 @@ func (uc *UseCase) GetDomainByAddr(ctx context.Context, ip string, port int) (*m
 
 	// Пытаемся получить из кеша
 	if cached, exists := uc.c.Get(cacheKey); exists {
-		uc.l.DebugContext(ctx, "cache hit for domain by addr",
-			wsl.String("ip", ip), wsl.Int("port", port))
+		//uc.l.DebugContext(ctx, "cache hit for domain by addr",
+		//	wsl.String("ip", ip), wsl.Int("port", port))
 		return cached.(*models.Domain), nil
 	}
 
-	uc.l.DebugContext(ctx, "cache miss for domain by addr",
-		slog.String("ip", ip), slog.Int("port", port))
+	//uc.l.DebugContext(ctx, "cache miss for domain by addr",
+	//	slog.String("ip", ip), slog.Int("port", port))
 
 	// Если нет в кеше, ищем в БД
 	domain, err := uc.etlDB.GetDomainByAddr(ctx, ip, port)
@@ -62,8 +83,8 @@ func (uc *UseCase) GetDomainByAddr(ctx context.Context, ip string, port int) (*m
 
 	// Если домен есть в базе, добавляем в кеш
 	if domain != nil {
-		uc.l.DebugContext(ctx, "success got domain by addr",
-			slog.String("ip", ip), slog.Int("port", port))
+		//uc.l.DebugContext(ctx, "success got domain by addr",
+		//	slog.String("ip", ip), slog.Int("port", port))
 		uc.c.Set(cacheKey, domain)
 
 		// Также сохраняем в кеш по ID для консистентности
@@ -88,8 +109,8 @@ func (uc *UseCase) CreateDomain(ctx context.Context, domain models.Domain) error
 	// Инвалидируем возможные кеши
 	uc.invalidateDomainCache(&domain)
 
-	uc.l.DebugContext(ctx, "success create domain",
-		slog.String("ip", domain.IP), slog.Int("port", domain.Port))
+	//uc.l.DebugContext(ctx, "success create domain",
+	//	slog.String("ip", domain.IP), slog.Int("port", domain.Port))
 	return nil
 }
 
@@ -118,10 +139,10 @@ func (uc *UseCase) UpdateDomain(ctx context.Context, domain models.Domain) error
 	// Инвалидируем кеши
 	uc.invalidateDomainCache(&domain)
 
-	uc.l.DebugContext(ctx, "success update domain",
-		slog.Int("id", int(domain.ID)),
-		slog.String("ip", domain.IP),
-		slog.Int("port", domain.Port))
+	//uc.l.DebugContext(ctx, "success update domain",
+	//	slog.Int("id", int(domain.ID)),
+	//	slog.String("ip", domain.IP),
+	//	slog.Int("port", domain.Port))
 	return nil
 }
 
@@ -130,11 +151,11 @@ func (uc *UseCase) GetDomains(ctx context.Context) ([]models.Domain, error) {
 	cacheKey := "domains:all"
 
 	if cached, exists := uc.c.Get(cacheKey); exists {
-		uc.l.DebugContext(ctx, "cache hit for all domains")
+		//uc.l.DebugContext(ctx, "cache hit for all domains")
 		return cached.([]models.Domain), nil
 	}
 
-	uc.l.DebugContext(ctx, "cache miss for all domains")
+	//uc.l.DebugContext(ctx, "cache miss for all domains")
 
 	domains, err := uc.etlDB.GetDomains(ctx)
 	if err != nil {
@@ -143,7 +164,7 @@ func (uc *UseCase) GetDomains(ctx context.Context) ([]models.Domain, error) {
 	}
 
 	uc.c.Set(cacheKey, domains)
-	uc.l.DebugContext(ctx, "success got domains", slog.Int("count", len(domains)))
+	//uc.l.DebugContext(ctx, "success got domains", slog.Int("count", len(domains)))
 	return domains, nil
 }
 
@@ -159,7 +180,7 @@ func (uc *UseCase) IncrementAccessCount(ctx context.Context, domainID uint) erro
 	// Инвалидируем кеш для этого домена
 	uc.c.Delete(fmt.Sprintf("domain:id:%d", domainID))
 
-	uc.l.DebugContext(ctx, "success increment domain access count", slog.Int("id", int(domainID)))
+	//uc.l.DebugContext(ctx, "success increment domain access count", slog.Int("id", int(domainID)))
 	return nil
 }
 
@@ -175,8 +196,8 @@ func (uc *UseCase) UpdateDomainLastAccess(ctx context.Context, domainID uint, da
 	// Инвалидируем кеш для этого домена
 	uc.c.Delete(fmt.Sprintf("domain:id:%d", domainID))
 
-	uc.l.DebugContext(ctx, "success update domain last access datetime",
-		slog.Int("id", int(domainID)), slog.Time("datetime", datetime))
+	//uc.l.DebugContext(ctx, "success update domain last access datetime",
+	//	slog.Int("id", int(domainID)), slog.Time("datetime", datetime))
 	return nil
 }
 
@@ -191,9 +212,9 @@ func (uc *UseCase) invalidateDomainCache(domain *models.Domain) {
 	// Инвалидируем кеш всех доменов
 	uc.c.Delete("domains:all")
 
-	uc.l.Debug("invalidated domain cache",
-		slog.Int("id", int(domain.ID)),
-		slog.String("ip", domain.IP),
-		slog.Int("port", domain.Port),
-	)
+	//uc.l.Debug("invalidated domain cache",
+	//	slog.Int("id", int(domain.ID)),
+	//	slog.String("ip", domain.IP),
+	//	slog.Int("port", domain.Port),
+	//)
 }

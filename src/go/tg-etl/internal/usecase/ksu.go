@@ -21,6 +21,6 @@ func (uc *UseCase) GetLogs(ctx context.Context, start *models.IdsLog, count uint
 		}
 		logs = logs[1 : len(logs)-1]
 	}
-	uc.l.DebugContext(ctx, "success get logs", wsl.Int("count", len(logs)))
+	//uc.l.DebugContext(ctx, "success get logs", wsl.Int("count", len(logs)))
 	return logs, nil
 }

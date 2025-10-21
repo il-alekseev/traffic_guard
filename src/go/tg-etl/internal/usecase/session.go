@@ -14,7 +14,7 @@ func (uc *UseCase) CreateSession(ctx context.Context, session models.Session) er
 		return err
 	}
 
-	uc.l.DebugContext(ctx, "success create session")
+	//uc.l.DebugContext(ctx, "success create session")
 	return nil
 }
 
@@ -25,7 +25,7 @@ func (uc *UseCase) GetSessionByID(ctx context.Context, id uint) (*models.Session
 			wsl.Err(err))
 		return nil, err
 	}
-	uc.l.DebugContext(ctx, "success got session", wsl.Int("id", int(id)))
+	//uc.l.DebugContext(ctx, "success got session", wsl.Int("id", int(id)))
 	return session, nil
 }
 
@@ -36,6 +36,6 @@ func (uc *UseCase) GetSessions(ctx context.Context, limit, offset int) ([]models
 			wsl.Err(err))
 		return nil, err
 	}
-	uc.l.DebugContext(ctx, "success got sessions", wsl.Int("count", len(sessions)))
+	//uc.l.DebugContext(ctx, "success got sessions", wsl.Int("count", len(sessions)))
 	return sessions, nil
 }

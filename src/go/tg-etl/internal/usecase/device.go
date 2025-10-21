@@ -5,17 +5,16 @@ import (
 	"cmd/etl/pkg/slogger/wsl"
 	"context"
 	"fmt"
-	"log/slog"
 )
 
 func (uc *UseCase) GetDeviceByID(ctx context.Context, id int) (*models.Device, error) {
 	cacheKey := fmt.Sprintf("device:id:%d", id)
 	// Пытаемся получить из кеша
 	if cached, exists := uc.c.Get(cacheKey); exists {
-		uc.l.DebugContext(ctx, "cache hit for device", wsl.Int("id", id))
+		//uc.l.DebugContext(ctx, "cache hit for device", wsl.Int("id", id))
 		return cached.(*models.Device), nil
 	}
-	uc.l.DebugContext(ctx, "cache miss for device", slog.Int("id", id))
+	//uc.l.DebugContext(ctx, "cache miss for device", slog.Int("id", id))
 
 	// Если нет в кеше, ищем в БД
 	device, err := uc.etlDB.GetDeviceByID(ctx, id)
@@ -24,7 +23,7 @@ func (uc *UseCase) GetDeviceByID(ctx context.Context, id int) (*models.Device, e
 	}
 	// Если устройство есть в базе, добавляем в кеш
 	if device != nil {
-		uc.l.DebugContext(ctx, "success got device by id", slog.Int("id", id))
+		//uc.l.DebugContext(ctx, "success got device by id", slog.Int("id", id))
 		uc.c.Set(cacheKey, device)
 	}
 	return device, nil
@@ -38,23 +37,23 @@ func (uc *UseCase) CreateDevice(ctx context.Context, device models.Device) error
 	}
 	// Инвалидируем возможные кеши
 	uc.c.Delete(fmt.Sprintf("device:id:%d", device.ID))
-	uc.l.DebugContext(ctx, "success create device")
+	//uc.l.DebugContext(ctx, "success create device")
 	return nil
 }
 
 func (uc *UseCase) GetDevices(ctx context.Context) ([]models.Device, error) {
 	cacheKey := "devices:all"
 	if cached, exists := uc.c.Get(cacheKey); exists {
-		uc.l.DebugContext(ctx, "cache hit for all devices")
+		//uc.l.DebugContext(ctx, "cache hit for all devices")
 		return cached.([]models.Device), nil
 	}
-	uc.l.DebugContext(ctx, "cache miss for all devices")
-	devices, err := uc.etlDB.GeDevices(ctx)
+	//uc.l.DebugContext(ctx, "cache miss for all devices")
+	devices, err := uc.etlDB.GetDevices(ctx)
 	if err != nil {
 		uc.l.ErrorContext(ctx, "get devices", wsl.Err((err)))
 		return nil, err
 	}
 	uc.c.Set(cacheKey, devices)
-	uc.l.DebugContext(ctx, "success got devices")
+	//uc.l.DebugContext(ctx, "success got devices")
 	return devices, nil
 }

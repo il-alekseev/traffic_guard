@@ -50,7 +50,7 @@ func (r *ELTRepoPG) GetDeviceByID(ctx context.Context, id int) (*models.Device, 
 	return &d, nil
 }
 
-func (r *ELTRepoPG) GeDevices(ctx context.Context) ([]models.Device, error) {
+func (r *ELTRepoPG) GetDevices(ctx context.Context) ([]models.Device, error) {
 	var devices []models.Device
 	err := r.db.GetDB().WithContext(ctx).Find(&devices).Error
 	if err != nil {
@@ -60,14 +60,14 @@ func (r *ELTRepoPG) GeDevices(ctx context.Context) ([]models.Device, error) {
 	return devices, nil
 }
 
-func (r *ELTRepoPG) GetSourceByAddr(ctx context.Context, ip string, port int) (*models.Source, error) {
+func (r *ELTRepoPG) GetSourceByAddr(ctx context.Context, ip string) (*models.Source, error) {
 	var source models.Source
-	err := r.db.GetDB().WithContext(ctx).Where("ip = ? AND port = ?", ip, port).First(&source).Error
+	err := r.db.GetDB().WithContext(ctx).Where("ip = ?", ip).First(&source).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
 		}
-		err = fmt.Errorf("failed to get source by addr %s:%d: %w", ip, port, err)
+		err = fmt.Errorf("failed to get source by addr %s: %w", ip, err)
 		return nil, slogger.WrapError(ctx, err)
 	}
 	return &source, nil
@@ -89,7 +89,7 @@ func (r *ELTRepoPG) GetSourceByID(ctx context.Context, id uint) (*models.Source,
 func (r *ELTRepoPG) CreateSource(ctx context.Context, source models.Source) error {
 	err := r.db.WithTx(ctx, func(tx *gorm.DB) error {
 		if err := tx.Create(&source).Error; err != nil {
-			return fmt.Errorf("failed to create source %s:%d: %w", source.IP, source.Port, err)
+			return fmt.Errorf("failed to create source %s: %w", source.IP, err)
 		}
 		return nil
 	})
@@ -164,6 +164,19 @@ func (r *ELTRepoPG) GetDomainByAddr(ctx context.Context, ip string, port int) (*
 			return nil, nil
 		}
 		err = fmt.Errorf("failed to get domain by addr %s:%d: %w", ip, port, err)
+		return nil, slogger.WrapError(ctx, err)
+	}
+	return &domain, nil
+}
+
+func (r *ELTRepoPG) GetDomainByPath(ctx context.Context, path string) (*models.Domain, error) {
+	var domain models.Domain
+	err := r.db.GetDB().WithContext(ctx).Where("path = ?", path).First(&domain).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		err = fmt.Errorf("failed to get domain by path %s: %w", path, err)
 		return nil, slogger.WrapError(ctx, err)
 	}
 	return &domain, nil

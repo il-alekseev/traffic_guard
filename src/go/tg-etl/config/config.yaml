@@ -24,8 +24,8 @@ etl_postgres:
   #sslmode: "disable"
   pool_max: 2
   host: "192.168.130.112"
-  user: "config_user"
-  pass: "config_password"
+  user: "etl_user"
+  pass: "etl_password"
   dbname: "etl"
   port: "5433"
   sslmode: "disable"
