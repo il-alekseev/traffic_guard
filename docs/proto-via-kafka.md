@@ -56,6 +56,88 @@ graph TB
     class ETL,CONTENT,ML service
     class REQ,META,CONTENT_REQ,ML_RES kafka
 ```
+## Общение через url-metadata-results и url-content-analysis
+
+### url-metadata-results
+{
+  "request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "content_id": "2b325e4b-49ea-4659-82bb-7a8385a1ed8d",
+  "status": "ok",
+  "failure": "none",
+  "error": "",
+  "warnings": [],
+  "url": "https://pupok.xxx.com/se/be/me/bi.html",
+  "domain": {
+    "name": "pupok.xxx.com",
+    "ip": "80.23.143.56",
+    "geo": {
+      "country": "RU",
+      "asn": "AS12345"
+    }
+  },
+  "strategy": "trafilatura",
+  "metric": 238,
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "processed_at": "2025-10-22T12:22:39.404153639Z"
+}
+
+#### Назначение полей
+- request_id — идентификатор задания, совпадает с входным url-processing-requests.
+- content_id — идентификатор извлечённого контента (используется для связи с БД/ML и url-content-analysis).
+- status — итог работы пайплайна (ok, partial, error).
+- failure — код причины, если статус не ok (fetch_error, clean_error, evaluate_error, requirements_not_met).
+- error — текстовое описание причины (может быть пустым при ok).
+- warnings — массив диагностических сообщений (проблемы DNS, geo, очистки, записи).
+- url — итоговый URL, по которому удалось получить контент.
+- domain — сведения о домене/IP: имя, IP, геоинформация (страна, ASN, провайдер и т.д.).
+- strategy — стратегия, давшая лучший результат (trafilatura, http, ...).
+- metric — числовая оценка качества (количество символов, score эвристики).
+- user_agent — User-Agent, использованный в успешном запросе.
+- processed_at — timestamp публикации (UTC).
+
+#### Логика работы
+1. Для каждого запроса формируется список URL-кандидатов (учитываются proto/port, дефолтные значения).
+2. Воркеры пробуют стратегии и User-Agent’ы до получения приемлемого результата.
+3. Независимо от наличия текста публикуется метадата с полем status/failure/warnings.
+4. В warnings добавляются сообщения о каждом неуспешном шаге (fetch, clean, evaluate, persist).
+5. Downstream (ETL) использует status/failure для логики ретраев/алертов.
+
+---
+
+### url-content-analysis
+{
+  "request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "content_id": "2b325e4b-49ea-4659-82bb-7a8385a1ed8d",
+  "url": "https://pupок.xxx.com/se/be/me/bi.html",
+  "strategy": "trafilatura",
+  "metric": 238,
+  "content": "Google Yandex Rambler Mail.ru ...",
+  "status": "ok",
+  "failure": "none",
+  "error": "",
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  "processed_at": "2025-10-22T12:22:39.404153639Z"
+}
+
+#### Назначение полей
+- request_id — идентификатор задания, совпадает с метадатой.
+- content_id — ID блока текста, используется downstream.
+- url — URL, откуда снято содержимое (после подборки протокола/порта).
+- strategy — стратегия, вернувшая текст (trafilatura, http, ...).
+- metric — количественная оценка качества (длина текста, оценка эвристики).
+- content — очищенный текст (может быть усечён по content.max_content_length).
+- status / failure / error — повторяют значения из метадаты.
+- user_agent — какой User-Agent дал успешный ответ.
+- processed_at — время публикации сообщения (UTC).
+
+#### Логика работы
+1. Сообщение публикуется только если удалось получить ненулевой текст.
+2. Если текст не удовлетворяет требованиям (длина, очистка), status = partial, failure = requirements_not_met.
+3. При полностью пустом тексте публикация пропускается (есть только метадата).
+4. content_id совпадает с метадатой для объединения событий.
+5. ML-пайплайн может использовать status для фильтрации и повторной обработки.
+
+---
 
 ## Общение через `url-processing-requests`
 Отличная задача! Приведу несколько примеров JSON-структур, соответствующие структуры на Go и их описание.
