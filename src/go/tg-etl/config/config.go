@@ -67,8 +67,8 @@ func NewConfig() (*Config, error) {
 	}
 	fmt.Printf("Текущая директория: %s\n", currentDir)
 
-	//cfgPath := "./config/config.yaml"
-	cfgPath := "C:/Users/Asus/Projects/VS Code/Continent/traffic_guard/src/go/tg-etl/config/config.yaml"
+	cfgPath := "./config/config.yaml"
+	//cfgPath := "C:/Users/Asus/Projects/VS Code/Continent/traffic_guard/src/go/tg-etl/config/config.yaml"
 
 	if _, err := os.Stat(cfgPath); err == nil {
 		fmt.Printf("Файл %s существует\n", cfgPath)
