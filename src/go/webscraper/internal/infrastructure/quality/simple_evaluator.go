@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"scrapper/internal/domain"
+	"scrapper/internal/models"
 )
 
 type SimpleEvaluator struct {
@@ -20,13 +20,13 @@ func NewSimpleEvaluator(minLength int) *SimpleEvaluator {
 	return &SimpleEvaluator{minLength: minLength}
 }
 
-func (e *SimpleEvaluator) Evaluate(ctx context.Context, data domain.ContentData) (domain.QualityEvaluation, error) {
+func (e *SimpleEvaluator) Evaluate(ctx context.Context, data models.ContentData) (models.QualityEvaluation, error) {
 	_ = ctx
 
 	text := strings.TrimSpace(data.Text)
 	runeCount := utf8.RuneCountInString(text)
 
-	evaluation := domain.QualityEvaluation{
+	evaluation := models.QualityEvaluation{
 		Score: float64(runeCount),
 	}
 

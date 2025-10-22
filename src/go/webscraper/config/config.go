@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -38,23 +39,51 @@ func (d *Duration) UnmarshalYAML(value *yaml.Node) error {
 }
 
 type ContentConfig struct {
-    Strategies     []string `yaml:"strategies"`
-    MinTextLength  int      `yaml:"min_text_length"`
-    RepositoryPath string   `yaml:"repository_path"`
+	Strategies       []string `yaml:"strategies"`
+	MinTextLength    int      `yaml:"min_text_length"`
+	RepositoryPath   string   `yaml:"repository_path"`
+	MaxContentLength int      `yaml:"max_content_length"`
+	UserAgentsPath   string   `yaml:"user_agents_path"`
 }
 
 type LoggingConfig struct {
-    File string `yaml:"file"`
+	Level string `yaml:"level"`
+}
+
+type KafkaAuthConfig struct {
+	Username      string `yaml:"username"`
+	Password      string `yaml:"password"`
+	SASLMechanism string `yaml:"sasl_mechanism"`
+	TLSEnabled    bool   `yaml:"tls_enabled"`
+}
+
+type KafkaConfig struct {
+	Brokers        []string        `yaml:"brokers"`
+	GroupID        string          `yaml:"group_id"`
+	ClientID       string          `yaml:"client_id"`
+	InputTopic     string          `yaml:"input_topic"`
+	MetadataTopic  string          `yaml:"metadata_topic"`
+	ContentTopic   string          `yaml:"content_topic"`
+	CommitInterval Duration        `yaml:"commit_interval"`
+	PollTimeout    Duration        `yaml:"poll_timeout"`
+	Auth           KafkaAuthConfig `yaml:"auth"`
+}
+
+type HTTPConfig struct {
+	Address         string   `yaml:"address"`
+	ReadTimeout     Duration `yaml:"read_timeout"`
+	WriteTimeout    Duration `yaml:"write_timeout"`
+	ShutdownTimeout Duration `yaml:"shutdown_timeout"`
 }
 
 type Config struct {
-    InputPath      string        `yaml:"input_path"`
-    DBPath         string        `yaml:"db_path"`
-    Workers        int           `yaml:"workers"`
-    RequestTimeout Duration      `yaml:"request_timeout"`
-    HTTPTimeout    Duration      `yaml:"http_timeout"`
-    Content        ContentConfig `yaml:"content"`
-    Logging        LoggingConfig `yaml:"logging"`
+	DBPath         string        `yaml:"db_path"`
+	Workers        int           `yaml:"workers"`
+	RequestTimeout Duration      `yaml:"request_timeout"`
+	Content        ContentConfig `yaml:"content"`
+	Logging        LoggingConfig `yaml:"logging"`
+	Kafka          KafkaConfig   `yaml:"kafka"`
+	HTTP           HTTPConfig    `yaml:"http"`
 }
 
 func Load(path string) (*Config, error) {
@@ -69,4 +98,28 @@ func Load(path string) (*Config, error) {
 	}
 
 	return &cfg, nil
+}
+
+func ApplyEnvOverrides(cfg *Config) {
+	if cfg == nil {
+		return
+	}
+
+	if brokers := os.Getenv("WEBSCRAPER_KAFKA_BROKERS"); brokers != "" {
+		values := strings.Split(brokers, ",")
+		sanitized := make([]string, 0, len(values))
+		for _, b := range values {
+			trimmed := strings.TrimSpace(b)
+			if trimmed != "" {
+				sanitized = append(sanitized, trimmed)
+			}
+		}
+		if len(sanitized) > 0 {
+			cfg.Kafka.Brokers = sanitized
+		}
+	}
+
+	if addr := os.Getenv("WEBSCRAPER_HTTP_ADDRESS"); addr != "" {
+		cfg.HTTP.Address = strings.TrimSpace(addr)
+	}
 }

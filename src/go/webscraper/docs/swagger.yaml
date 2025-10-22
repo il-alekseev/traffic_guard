@@ -1,0 +1,177 @@
+openapi: 3.0.3
+info:
+  title: Traffic Guard Webscraper API
+  description: REST endpoints for health checks and ad-hoc content processing.
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8010
+paths:
+  /helth_check:
+    get:
+      summary: Service health status
+      description: Returns service metrics and Kafka connectivity status.
+      responses:
+        '200':
+          description: Health information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '500':
+          description: Unexpected error
+  /get_content:
+    post:
+      summary: Process single content request
+      description: Runs the scraping pipeline for a single request payload without publishing to Kafka.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcessingRequest'
+      responses:
+        '200':
+          description: Processing result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentTestResponse'
+        '400':
+          description: Invalid request payload
+        '500':
+          description: Internal error
+components:
+  schemas:
+    ProcessingRequest:
+      type: object
+      required:
+        - request_id
+        - dst
+      properties:
+        request_id:
+          type: string
+          format: uuid
+        src:
+          type: object
+          properties:
+            ip:
+              type: string
+        dst:
+          type: object
+          required:
+            - type
+            - resource
+          properties:
+            type:
+              type: string
+              enum: [ip, domain, url]
+            resource:
+              type: string
+            port:
+              type: integer
+            proto:
+              type: string
+            content_id:
+              type: string
+    MetadataMessage:
+      type: object
+      properties:
+        request_id:
+          type: string
+        content_id:
+          type: string
+        status:
+          type: string
+          enum: [ok, partial, error]
+        failure:
+          type: string
+        error:
+          type: string
+        warnings:
+          type: array
+          items:
+            type: string
+        url:
+          type: string
+        domain:
+          type: object
+          properties:
+            name:
+              type: string
+            ip:
+              type: string
+            geo:
+              type: object
+              additionalProperties: {}
+        strategy:
+          type: string
+        metric:
+          type: number
+        user_agent:
+          type: string
+        processed_at:
+          type: string
+          format: date-time
+    ContentMessage:
+      type: object
+      properties:
+        request_id:
+          type: string
+        content_id:
+          type: string
+        url:
+          type: string
+        strategy:
+          type: string
+        metric:
+          type: number
+        content:
+          type: string
+        status:
+          type: string
+        failure:
+          type: string
+        error:
+          type: string
+        user_agent:
+          type: string
+        processed_at:
+          type: string
+          format: date-time
+    ContentTestResponse:
+      type: object
+      properties:
+        metadata:
+          : '#/components/schemas/MetadataMessage'
+        content:
+          : '#/components/schemas/ContentMessage'
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        kafka:
+          type: object
+          properties:
+            status:
+              type: string
+        workers:
+          type: object
+          properties:
+            configured:
+              type: integer
+            in_flight:
+              type: integer
+            processed:
+              type: integer
+            failed:
+              type: integer
+        uptime:
+          type: string
+        started_at:
+          type: string
+          format: date-time
+        processing:
+          type: array
+          items:
+            type: string

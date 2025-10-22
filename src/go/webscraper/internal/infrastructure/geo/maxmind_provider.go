@@ -7,7 +7,7 @@ import (
 
 	"github.com/oschwald/maxminddb-golang"
 
-	"scrapper/internal/domain"
+	"scrapper/internal/models"
 )
 
 type MaxMindProvider struct {
@@ -23,7 +23,7 @@ func NewMaxMindProvider(dbPath string) (*MaxMindProvider, error) {
 	return &MaxMindProvider{db: reader}, nil
 }
 
-func (p *MaxMindProvider) Lookup(ctx context.Context, ip net.IP) (domain.GeoInfo, error) {
+func (p *MaxMindProvider) Lookup(ctx context.Context, ip net.IP) (models.GeoInfo, error) {
 	_ = ctx
 
 	if p == nil || p.db == nil {
@@ -43,7 +43,7 @@ func (p *MaxMindProvider) Lookup(ctx context.Context, ip net.IP) (domain.GeoInfo
 		return nil, nil
 	}
 
-	return domain.GeoInfo(record), nil
+	return models.GeoInfo(record), nil
 }
 
 func (p *MaxMindProvider) Close() error {

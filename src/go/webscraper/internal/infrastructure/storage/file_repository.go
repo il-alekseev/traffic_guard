@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"scrapper/internal/domain"
+	"scrapper/internal/models"
 )
 
 type FileRepository struct {
@@ -29,7 +29,7 @@ func NewFileRepository(path string) (*FileRepository, error) {
 	return &FileRepository{path: path}, nil
 }
 
-func (r *FileRepository) SaveAttempt(ctx context.Context, attempt domain.ContentAttempt) error {
+func (r *FileRepository) SaveAttempt(ctx context.Context, attempt models.ContentAttempt) error {
 	_ = ctx
 
 	if attempt.URL == "" {
