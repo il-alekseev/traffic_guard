@@ -1,12 +1,12 @@
 package usecase
 
 import (
-	"cmd/etl/internal/models"
-	"cmd/etl/internal/utils"
-	"cmd/etl/pkg/slogger/wsl"
 	"context"
 	"fmt"
 	"log/slog"
+	"tg-etl/internal/models"
+	"tg-etl/internal/utils"
+	"tg-etl/pkg/slogger/wsl"
 )
 
 // processNewLogs обрабатывает новые записи из IdsLogs

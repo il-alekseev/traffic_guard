@@ -1,12 +1,12 @@
 package postgresql
 
 import (
-	"cmd/etl/internal/models"
-	"cmd/etl/pkg/pgorm"
-	"cmd/etl/pkg/slogger"
 	"context"
 	"fmt"
 	"log/slog"
+	"tg-etl/internal/models"
+	"tg-etl/pkg/pgorm"
+	"tg-etl/pkg/slogger"
 	"time"
 
 	"gorm.io/gorm"
@@ -371,4 +371,57 @@ func (r *ELTRepoPG) GetSessions(ctx context.Context) ([]models.Session, error) {
 		return nil, slogger.WrapError(ctx, err)
 	}
 	return sessions, nil
+}
+
+// Методы категорий
+func (r *ELTRepoPG) CreateCategories(ctx context.Context, categories []string) error {
+	err := r.db.WithTx(ctx, func(tx *gorm.DB) error {
+		for _, catName := range categories {
+			category := models.Category{Name: catName}
+			if err := tx.Create(&category).Error; err != nil {
+				return fmt.Errorf("failed to create category %s: %w", catName, err)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return slogger.WrapError(ctx, err)
+	}
+	return nil
+}
+
+func (r *ELTRepoPG) GetCategoryByID(ctx context.Context, id uint) (*models.Category, error) {
+	var category models.Category
+	err := r.db.GetDB().WithContext(ctx).First(&category, id).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		err = fmt.Errorf("failed to get category by id %d: %w", id, err)
+		return nil, slogger.WrapError(ctx, err)
+	}
+	return &category, nil
+}
+
+func (r *ELTRepoPG) GetCategoryByName(ctx context.Context, name string) (*models.Category, error) {
+	var category models.Category
+	err := r.db.GetDB().WithContext(ctx).Where("name = ?", name).First(&category).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		err = fmt.Errorf("failed to get category by name %s: %w", name, err)
+		return nil, slogger.WrapError(ctx, err)
+	}
+	return &category, nil
+}
+
+func (r *ELTRepoPG) GetCategories(ctx context.Context) ([]models.Category, error) {
+	var categories []models.Category
+	err := r.db.GetDB().WithContext(ctx).Find(&categories).Error
+	if err != nil {
+		err = fmt.Errorf("failed to get categories: %w", err)
+		return nil, slogger.WrapError(ctx, err)
+	}
+	return categories, nil
 }

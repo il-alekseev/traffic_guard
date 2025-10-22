@@ -1,12 +1,12 @@
 package postgresql
 
 import (
-	"cmd/etl/internal/models"
-	"cmd/etl/pkg/pgorm"
-	"cmd/etl/pkg/slogger"
 	"context"
 	"fmt"
 	"log/slog"
+	"tg-etl/internal/models"
+	"tg-etl/pkg/pgorm"
+	"tg-etl/pkg/slogger"
 )
 
 type KSURepoPG struct {

@@ -73,13 +73,19 @@ type Status struct {
 
 // Category представляет таблицу category
 type Category struct {
-	ID       uint    `gorm:"primaryKey" json:"id"`
-	Category string  `gorm:"type:varchar" json:"category"`
-	Percent  float64 `gorm:"type:float" json:"percent"`
+	ID   uint   `gorm:"primaryKey" json:"id"`
+	Name string `gorm:"type:varchar;unique" json:"name"`
+}
+
+// Category представляет таблицу content_category
+type ContentCategory struct {
+	ID         uint    `gorm:"primaryKey" json:"id"`
+	CategoryID uint    `gorm:"type:integer" json:"category_id"`
+	Percent    float64 `gorm:"type:float" json:"percent"`
 }
 
 // CategoryDomain представляет таблицу category_domain (связующая таблица)
 type CategoryDomain struct {
-	CategoryID uint `gorm:"primaryKey;column:category_id" json:"category_id"`
-	DomainID   uint `gorm:"primaryKey;column:domain_id" json:"domain_id"`
+	ContentCategoryID uint `gorm:"primaryKey;column:content_category_id" json:"content_category_id"`
+	DomainID          uint `gorm:"primaryKey;column:domain_id" json:"domain_id"`
 }

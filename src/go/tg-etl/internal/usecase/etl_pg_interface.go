@@ -1,8 +1,8 @@
 package usecase
 
 import (
-	"cmd/etl/internal/models"
 	"context"
+	"tg-etl/internal/models"
 	"time"
 )
 
@@ -31,4 +31,9 @@ type ETLRepoPGInterface interface {
 	CreateSession(ctx context.Context, session models.Session) error
 	GetSessionByID(ctx context.Context, id uint) (*models.Session, error)
 	GetSessions(ctx context.Context) ([]models.Session, error)
+
+	CreateCategories(ctx context.Context, categories []string) error
+	GetCategoryByID(ctx context.Context, id uint) (*models.Category, error)
+	GetCategoryByName(ctx context.Context, name string) (*models.Category, error)
+	GetCategories(ctx context.Context) ([]models.Category, error)
 }

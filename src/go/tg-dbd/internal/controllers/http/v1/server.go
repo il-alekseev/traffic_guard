@@ -16,26 +16,28 @@ import (
 // @BasePath        /api/v1
 // @schemes         http
 type Server struct {
-	server *http.Server
-	router *gin.Engine
-	l      slog.Logger
-	u      UseCaseInterface
+	devVersion string
+	server     *http.Server
+	router     *gin.Engine
+	l          slog.Logger
+	u          UseCaseInterface
 }
 
-func New(cfg *config.HTTP, l slog.Logger, u UseCaseInterface) *Server {
+func New(cfg *config.Config, l slog.Logger, u UseCaseInterface) *Server {
 	gin.SetMode(gin.DebugMode)
 
 	r := gin.New()
 
 	s := http.Server{
-		Addr:    cfg.Host + ":" + cfg.Port,
+		Addr:    cfg.HTTP.Host + ":" + cfg.HTTP.Port,
 		Handler: r,
 	}
 	server := Server{
-		server: &s,
-		router: r,
-		l:      l,
-		u:      u,
+		devVersion: cfg.App.DevVersion,
+		server:     &s,
+		router:     r,
+		l:          l,
+		u:          u,
 	}
 	server.configureRouter()
 	return &server

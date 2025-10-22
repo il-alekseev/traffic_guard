@@ -1,7 +1,15 @@
 app:
   name: 'tg-etl'
   version: '1.0.1'
+  dev_version: '0.1.1-dev.5'
 
+http:
+  host: '127.0.0.1'
+  port: '7001'
+
+swagger:
+  host: '127.0.0.1'
+  
 logger:
   log_level: 'debug'
 

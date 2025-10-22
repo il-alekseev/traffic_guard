@@ -107,6 +107,29 @@ info:
   title: Dashboard API
   version: "1.0"
 paths:
+  /categories:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список всех уникальных категорий контента из системы
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список категорий контента
+          schema:
+            items:
+              type: string
+            type: array
+        "500":
+          description: Ошибка при получении списка категорий
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить список категорий контента
+      tags:
+      - common
   /dashboards/requests:
     get:
       consumes:
@@ -603,6 +626,19 @@ paths:
           schema:
             $ref: '#/definitions/dto.SuccessResponse'
       summary: Проверка работоспособности сервера
+      tags:
+      - utils
+  /version:
+    get:
+      description: Возвращает информацию о версии, времени сборки и коммите
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+      summary: Получение версии сервиса
       tags:
       - utils
 schemes:

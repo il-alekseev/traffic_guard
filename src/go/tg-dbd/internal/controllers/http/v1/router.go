@@ -16,6 +16,7 @@ func (s *Server) configureRouter() {
 	{
 		// Common
 		v1.GET("/devices", s.GetDevices)
+		v1.GET("/categories", s.GetContentCategories)
 		// Вкладка Сессии
 		v1.GET("/sessions", s.GetSessions)
 		// Вкладка dashboard

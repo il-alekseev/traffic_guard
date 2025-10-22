@@ -1,10 +1,10 @@
 package usecase
 
 import (
-	"cmd/etl/internal/models"
-	"cmd/etl/pkg/slogger/wsl"
 	"context"
 	"fmt"
+	"tg-etl/internal/models"
+	"tg-etl/pkg/slogger/wsl"
 )
 
 // GetSourceByAddr получает источник по IP с кешированием

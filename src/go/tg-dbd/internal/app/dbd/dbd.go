@@ -74,7 +74,7 @@ func Run(cfg *config.Config) {
 
 	u := usecase.New(db, logger)
 
-	server := httpserver.New(&cfg.HTTP, logger, u)
+	server := httpserver.New(cfg, logger, u)
 
 	go func() {
 		if err := server.Start(); err != nil && err != http.ErrServerClosed {

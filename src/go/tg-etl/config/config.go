@@ -11,6 +11,8 @@ type (
 	// Config -.
 	Config struct {
 		App           `yaml:"app"`
+		HTTP          `yaml:"http"`
+		Swagger       `yaml:"swagger"`
 		Log           `yaml:"logger"`
 		KSU           `yaml:"ksu_postgres"`
 		ETL           `yaml:"etl_postgres"`
@@ -18,8 +20,17 @@ type (
 	}
 	// App -.
 	App struct {
-		Name    string `env-required:"true" yaml:"name"    env:"ETL_APP_NAME"`
-		Version string `env-required:"true" yaml:"version" env:"ETL_APP_VERSION"`
+		Name       string `env-required:"true" yaml:"name"    env:"ETL_APP_NAME"`
+		Version    string `env-required:"true" yaml:"version" env:"ETL_APP_VERSION"`
+		DevVersion string `yaml:"dev_version"`
+	}
+	// HTTP -.
+	HTTP struct {
+		Port string `env-required:"true" yaml:"port" env:"ETL_HTTP_PORT"`
+		Host string `env-required:"true" yaml:"host" env:"ETL_HTTP_HOST"`
+	}
+	Swagger struct {
+		Host string `env-required:"true" yaml:"host" env:"DBD_SWAGGER_HOST"`
 	}
 	// Log -.
 	Log struct {

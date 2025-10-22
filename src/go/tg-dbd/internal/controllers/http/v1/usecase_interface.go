@@ -12,6 +12,7 @@ import (
 type UseCaseInterface interface {
 	// Common
 	GetDevices(ctx context.Context) ([]string, error)
+	GetContentCategories(ctx context.Context) ([]string, error)
 	// Sessions
 	GetSessions(ctx context.Context, tr *trparser.TimeRange, f models.SessionFilter, search string, p models.Pagination, s models.Sorting) ([]dto.Session, int64, error)
 	// Dashboards

@@ -1,12 +1,12 @@
 package parser
 
 import (
-	"cmd/etl/internal/models"
 	"encoding/csv"
 	"fmt"
 	"io"
 	"os"
 	"strconv"
+	"tg-etl/internal/models"
 	"time"
 )
 

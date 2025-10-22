@@ -12,6 +12,41 @@
     "host": "127.0.0.1:7000",
     "basePath": "/api/v1",
     "paths": {
+        "/categories": {
+            "get": {
+                "description": "Возвращает список всех уникальных категорий контента из системы",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "common"
+                ],
+                "summary": "Получить список категорий контента",
+                "responses": {
+                    "200": {
+                        "description": "Список категорий контента",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка при получении списка категорий",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/dashboards/requests": {
             "get": {
                 "description": "Возвращает статистику запросов за указанный период с фильтрацией по статусу, хосту и категории",
@@ -722,6 +757,26 @@
                     "utils"
                 ],
                 "summary": "Проверка работоспособности сервера",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/version": {
+            "get": {
+                "description": "Возвращает информацию о версии, времени сборки и коммите",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "utils"
+                ],
+                "summary": "Получение версии сервиса",
                 "responses": {
                     "200": {
                         "description": "OK",

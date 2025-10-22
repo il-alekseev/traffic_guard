@@ -1,10 +1,10 @@
 package usecase
 
 import (
-	"cmd/etl/internal/models"
-	"cmd/etl/pkg/slogger/wsl"
 	"context"
 	"fmt"
+	"tg-etl/internal/models"
+	"tg-etl/pkg/slogger/wsl"
 )
 
 func (uc *UseCase) GetDeviceByID(ctx context.Context, id int) (*models.Device, error) {

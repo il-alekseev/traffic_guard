@@ -18,8 +18,9 @@ type (
 	}
 	// App -.
 	App struct {
-		Name    string `env-required:"true" yaml:"name"    env:"DBD_APP_NAME"`
-		Version string `env-required:"true" yaml:"version" env:"DBD_APP_VERSION"`
+		Name       string `env-required:"true" yaml:"name"    env:"DBD_APP_NAME"`
+		Version    string `env-required:"true" yaml:"version" env:"DBD_APP_VERSION"`
+		DevVersion string `yaml:"dev_version"`
 	}
 	// Log -.
 	Log struct {

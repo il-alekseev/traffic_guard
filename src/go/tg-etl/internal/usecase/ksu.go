@@ -1,9 +1,9 @@
 package usecase
 
 import (
-	"cmd/etl/internal/models"
-	"cmd/etl/pkg/slogger/wsl"
 	"context"
+	"tg-etl/internal/models"
+	"tg-etl/pkg/slogger/wsl"
 )
 
 func (uc *UseCase) GetLogs(ctx context.Context, start *models.IdsLog, count uint) ([]models.IdsLog, error) {

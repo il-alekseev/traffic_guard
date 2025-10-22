@@ -1,11 +1,11 @@
 package postgresql
 
 import (
-	"cmd/etl/internal/models"
-	"cmd/etl/pkg/pgorm"
 	"context"
 	"fmt"
 	"log/slog"
+	"tg-etl/internal/models"
+	"tg-etl/pkg/pgorm"
 
 	"gorm.io/gorm"
 )

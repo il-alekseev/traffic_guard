@@ -1,0 +1,43 @@
+basePath: /api/v1
+definitions:
+  dto.SuccessResponse:
+    properties:
+      message:
+        type: string
+    type: object
+host: 127.0.0.1:7001
+info:
+  contact: {}
+  description: API для ETL
+  title: ETL API
+  version: "1.0"
+paths:
+  /healthcheck:
+    get:
+      description: Проверка, что сервер работает
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+      summary: Проверка работоспособности сервера
+      tags:
+      - utils
+  /version:
+    get:
+      description: Возвращает информацию о версии, времени сборки и коммите
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+      summary: Получение версии ETL
+      tags:
+      - utils
+schemes:
+- http
+swagger: "2.0"

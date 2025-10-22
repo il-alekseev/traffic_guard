@@ -1,10 +1,10 @@
 package usecase
 
 import (
-	"cmd/etl/config"
-	"cmd/etl/internal/models"
-	"cmd/etl/internal/repo/m_cache"
 	"log/slog"
+	"tg-etl/config"
+	"tg-etl/internal/models"
+	"tg-etl/internal/repo/m_cache"
 	"time"
 )
 

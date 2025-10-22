@@ -1,10 +1,11 @@
 package etl
 
 import (
-	"cmd/etl/config"
-	"cmd/etl/pkg/slogger/wsl"
 	"context"
 	"log/slog"
+	"tg-etl/config"
+	"tg-etl/internal/repo/category"
+	"tg-etl/pkg/slogger/wsl"
 	"time"
 )
 
@@ -28,6 +29,19 @@ func New(cfg config.Config,
 func (e *EtlController) Start(ctx context.Context) {
 	e.l.InfoContext(ctx, "starting IDS log processor service",
 		wsl.Int("refresh interval", int(e.refresh)))
+	// Проверяем, пуста ли таблица с категориями, если пуста, то добавляем категории
+	categories, err := e.u.GetCategories(ctx)
+	if err != nil {
+		e.l.ErrorContext(ctx, "failed to get categories", wsl.Err(err))
+		return
+	}
+	if len(categories) == 0 {
+		err = e.u.CreateCategories(ctx, category.AllCategoryStrings())
+		if err != nil {
+			e.l.ErrorContext(ctx, "failed to create categories", wsl.Err(err))
+			return
+		}
+	}
 	// Создаем таймер для соблюдения интервала
 	ticker := time.NewTicker(e.refresh)
 	defer ticker.Stop()

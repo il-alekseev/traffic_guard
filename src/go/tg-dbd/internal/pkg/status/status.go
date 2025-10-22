@@ -1,7 +1,6 @@
 package status
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
@@ -27,22 +26,6 @@ func (s Status) String() string {
 		return "Ожидает"
 	default:
 		return fmt.Sprintf("Неизвестно(%d)", s)
-	}
-}
-
-// String реализует интерфейс fmt.Stringer
-func (s Status) ToJSONString() string {
-	switch s {
-	case Allowed:
-		return "allowed"
-	case Blocked:
-		return "blocked"
-	case Prohibited:
-		return "prohibited"
-	case Waiting:
-		return "waiting"
-	default:
-		return fmt.Sprintf("unknown(%d)", s)
 	}
 }
 
@@ -73,28 +56,18 @@ func ParseStatus(input string) (Status, error) {
 	}
 }
 
-// MarshalJSON реализует json.Marshaler
-func (s Status) MarshalJSON() ([]byte, error) {
-	return json.Marshal(s.String())
-}
-
-// UnmarshalJSON реализует json.Unmarshaler
-func (s *Status) UnmarshalJSON(data []byte) error {
-	var str string
-	if err := json.Unmarshal(data, &str); err != nil {
-		return err
-	}
-	switch str {
-	case "allowed":
-		*s = Allowed
-	case "blocked":
-		*s = Blocked
-	case "prohibited":
-		*s = Prohibited
-	case "waiting":
-		*s = Waiting
+// String реализует интерфейс fmt.Stringer
+func (s Status) ToJSONString() string {
+	switch s {
+	case Allowed:
+		return "allowed"
+	case Blocked:
+		return "blocked"
+	case Prohibited:
+		return "prohibited"
+	case Waiting:
+		return "waiting"
 	default:
-		return fmt.Errorf("invalid status value: %s", str)
+		return fmt.Sprintf("Неизвестно(%d)", s)
 	}
-	return nil
 }

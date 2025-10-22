@@ -1,8 +1,8 @@
 package usecase
 
 import (
-	"cmd/etl/internal/models"
 	"context"
+	"tg-etl/internal/models"
 )
 
 type KSURepoPGInterface interface {

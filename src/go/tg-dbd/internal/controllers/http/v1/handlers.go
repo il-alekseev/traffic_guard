@@ -14,6 +14,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Summary Получение версии сервиса
+// @Description Возвращает информацию о версии, времени сборки и коммите
+// @Tags utils
+// @Produce json
+// @Success 200 {object} dto.SuccessResponse
+// @Router /version [get]
+func (s *Server) Version(c *gin.Context) {
+	response := dto.SuccessResponse{
+		Message: s.devVersion,
+	}
+	c.JSON(http.StatusOK, response)
+	s.l.Debug("version")
+}
+
 // GetSessions godoc
 // @Summary Получить список сессий
 // @Description Возвращает список сессий с возможностью фильтрации, поиска, сортировки и пагинации
@@ -360,6 +374,26 @@ func (s *Server) GetDevices(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "ошибка при получении имен устройств",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, devices)
+}
+
+// @Summary Получить список категорий контента
+// @Description Возвращает список всех уникальных категорий контента из системы
+// @Tags common
+// @Accept json
+// @Produce json
+// @Success 200 {array} string "Список категорий контента"
+// @Failure 500 {object} map[string]string "Ошибка при получении списка категорий"
+// @Router /categories [get]
+func (s *Server) GetContentCategories(c *gin.Context) {
+	// Получем данные
+	devices, err := s.u.GetContentCategories(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "ошибка при получении списка всех категорий",
 		})
 		return
 	}

@@ -1,20 +1,23 @@
 package etl
 
 import (
-	"cmd/etl/config"
-	"cmd/etl/internal/controllers/etl"
-	"cmd/etl/internal/models"
-	"cmd/etl/internal/repo/postgresql"
-	"cmd/etl/internal/usecase"
-	"cmd/etl/pkg/pgorm"
-	"cmd/etl/pkg/slogger"
-	"cmd/etl/pkg/slogger/wsl"
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
+	"tg-etl/config"
+	"tg-etl/internal/controllers/etl"
+	v1 "tg-etl/internal/controllers/http/v1"
+	"tg-etl/internal/models"
+	"tg-etl/internal/repo/postgresql"
+	"tg-etl/internal/usecase"
+	"tg-etl/pkg/pgorm"
+	"tg-etl/pkg/slogger"
+	"tg-etl/pkg/slogger/wsl"
 )
 
 func getDSN(host, user, pass, dbname, port, sslmode string) string {
@@ -67,7 +70,11 @@ func createETLConnection(ctx context.Context, dsn string, maxPoolSize int, l slo
 }
 
 func Run(cfg *config.Config) {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var wg sync.WaitGroup
+
 	logLevel := slog.LevelDebug
 	if cfg.Log.Level != "debug" {
 		logLevel = slog.LevelInfo
@@ -111,19 +118,34 @@ func Run(cfg *config.Config) {
 		uc,
 		logger,
 	)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+
+	// HTTP сервер
+	server := v1.New(cfg, logger)
+
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
+	// Запуск HTTP сервера
+	wg.Add(1)
 	go func() {
-		<-sigChan
-		logger.InfoContext(ctx, "received shutdown signal")
-		cancel()
+		defer wg.Done()
+		if err := server.Start(); err != nil && err != http.ErrServerClosed {
+			logger.ErrorContext(ctx, "etl service", wsl.Err(err))
+		}
+	}()
+	// Запуск  ETL процессора
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		logger.InfoContext(ctx, "starting ETL service")
+		etlController.Start(ctx)
 	}()
 
-	// Запуск процессора
-	logger.InfoContext(ctx, "starting ETL service")
-	etlController.Start(ctx)
-	logger.InfoContext(ctx, "ETL service stopped")
+	<-sigChan
+	logger.InfoContext(ctx, "received shutdown signal")
+	server.Stop(ctx)
+	logger.InfoContext(ctx, "ETL http server stopped")
+	cancel()
+	wg.Wait()
+	logger.InfoContext(ctx, "ETL service stopped completely")
 }

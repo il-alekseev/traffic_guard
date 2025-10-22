@@ -1,8 +1,9 @@
 package etl
 
 import (
-	"cmd/etl/internal/models"
 	"context"
+	"tg-etl/internal/models"
+	"tg-etl/internal/repo/category"
 	"time"
 )
 
@@ -14,6 +15,7 @@ type UsecaseInterface interface {
 	SessionUseCase
 	IdsUseCase
 	ProcessUsecase
+	CategoryUseCase
 }
 
 // SourceUseCase определяет методы для работы с источниками
@@ -83,4 +85,11 @@ type ProcessUsecase interface {
 	ProcessDomain(ctx context.Context, log models.IdsLog) (*models.Domain, error)
 	ProcessDevice(ctx context.Context, log models.IdsLog) (*models.Device, error)
 	ProcessSession(ctx context.Context, log models.IdsLog, source *models.Source, domain *models.Domain, device *models.Device) error
+}
+
+type CategoryUseCase interface {
+	CreateCategories(ctx context.Context, categories []string) error
+	GetCategoryByID(ctx context.Context, id uint) (*category.ContentCategory, error)
+	GetCategoryByName(ctx context.Context, name string) (*category.ContentCategory, error)
+	GetCategories(ctx context.Context) ([]category.ContentCategory, error)
 }
