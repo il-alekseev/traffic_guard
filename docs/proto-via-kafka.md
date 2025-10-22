@@ -59,6 +59,7 @@ graph TB
 ## Общение через url-metadata-results и url-content-analysis
 
 ### url-metadata-results
+```
 {
   "request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "content_id": "2b325e4b-49ea-4659-82bb-7a8385a1ed8d",
@@ -80,7 +81,7 @@ graph TB
   "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
   "processed_at": "2025-10-22T12:22:39.404153639Z"
 }
-
+```
 #### Назначение полей
 - request_id — идентификатор задания, совпадает с входным url-processing-requests.
 - content_id — идентификатор извлечённого контента (используется для связи с БД/ML и url-content-analysis).
@@ -105,6 +106,7 @@ graph TB
 ---
 
 ### url-content-analysis
+```
 {
   "request_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "content_id": "2b325e4b-49ea-4659-82bb-7a8385a1ed8d",
@@ -118,7 +120,7 @@ graph TB
   "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
   "processed_at": "2025-10-22T12:22:39.404153639Z"
 }
-
+```
 #### Назначение полей
 - request_id — идентификатор задания, совпадает с метадатой.
 - content_id — ID блока текста, используется downstream.
