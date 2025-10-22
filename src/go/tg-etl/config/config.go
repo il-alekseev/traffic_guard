@@ -17,6 +17,7 @@ type (
 		KSU           `yaml:"ksu_postgres"`
 		ETL           `yaml:"etl_postgres"`
 		EtlController `yaml:"etl_controller"`
+		Kafka         `yaml:"kafka"`
 	}
 	// App -.
 	App struct {
@@ -66,6 +67,14 @@ type (
 		TTL      int  `env-required:"true" yaml:"ttl" env:"ETL_TTL"`
 		Refresh  uint `env-required:"true" yaml:"refresh" env:"ETL_REFRESH"`
 		MaxCount uint `env-required:"true" yaml:"max_count" env:"ETL_MAX_COUNT"`
+	}
+
+	Kafka struct {
+		Host          string `env-required:"true" yaml:"host" env:"ETL_KAFKA_HOST"`
+		Port          string `env-required:"true" yaml:"port" env:"ETL_KAFKA_PORT"`
+		URLTopic      string `yaml:"url_topic" env:"ETL_KAFKA_URL_TOPIC"`
+		MetadataTopic string `yaml:"metadata_topic" env:"ETL_KAFKA_METADATA_TOPIC"`
+		MLTopic       string `yaml:"ml_topic" env:"ETL_KAFKA_ML_TOPIC"`
 	}
 )
 

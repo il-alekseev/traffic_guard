@@ -7,6 +7,9 @@ import (
 	"tg-etl/internal/models"
 	"tg-etl/internal/utils"
 	"tg-etl/pkg/slogger/wsl"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 // processNewLogs обрабатывает новые записи из IdsLogs
@@ -124,10 +127,14 @@ func (uc *UseCase) ProcessDomain(ctx context.Context, log models.IdsLog) (*model
 	ip := log.DestIP
 	port := log.DestPort
 	rawURL := log.Payload
+	tp := models.DestinationIP
 	// перемены для заполнения
 	var existingDomain *models.Domain
-	path := ""
 	var err error
+	// Переменные для Kafka
+	path := ""
+	resource := ip
+	var proto *string
 	// Находим path и URL из лога
 	if rawURL != "" {
 		path, err = utils.ExtractDomain(rawURL)
@@ -142,8 +149,22 @@ func (uc *UseCase) ProcessDomain(ctx context.Context, log models.IdsLog) (*model
 				wsl.String("log.DestDomain", domain),
 			)
 		}
+		// тип сообщения в Kafka для анализа - url
+		// TODO: добавить логику обработки URL
+		tp = models.DestinationURL
+		resource, err = utils.ExtractURL(rawURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse URL: %w", err)
+		}
+		proto, err = utils.ExtractProto(rawURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse proto: %w", err)
+		}
 	} else if domain != "" {
 		path = domain
+		// тип сообщения в Kafka для анализа - domain
+		tp = models.DestinationDomain
+		resource = path
 	}
 	// Ищем существующий домен по имени или IP
 	// по доменному имени
@@ -173,6 +194,7 @@ func (uc *UseCase) ProcessDomain(ctx context.Context, log models.IdsLog) (*model
 		return existingDomain, nil
 	}
 	// Создаем новый домен
+	uuid := uuid.New()
 	newDomain := models.Domain{
 		IP:                     ip,
 		Port:                   port,
@@ -183,7 +205,24 @@ func (uc *UseCase) ProcessDomain(ctx context.Context, log models.IdsLog) (*model
 		ContentAnalysisCounter: 0,
 		DecisionID:             0, // По умолчанию
 		LastAccessDatetime:     log.Timestamp,
+		UUID:                   uuid,
 	}
+	ts := time.Now()
+	// Ставим в очередь на получение данных для нового домена
+	req := models.AnalysisRequest{
+		RequestID: newDomain.UUID,
+		Src:       models.Src{IP: log.SrcIP},
+		Dst: models.Destination{
+			Type:     tp,
+			Resource: resource,
+			Port:     &log.DestPort,
+			Proto:    (*models.Protocol)(proto),
+		},
+		Timestamp: ts,
+	}
+	uc.kc.SendAnalysisRequest(ctx, req)
+
+	newDomain.PutKafkaDateTime = ts
 
 	if err := uc.CreateDomain(ctx, newDomain); err != nil {
 		return nil, fmt.Errorf("failed to create domain: %w", err)

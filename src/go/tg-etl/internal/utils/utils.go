@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"strings"
 )
 
 // ExtractDomain извлекает домен из строки
@@ -47,4 +48,23 @@ func ExtractURL(input string) (string, error) {
 	} else {
 		return matches[0], nil // берем полное совпадение
 	}
+}
+
+// Определяет тип протокола из записи URL
+func ExtractProto(input string) (*string, error) {
+	proto := ""
+	url, err := ExtractURL(input)
+	if err != nil {
+		return nil, fmt.Errorf("не удалось извлечь протокол: %w", err)
+	}
+
+	// Извлекаем протокол из URL
+	if strings.HasPrefix(url, "https://") {
+		proto = "https"
+	} else if strings.HasPrefix(url, "http://") {
+		proto = "http"
+	} else {
+		return nil, fmt.Errorf("неизвестный протокол в URL: %s", url)
+	}
+	return &proto, nil
 }

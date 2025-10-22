@@ -13,6 +13,7 @@ import (
 	"tg-etl/internal/controllers/etl"
 	v1 "tg-etl/internal/controllers/http/v1"
 	"tg-etl/internal/models"
+	"tg-etl/internal/repo/kafka"
 	"tg-etl/internal/repo/postgresql"
 	"tg-etl/internal/usecase"
 	"tg-etl/pkg/pgorm"
@@ -111,7 +112,13 @@ func Run(cfg *config.Config) {
 		return
 	}
 
-	uc := usecase.New(cfg, dbKSU, dbETL, logger)
+	kc, err := kafka.New(ctx, cfg.Kafka, &logger)
+	if err != nil {
+		logger.ErrorContext(ctx, "ETL service", wsl.String("create Kafka client error", err.Error()))
+		return
+	}
+
+	uc := usecase.New(cfg, dbKSU, dbETL, kc, logger)
 
 	etlController := etl.New(
 		*cfg,

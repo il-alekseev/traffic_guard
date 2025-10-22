@@ -2,6 +2,9 @@ package models
 
 import (
 	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type Session struct {
@@ -34,6 +37,14 @@ type Source struct {
 	Username string `gorm:"type:varchar" json:"username"`
 }
 
+// BeforeCreate - GORM hook для автоматической генерации UUID перед созданием записи
+func (domain *Domain) BeforeCreate(tx *gorm.DB) error {
+	if domain.UUID == uuid.Nil {
+		domain.UUID = uuid.New()
+	}
+	return nil
+}
+
 // Domain представляет таблицу domain
 type Domain struct {
 	ID                     uint      `gorm:"primaryKey" json:"id"`
@@ -47,6 +58,8 @@ type Domain struct {
 	CategotyID             int       `gorm:"type:integer" json:"categoty_id"`
 	DecisionID             uint      `gorm:"column:decision_id" json:"decision_id"`
 	LastAccessDatetime     time.Time `gorm:"column:last_access_datetime" json:"last_access_datetime"`
+	PutKafkaDateTime       time.Time `gorm:"column:put_kafka_datetime" json:"put_kafka_datetime"`
+	UUID                   uuid.UUID `gorm:"type:uuid;uniqueIndex" json:"uuid"`
 }
 
 // Decision представляет таблицу decision
