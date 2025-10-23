@@ -18,6 +18,7 @@ type UseCaseInterface interface {
 	// Dashboards
 	GetTopCategories(ctx context.Context, tr *trparser.TimeRange, f models.CategoryFilter, count int) ([]dto.Category, error)
 	GetRequestsStat(ctx context.Context, tr *trparser.TimeRange, f models.DashboardFilter, s status.Status, count uint) ([]uint, error)
+	GetTrafficStat(ctx context.Context, tr *trparser.TimeRange, count uint) (models.TrafficStat, error)
 	// Detections
 	GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, p models.Pagination) ([]dto.Detection, int64, error)
 	GetDetectionStat(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter) (dto.DetectionStat, error)
@@ -35,12 +36,6 @@ type UseCaseInterface interface {
 		start time.Time,
 		end time.Time,
 	) ([]models.DeviceStat, error)
-
-	GetTrafficStat(ctx context.Context,
-		start time.Time,
-		end time.Time,
-		filter string,
-	) ([]models.TrafficPoint, error)
 
 	GetProhActSchedule(ctx context.Context,
 		start time.Time,

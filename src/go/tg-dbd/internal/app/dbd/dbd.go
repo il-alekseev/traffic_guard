@@ -64,15 +64,21 @@ func Run(cfg *config.Config) {
 
 	logger.InfoContext(ctx, "dashboard service", wsl.Info("Creating DB connection"))
 
-	dsnKSU := getDSN(cfg.PG.Host, cfg.PG.User, cfg.PG.Pass,
+	dsnETL := getDSN(cfg.PG.Host, cfg.PG.User, cfg.PG.Pass,
 		cfg.PG.DBName, cfg.PG.Port, cfg.PG.SSLMode)
-	db, err := createConnection(ctx, dsnKSU, cfg.PG.PoolMax, logger, false, models.Session{})
+	db, err := createConnection(ctx, dsnETL, cfg.PG.PoolMax, logger, false, models.Session{})
 	if err != nil {
 		logger.ErrorContext(ctx, "dashboard service", wsl.String("create db connection error", err.Error()))
 		return
 	}
-
-	u := usecase.New(db, logger)
+	dsnMetrics := getDSN(cfg.Metrics.Host, cfg.Metrics.User, cfg.Metrics.Pass,
+		cfg.Metrics.DBName, cfg.Metrics.Port, cfg.Metrics.SSLMode)
+	mdb, err := createConnection(ctx, dsnMetrics, cfg.Metrics.PoolMax, logger, false, models.StatsJSON{})
+	if err != nil {
+		logger.ErrorContext(ctx, "dashboard service", wsl.String("create mdb connection error", err.Error()))
+		return
+	}
+	u := usecase.New(db, mdb, logger)
 
 	server := httpserver.New(cfg, logger, u)
 

@@ -13,7 +13,6 @@ import (
 // @version         1.0
 // @description     API для получения дашбордов
 // TODO: сделать динамическую конфигурацию сваггера
-// @host            192.168.130.112:7000
 // @BasePath        /api/v1
 // @schemes         http
 type Server struct {

@@ -1,5 +1,7 @@
 package dto
 
+import "tg-dbd/internal/models"
+
 type SuccessResponse struct {
 	Message string `json:"message"`
 }
@@ -26,4 +28,9 @@ type DataPointsResponse struct {
 	Type  string `json:"type"`  // Тип данных
 	Data  []uint `json:"data"`  // Список однотипных данных
 	Count uint   `json:"count"` // Число точек с данными
+}
+
+type TrafficStatResponse struct {
+	Data  models.TrafficStat `json:"data"`
+	Count uint               `json:"count"`
 }

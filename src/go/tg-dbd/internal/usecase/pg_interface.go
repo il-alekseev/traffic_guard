@@ -21,3 +21,7 @@ type RepoPGInterface interface {
 	GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, p models.Pagination) ([]dto.Detection, int64, error)
 	GetDetectionStat(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter) (dto.DetectionStat, error)
 }
+
+type RepoMetricsPGInterface interface {
+	GetTrafficStat(ctx context.Context, tr *trparser.TimeRange, count uint) (models.TrafficStat, error)
+}

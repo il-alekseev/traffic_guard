@@ -56,12 +56,6 @@ type DeviceStat struct {
 	Statistics []ResourcePoint `json:"statistics"`
 }
 
-type TrafficPoint struct {
-	Date   int64 `json:"date"`
-	Input  int   `json:"input"`
-	Output int   `json:"output"`
-}
-
 type RequestPoint struct {
 	Date  int64 `json:"date"`
 	Count int   `json:"count"`

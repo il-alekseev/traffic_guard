@@ -136,36 +136,6 @@ func (u *Usecase) GetDevicesStat(ctx context.Context, start time.Time, end time.
 	return devices, nil
 }
 
-// GetTrafficStat возвращает статистику трафика за указанный период
-func (u *Usecase) GetTrafficStat(ctx context.Context, start time.Time, end time.Time, filter string) ([]models.TrafficPoint, error) {
-	u.l.InfoContext(ctx,
-		"GetTrafficStat called",
-		slog.String("start", start.String()),
-		slog.String("end", end.String()),
-		slog.String("filter", filter),
-	)
-
-	if err := ctx.Err(); err != nil {
-		return nil, err
-	}
-
-	// Заглушка с тестовыми данными трафика
-	traffic := []models.TrafficPoint{
-		{Date: 1705759200, Input: 1450, Output: 890},
-		{Date: 1705845600, Input: 1620, Output: 1020},
-		{Date: 1705932000, Input: 1380, Output: 760},
-		{Date: 1706018400, Input: 1780, Output: 1150},
-		{Date: 1706104800, Input: 1520, Output: 940},
-		{Date: 1706191200, Input: 1950, Output: 1280},
-		{Date: 1706277600, Input: 1420, Output: 810},
-		{Date: 1706364000, Input: 1680, Output: 990},
-		{Date: 1706450400, Input: 1830, Output: 1120},
-		{Date: 1706536800, Input: 1570, Output: 870},
-	}
-
-	return traffic, nil
-}
-
 // GetProhActSchedule возвращает расписание запрещенных активностей по дням за указанный период
 func (u *Usecase) GetProhActSchedule(ctx context.Context, start time.Time, filter string) (map[int64]int, error) {
 	u.l.InfoContext(ctx,

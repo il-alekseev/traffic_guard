@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type Pagination struct {
 	Page  int `form:"page"`
 	Limit int `form:"limit"`
@@ -14,4 +16,10 @@ type Sorting struct {
 type CategoryCount struct {
 	Category string `json:"category"`
 	Count    int64  `json:"count"`
+}
+
+type TrafficStat struct {
+	Time   []time.Time
+	Input  []uint
+	Output []uint
 }

@@ -5,13 +5,15 @@ import (
 )
 
 type Usecase struct {
-	db RepoPGInterface
-	l  slog.Logger
+	db  RepoPGInterface
+	mdb RepoMetricsPGInterface
+	l   slog.Logger
 }
 
-func New(db RepoPGInterface, l slog.Logger) *Usecase {
+func New(db RepoPGInterface, mdb RepoMetricsPGInterface, l slog.Logger) *Usecase {
 	return &Usecase{
-		db: db,
-		l:  l,
+		db:  db,
+		mdb: mdb,
+		l:   l,
 	}
 }

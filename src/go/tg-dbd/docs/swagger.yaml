@@ -46,6 +46,13 @@ definitions:
       message:
         type: string
     type: object
+  dto.TrafficStatResponse:
+    properties:
+      count:
+        type: integer
+      data:
+        $ref: '#/definitions/models.TrafficStat'
+    type: object
   models.Anomaly:
     properties:
       blocked_resources_count:
@@ -91,16 +98,21 @@ definitions:
       locked:
         type: integer
     type: object
-  models.TrafficPoint:
+  models.TrafficStat:
     properties:
-      date:
-        type: integer
       input:
-        type: integer
+        items:
+          type: integer
+        type: array
       output:
-        type: integer
+        items:
+          type: integer
+        type: array
+      time:
+        items:
+          type: string
+        type: array
     type: object
-host: 127.0.0.1:7000
 info:
   contact: {}
   description: API для получения дашбордов
@@ -157,8 +169,41 @@ paths:
         name: hostname
         type: string
       - description: Фильтр по категории
+        enum:
+        - Агрессия
+        - расизм
+        - терроризм
+        - Ботнеты
+        - Веб-почта
+        - Досуг и развлечения
+        - Интернет-магазины
+        - Компьютерные игры
+        - Криптомайнинг
+        - Наркотики
+        - Порнография и секс
+        - Прокси и анонимайзеры
+        - Реестр запрещенных сайтов
+        - Сайты для взрослых
+        - Сайты
+        - распространяющие вирусы
+        - Социальные сети
+        - Торренты и Р2Р-сети
+        - Файловые архивы
+        - Фильмы и видео онлайн
+        - Фишинг
+        - Чаты и мессенджеры
+        - Дополнительно
+        - Криптоджекинг
+        - Реклама
+        - Онлайн-игры
+        - Игровые платформы
+        - Вредоносное ПО
+        - Азартные игры
+        - Депресивный контент и суицид
+        - Алкоголь
+        - табак
         in: query
-        name: top_category
+        name: category
         type: string
       - default: 10
         description: Количество интервалов
@@ -184,7 +229,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       summary: Получить статистику запросов
       tags:
-      - statistics
+      - dashboards
   /dashboards/top-categories:
     get:
       consumes:
@@ -207,6 +252,11 @@ paths:
         name: hostname
         type: string
       - description: Фильтр по типу сессии
+        enum:
+        - Заблокирован
+        - Запрещен
+        - Ожидает
+        - Разрешен
         in: query
         name: type
         type: string
@@ -236,7 +286,50 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       summary: Получить топ категорий сессий
       tags:
-      - analytics
+      - dashboards
+  /dashboards/traffic:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает статистику трафика за указанный временной диапазон с
+        заданным количеством точек данных в Кб
+      parameters:
+      - default: now-10m
+        description: Начало временного диапазона в формате парсера времени (по умолчанию
+          now-10m)
+        in: query
+        name: from
+        type: string
+      - default: now
+        description: Конец временного диапазона в формате парсера времени (по умолчанию
+          now)
+        in: query
+        name: to
+        type: string
+      - default: 20
+        description: Количество точек данных для возврата (по умолчанию 20)
+        in: query
+        minimum: 1
+        name: count
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный ответ со статистикой трафика
+          schema:
+            $ref: '#/definitions/dto.TrafficStatResponse'
+        "400":
+          description: Неверный формат параметров запроса
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера при получении статистики
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Получить статистику трафика
+      tags:
+      - dashboards
   /detections:
     get:
       consumes:
@@ -259,8 +352,41 @@ paths:
         name: hostname
         type: string
       - description: Фильтр по категории
+        enum:
+        - Агрессия
+        - расизм
+        - терроризм
+        - Ботнеты
+        - Веб-почта
+        - Досуг и развлечения
+        - Интернет-магазины
+        - Компьютерные игры
+        - Криптомайнинг
+        - Наркотики
+        - Порнография и секс
+        - Прокси и анонимайзеры
+        - Реестр запрещенных сайтов
+        - Сайты для взрослых
+        - Сайты
+        - распространяющие вирусы
+        - Социальные сети
+        - Торренты и Р2Р-сети
+        - Файловые архивы
+        - Фильмы и видео онлайн
+        - Фишинг
+        - Чаты и мессенджеры
+        - Дополнительно
+        - Криптоджекинг
+        - Реклама
+        - Онлайн-игры
+        - Игровые платформы
+        - Вредоносное ПО
+        - Азартные игры
+        - Депресивный контент и суицид
+        - Алкоголь
+        - табак
         in: query
-        name: top_category
+        name: category
         type: string
       - default: 1
         description: Номер страницы
@@ -315,8 +441,41 @@ paths:
         name: hostname
         type: string
       - description: Фильтр по категории
+        enum:
+        - Агрессия
+        - расизм
+        - терроризм
+        - Ботнеты
+        - Веб-почта
+        - Досуг и развлечения
+        - Интернет-магазины
+        - Компьютерные игры
+        - Криптомайнинг
+        - Наркотики
+        - Порнография и секс
+        - Прокси и анонимайзеры
+        - Реестр запрещенных сайтов
+        - Сайты для взрослых
+        - Сайты
+        - распространяющие вирусы
+        - Социальные сети
+        - Торренты и Р2Р-сети
+        - Файловые архивы
+        - Фильмы и видео онлайн
+        - Фишинг
+        - Чаты и мессенджеры
+        - Дополнительно
+        - Криптоджекинг
+        - Реклама
+        - Онлайн-игры
+        - Игровые платформы
+        - Вредоносное ПО
+        - Азартные игры
+        - Депресивный контент и суицид
+        - Алкоголь
+        - табак
         in: query
-        name: top_category
+        name: category
         type: string
       produces:
       - application/json
@@ -387,10 +546,48 @@ paths:
         name: hostname
         type: string
       - description: Фильтр по категории
+        enum:
+        - Агрессия
+        - расизм
+        - терроризм
+        - Ботнеты
+        - Веб-почта
+        - Досуг и развлечения
+        - Интернет-магазины
+        - Компьютерные игры
+        - Криптомайнинг
+        - Наркотики
+        - Порнография и секс
+        - Прокси и анонимайзеры
+        - Реестр запрещенных сайтов
+        - Сайты для взрослых
+        - Сайты
+        - распространяющие вирусы
+        - Социальные сети
+        - Торренты и Р2Р-сети
+        - Файловые архивы
+        - Фильмы и видео онлайн
+        - Фишинг
+        - Чаты и мессенджеры
+        - Дополнительно
+        - Криптоджекинг
+        - Реклама
+        - Онлайн-игры
+        - Игровые платформы
+        - Вредоносное ПО
+        - Азартные игры
+        - Депресивный контент и суицид
+        - Алкоголь
+        - табак
         in: query
         name: category
         type: string
       - description: Фильтр по типу сессии
+        enum:
+        - Заблокирован
+        - Запрещен
+        - Ожидает
+        - Разрешен
         in: query
         name: type
         type: string
@@ -413,6 +610,22 @@ paths:
         type: integer
       - default: id
         description: Поле для сортировки
+        enum:
+        - id
+        - datetime_utc
+        - type
+        - status
+        - url
+        - proto
+        - host_name
+        - src_ip
+        - src_port
+        - src_country
+        - username
+        - dst_ip
+        - dst_port
+        - dst_country
+        - category
         in: query
         name: order_by
         type: string
@@ -476,7 +689,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       summary: Получение информации об аномалиях
       tags:
-      - dashboard
+      - not implemented
   /v1/dashboards/devices:
     get:
       description: Получение агрегированной статистики по сетевым узлам за указанный
@@ -509,7 +722,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       summary: Получение статистики по устройствам
       tags:
-      - dashboard
+      - not implemented
   /v1/dashboards/proh_activity:
     get:
       description: Получение расписания запрещенной активности начиная с указанной
@@ -539,7 +752,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       summary: Получение графика запрещенной активности
       tags:
-      - dashboard
+      - not implemented
   /v1/dashboards/resources:
     get:
       description: Получение топ ресурсов с указанием количества обращений за указанный
@@ -579,42 +792,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       summary: Получение списка популярных ресурсов
       tags:
-      - dashboard
-  /v1/dashboards/traffic:
-    get:
-      description: Получение агрегированной статистики по сетевому трафику за указанный
-        период
-      parameters:
-      - description: Начало периода в timestamp
-        in: query
-        name: start
-        required: true
-        type: integer
-      - description: Конец периода в timestamp
-        in: query
-        name: end
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Статистика сетевого трафика
-          schema:
-            items:
-              $ref: '#/definitions/models.TrafficPoint'
-            type: array
-        "400":
-          description: Неверный формат параметров
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "500":
-          description: Внутренняя ошибка сервера
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-      summary: Получение статистики сетевого трафика
-      tags:
-      - dashboard
+      - not implemented
   /v1/healthcheck:
     get:
       description: Проверка, что сервер работает

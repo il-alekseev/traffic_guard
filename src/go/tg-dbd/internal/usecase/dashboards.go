@@ -51,7 +51,7 @@ func (u *Usecase) GetRequestsStat(ctx context.Context, tr *trparser.TimeRange, f
 		slog.Any("time_range", tr),
 		slog.Any("filter", f),
 		slog.String("status", s.String()),
-		slog.Uint64("status", uint64(count)),
+		slog.Uint64("count", uint64(count)),
 	)
 
 	stat, err := u.db.GetRequestsStat(ctx, tr, f, s, count)
@@ -64,7 +64,31 @@ func (u *Usecase) GetRequestsStat(ctx context.Context, tr *trparser.TimeRange, f
 		return nil, err
 	}
 
-	u.l.InfoContext(ctx, "Top categories retrieved",
+	u.l.InfoContext(ctx, "Requests statistics retrieved",
+		slog.String("method", method),
+	)
+	return stat, nil
+}
+
+// GetTrafficStat возвращает статистику трафика за указанный период
+func (u *Usecase) GetTrafficStat(ctx context.Context, tr *trparser.TimeRange, count uint) (models.TrafficStat, error) {
+	method := "GetTrafficStat"
+	u.l.InfoContext(ctx,
+		method,
+		slog.Any("time_range", tr),
+		slog.Uint64("count", uint64(count)),
+	)
+	stat, err := u.mdb.GetTrafficStat(ctx, tr, count)
+	if err != nil {
+		err = fmt.Errorf("%s: failed to get traffic statistics: %w", method, err)
+		u.l.ErrorContext(ctx, "Database operation failed",
+			wsl.String("method", method),
+			wsl.String("error", err.Error()),
+		)
+		return models.TrafficStat{}, err
+	}
+
+	u.l.InfoContext(ctx, "Traffic statistics retrieved",
 		slog.String("method", method),
 	)
 	return stat, nil

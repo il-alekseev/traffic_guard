@@ -60,7 +60,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "statistics"
+                    "dashboards"
                 ],
                 "summary": "Получить статистику запросов",
                 "parameters": [
@@ -92,9 +92,43 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "Агрессия",
+                            "расизм",
+                            "терроризм",
+                            "Ботнеты",
+                            "Веб-почта",
+                            "Досуг и развлечения",
+                            "Интернет-магазины",
+                            "Компьютерные игры",
+                            "Криптомайнинг",
+                            "Наркотики",
+                            "Порнография и секс",
+                            "Прокси и анонимайзеры",
+                            "Реестр запрещенных сайтов",
+                            "Сайты для взрослых",
+                            "Сайты",
+                            "распространяющие вирусы",
+                            "Социальные сети",
+                            "Торренты и Р2Р-сети",
+                            "Файловые архивы",
+                            "Фильмы и видео онлайн",
+                            "Фишинг",
+                            "Чаты и мессенджеры",
+                            "Дополнительно",
+                            "Криптоджекинг",
+                            "Реклама",
+                            "Онлайн-игры",
+                            "Игровые платформы",
+                            "Вредоносное ПО",
+                            "Азартные игры",
+                            "Депресивный контент и суицид",
+                            "Алкоголь",
+                            "табак"
+                        ],
                         "type": "string",
                         "description": "Фильтр по категории",
-                        "name": "top_category",
+                        "name": "category",
                         "in": "query"
                     },
                     {
@@ -140,7 +174,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "analytics"
+                    "dashboards"
                 ],
                 "summary": "Получить топ категорий сессий",
                 "parameters": [
@@ -165,6 +199,12 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "Заблокирован",
+                            "Запрещен",
+                            "Ожидает",
+                            "Разрешен"
+                        ],
                         "type": "string",
                         "description": "Фильтр по типу сессии",
                         "name": "type",
@@ -198,6 +238,65 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/dashboards/traffic": {
+            "get": {
+                "description": "Возвращает статистику трафика за указанный временной диапазон с заданным количеством точек данных в Кб",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "Получить статистику трафика",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "now-10m",
+                        "description": "Начало временного диапазона в формате парсера времени (по умолчанию now-10m)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона в формате парсера времени (по умолчанию now)",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Количество точек данных для возврата (по умолчанию 20)",
+                        "name": "count",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ со статистикой трафика",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TrafficStatResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат параметров запроса",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера при получении статистики",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -240,9 +339,43 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "Агрессия",
+                            "расизм",
+                            "терроризм",
+                            "Ботнеты",
+                            "Веб-почта",
+                            "Досуг и развлечения",
+                            "Интернет-магазины",
+                            "Компьютерные игры",
+                            "Криптомайнинг",
+                            "Наркотики",
+                            "Порнография и секс",
+                            "Прокси и анонимайзеры",
+                            "Реестр запрещенных сайтов",
+                            "Сайты для взрослых",
+                            "Сайты",
+                            "распространяющие вирусы",
+                            "Социальные сети",
+                            "Торренты и Р2Р-сети",
+                            "Файловые архивы",
+                            "Фильмы и видео онлайн",
+                            "Фишинг",
+                            "Чаты и мессенджеры",
+                            "Дополнительно",
+                            "Криптоджекинг",
+                            "Реклама",
+                            "Онлайн-игры",
+                            "Игровые платформы",
+                            "Вредоносное ПО",
+                            "Азартные игры",
+                            "Депресивный контент и суицид",
+                            "Алкоголь",
+                            "табак"
+                        ],
                         "type": "string",
                         "description": "Фильтр по категории",
-                        "name": "top_category",
+                        "name": "category",
                         "in": "query"
                     },
                     {
@@ -320,9 +453,43 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "Агрессия",
+                            "расизм",
+                            "терроризм",
+                            "Ботнеты",
+                            "Веб-почта",
+                            "Досуг и развлечения",
+                            "Интернет-магазины",
+                            "Компьютерные игры",
+                            "Криптомайнинг",
+                            "Наркотики",
+                            "Порнография и секс",
+                            "Прокси и анонимайзеры",
+                            "Реестр запрещенных сайтов",
+                            "Сайты для взрослых",
+                            "Сайты",
+                            "распространяющие вирусы",
+                            "Социальные сети",
+                            "Торренты и Р2Р-сети",
+                            "Файловые архивы",
+                            "Фильмы и видео онлайн",
+                            "Фишинг",
+                            "Чаты и мессенджеры",
+                            "Дополнительно",
+                            "Криптоджекинг",
+                            "Реклама",
+                            "Онлайн-игры",
+                            "Игровые платформы",
+                            "Вредоносное ПО",
+                            "Азартные игры",
+                            "Депресивный контент и суицид",
+                            "Алкоголь",
+                            "табак"
+                        ],
                         "type": "string",
                         "description": "Фильтр по категории",
-                        "name": "top_category",
+                        "name": "category",
                         "in": "query"
                     }
                 ],
@@ -424,12 +591,52 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "Агрессия",
+                            "расизм",
+                            "терроризм",
+                            "Ботнеты",
+                            "Веб-почта",
+                            "Досуг и развлечения",
+                            "Интернет-магазины",
+                            "Компьютерные игры",
+                            "Криптомайнинг",
+                            "Наркотики",
+                            "Порнография и секс",
+                            "Прокси и анонимайзеры",
+                            "Реестр запрещенных сайтов",
+                            "Сайты для взрослых",
+                            "Сайты",
+                            "распространяющие вирусы",
+                            "Социальные сети",
+                            "Торренты и Р2Р-сети",
+                            "Файловые архивы",
+                            "Фильмы и видео онлайн",
+                            "Фишинг",
+                            "Чаты и мессенджеры",
+                            "Дополнительно",
+                            "Криптоджекинг",
+                            "Реклама",
+                            "Онлайн-игры",
+                            "Игровые платформы",
+                            "Вредоносное ПО",
+                            "Азартные игры",
+                            "Депресивный контент и суицид",
+                            "Алкоголь",
+                            "табак"
+                        ],
                         "type": "string",
                         "description": "Фильтр по категории",
                         "name": "category",
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "Заблокирован",
+                            "Запрещен",
+                            "Ожидает",
+                            "Разрешен"
+                        ],
                         "type": "string",
                         "description": "Фильтр по типу сессии",
                         "name": "type",
@@ -459,6 +666,23 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "id",
+                            "datetime_utc",
+                            "type",
+                            "status",
+                            "url",
+                            "proto",
+                            "host_name",
+                            "src_ip",
+                            "src_port",
+                            "src_country",
+                            "username",
+                            "dst_ip",
+                            "dst_port",
+                            "dst_country",
+                            "category"
+                        ],
                         "type": "string",
                         "default": "id",
                         "description": "Поле для сортировки",
@@ -506,7 +730,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dashboard"
+                    "not implemented"
                 ],
                 "summary": "Получение информации об аномалиях",
                 "parameters": [
@@ -557,7 +781,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dashboard"
+                    "not implemented"
                 ],
                 "summary": "Получение статистики по устройствам",
                 "parameters": [
@@ -605,7 +829,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dashboard"
+                    "not implemented"
                 ],
                 "summary": "Получение графика запрещенной активности",
                 "parameters": [
@@ -649,7 +873,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dashboard"
+                    "not implemented"
                 ],
                 "summary": "Получение списка популярных ресурсов",
                 "parameters": [
@@ -681,57 +905,6 @@ const docTemplate = `{
                             "type": "object",
                             "additionalProperties": {
                                 "type": "integer"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Неверный формат параметров",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/dashboards/traffic": {
-            "get": {
-                "description": "Получение агрегированной статистики по сетевому трафику за указанный период",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "dashboard"
-                ],
-                "summary": "Получение статистики сетевого трафика",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Начало периода в timestamp",
-                        "name": "start",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Конец периода в timestamp",
-                        "name": "end",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Статистика сетевого трафика",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.TrafficPoint"
                             }
                         }
                     },
@@ -863,6 +1036,17 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.TrafficStatResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "data": {
+                    "$ref": "#/definitions/models.TrafficStat"
+                }
+            }
+        },
         "models.Anomaly": {
             "type": "object",
             "properties": {
@@ -933,17 +1117,26 @@ const docTemplate = `{
                 }
             }
         },
-        "models.TrafficPoint": {
+        "models.TrafficStat": {
             "type": "object",
             "properties": {
-                "date": {
-                    "type": "integer"
-                },
                 "input": {
-                    "type": "integer"
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
                 },
                 "output": {
-                    "type": "integer"
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "time": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         }
@@ -953,7 +1146,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "127.0.0.1:7000",
+	Host:             "",
 	BasePath:         "/api/v1",
 	Schemes:          []string{"http"},
 	Title:            "Dashboard API",
