@@ -38,5 +38,6 @@ func (s *Server) configureRouter() {
 		}
 		// Утилиты
 		v1.GET("/healthcheck", s.Healthcheck)
+		v1.GET("/version", s.Version)
 	}
 }
