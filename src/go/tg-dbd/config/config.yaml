@@ -1,7 +1,7 @@
 app:
   name: 'tg-dbd'
   version: '1.0.0'
-  dev_version: '0.1.1-dev.6'
+  dev_version: '0.1.1-dev.8'
 
 logger:
   log_level: 'debug'
@@ -28,3 +28,12 @@ http:
 
 swagger:
   host: '127.0.0.1'
+
+metrics:
+  pool_max: 2
+  host: "192.168.130.112"
+  user: "etl_user"
+  pass: "etl_password"
+  dbname: "etl"
+  port: "5432"
+  sslmode: "disable"

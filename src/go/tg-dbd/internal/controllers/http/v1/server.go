@@ -12,7 +12,8 @@ import (
 // @title           Dashboard API
 // @version         1.0
 // @description     API для получения дашбордов
-// @host            127.0.0.1:7000
+// TODO: сделать динамическую конфигурацию сваггера
+// @host            192.168.130.112:7000
 // @BasePath        /api/v1
 // @schemes         http
 type Server struct {
