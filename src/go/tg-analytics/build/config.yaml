@@ -1,0 +1,22 @@
+app:
+  name: 'tg-an'
+  version: '1.0.1'
+
+logger:
+  log_level: 'debug'
+
+postgres:
+  pool_max: 2
+  host: "postgres"
+  user: "etl"
+  pass: "etlpassword"
+  dbname: "etl"
+  port: "5432"
+  sslmode: "disable"
+
+http:
+  host: '0.0.0.0'
+  port: '7000'
+
+swagger:
+  host: '0.0.0.0'
