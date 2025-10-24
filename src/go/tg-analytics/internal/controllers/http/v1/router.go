@@ -14,7 +14,7 @@ func (s *Server) configureRouter() {
 	s.router.Use(middleware.CorsMiddleware())
 	// Сваггер
 	// Динамический адрес для сваггера
-	addr := os.Getenv("DBD_SWAGGER_HOST")
+	addr := os.Getenv("AN_SWAGGER")
 	if addr == "" {
 		addr = s.server.Addr
 	}
