@@ -19,7 +19,18 @@ type PaginationMeta struct {
 	Pages int   `json:"pages"` // Общее количество страниц
 }
 
-type SessionListResponse struct {
-	Data []models.Session `json:"data"` // Список контекстов
-	Meta PaginationMeta   `json:"meta"` // Метаданные пагинации
+type ListResponse struct {
+	Data interface{}    `json:"data"` // Список однотипных данных
+	Meta PaginationMeta `json:"meta"` // Метаданные пагинации
+}
+
+type DataPointsResponse struct {
+	Type  string `json:"type"`  // Тип данных
+	Data  []uint `json:"data"`  // Список однотипных данных
+	Count uint   `json:"count"` // Число точек с данными
+}
+
+type TrafficStatResponse struct {
+	Data  models.TrafficStat `json:"data"`
+	Count uint               `json:"count"`
 }

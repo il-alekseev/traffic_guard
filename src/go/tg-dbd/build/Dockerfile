@@ -5,7 +5,7 @@ COPY . /app/
 WORKDIR /app
 
 # build
-RUN go mod tidy && go build -o etl cmd/dbd/main.go
+RUN go mod tidy && go build -o dbd cmd/dbd/main.go
 
 FROM alpine
 

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"cmd/etl/config"
-	"cmd/etl/internal/app/etl"
 	"log/slog"
+	"tg-etl/config"
+	"tg-etl/internal/app/etl"
 )
 
 func main() {

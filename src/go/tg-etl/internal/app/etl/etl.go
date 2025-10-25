@@ -1,12 +1,24 @@
 package etl
 
 import (
-	"cmd/etl/config"
-	"cmd/etl/internal/models"
-	"cmd/etl/internal/repo/postgresql"
-	"cmd/etl/pkg/logger"
-	"cmd/etl/pkg/pgorm"
+	"context"
 	"fmt"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+	"tg-etl/config"
+	"tg-etl/internal/controllers/etl"
+	v1 "tg-etl/internal/controllers/http/v1"
+	"tg-etl/internal/models"
+	"tg-etl/internal/repo/kafka"
+	"tg-etl/internal/repo/postgresql"
+	"tg-etl/internal/usecase"
+	"tg-etl/pkg/pgorm"
+	"tg-etl/pkg/slogger"
+	"tg-etl/pkg/slogger/wsl"
 )
 
 func getDSN(host, user, pass, dbname, port, sslmode string) string {
@@ -16,33 +28,74 @@ func getDSN(host, user, pass, dbname, port, sslmode string) string {
 	)
 }
 
-func createConnection(dsn string, maxPoolSize int, l *logger.Logger, models ...interface{}) (*postgresql.RepoPG, error) {
+func createConnection(ctx context.Context,
+	dsn string,
+	maxPoolSize int,
+	l slog.Logger,
+	autoMigrate bool,
+	models ...interface{}) (*pgorm.Postgres, error) {
 	db, err := pgorm.New(
 		dsn,
 		pgorm.MaxPoolSize(maxPoolSize),
-		pgorm.AutoMigrate(true),
+		pgorm.AutoMigrate(autoMigrate),
 		pgorm.Models(models...),
 	)
 	if err != nil {
-		l.Error("Error with creation connetcion %v", err)
+		l.ErrorContext(ctx, "Error with creation connetcion", wsl.Err(err))
 		return nil, err
 	}
-	l.Debug("connection created successfully")
+	l.InfoContext(ctx, "connection created successfully")
 	if err := db.HealthCheck(); err != nil {
-		l.Error("database health check failed: %v", err)
+		l.ErrorContext(ctx, "database health check failed", wsl.Err(err))
 		return nil, err
 	} else {
-		l.Info("database connection is healthy")
+		l.InfoContext(ctx, "database connection is healthy")
 	}
-	pg := postgresql.New(db, l)
-	return pg, nil
+	return db, nil
+}
+
+func createKSUConnection(ctx context.Context, dsn string, maxPoolSize int, l slog.Logger, models ...interface{}) (*postgresql.KSURepoPG, error) {
+	db, err := createConnection(ctx, dsn, maxPoolSize, l, false, models...)
+	if err != nil {
+		return nil, err
+	}
+	return postgresql.NewKSURepoPG(db, l), nil
+}
+
+func createETLConnection(ctx context.Context, dsn string, maxPoolSize int, l slog.Logger, models ...interface{}) (*postgresql.ELTRepoPG, error) {
+	db, err := createConnection(ctx, dsn, maxPoolSize, l, true, models...)
+	if err != nil {
+		return nil, err
+	}
+	return postgresql.NewELTRepoPG(db, l), nil
 }
 
 func Run(cfg *config.Config) {
-	l := logger.New(cfg.Log.Level)
-	dsn := getDSN(cfg.PG.Host, cfg.PG.User, cfg.PG.Pass,
-		cfg.PG.DBName, cfg.PG.Port, cfg.PG.SSLMode)
-	db, err := createConnection(dsn, cfg.PG.PoolMax, l,
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var wg sync.WaitGroup
+
+	logLevel := slog.LevelDebug
+	if cfg.Log.Level != "debug" {
+		logLevel = slog.LevelInfo
+	}
+	slogger.InitLogging(logLevel)
+	logger := *slog.Default()
+
+	logger.InfoContext(ctx, "ETL service", wsl.Info("Creating DB connections"))
+
+	dsnKSU := getDSN(cfg.KSU.Host, cfg.KSU.User, cfg.KSU.Pass,
+		cfg.KSU.DBName, cfg.KSU.Port, cfg.KSU.SSLMode)
+	dbKSU, err := createKSUConnection(ctx, dsnKSU, cfg.KSU.PoolMax, logger, models.IdsLog{})
+	if err != nil {
+		logger.ErrorContext(ctx, "ETL service", wsl.String("create KSU db connection error", err.Error()))
+		return
+	}
+
+	dsnETL := getDSN(cfg.ETL.Host, cfg.ETL.User, cfg.ETL.Pass,
+		cfg.ETL.DBName, cfg.ETL.Port, cfg.ETL.SSLMode)
+	dbETL, err := createETLConnection(ctx, dsnETL, cfg.ETL.PoolMax, logger,
 		// Автомиграция только базовых таблиц
 		models.Category{},
 		models.CategoryDomain{},
@@ -53,27 +106,53 @@ func Run(cfg *config.Config) {
 		models.Session{},
 		models.Source{},
 		models.Status{},
-		// В release убрать!
-		models.IdsLog{},
 	)
-
 	if err != nil {
-		l.Fatal("Create db connection error: %v", err)
+		logger.ErrorContext(ctx, "ETL service", wsl.String("create ETL db connection error", err.Error()))
 		return
 	}
-	l.Debug("db info %v", db)
 
-	// Заполняем структуру тестовыми данными
-	//logs, err := parser.ParseCSVFileToIdsLog("C:/Users/Asus/Projects/VS Code/Continent/traffic_guard/src/go/tg-etl/test_data/security_log-2025-9-20_15-58.csv")
-	//if err != nil {
-	//	l.Fatal("could not parse csv file: %v", err)
-	//	return
-	//}
-	//l.Debug("got %d logs", len(logs))
-	//ctx := context.Background()
-	//for _, log := range logs {
-	//	if err := db.CreateLog(&ctx, &log); err != nil {
-	//		fmt.Printf("failed to create log: %s\n", err)
-	//	}
-	//}
+	kc, err := kafka.New(ctx, cfg.Kafka, &logger)
+	if err != nil {
+		logger.ErrorContext(ctx, "ETL service", wsl.String("create Kafka client error", err.Error()))
+		return
+	}
+
+	uc := usecase.New(cfg, dbKSU, dbETL, kc, logger)
+
+	etlController := etl.New(
+		*cfg,
+		uc,
+		logger,
+	)
+
+	// HTTP сервер
+	server := v1.New(cfg, logger)
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	// Запуск HTTP сервера
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := server.Start(); err != nil && err != http.ErrServerClosed {
+			logger.ErrorContext(ctx, "etl service", wsl.Err(err))
+		}
+	}()
+	// Запуск  ETL процессора
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		logger.InfoContext(ctx, "starting ETL service")
+		etlController.Start(ctx)
+	}()
+
+	<-sigChan
+	logger.InfoContext(ctx, "received shutdown signal")
+	server.Stop(ctx)
+	logger.InfoContext(ctx, "ETL http server stopped")
+	cancel()
+	wg.Wait()
+	logger.InfoContext(ctx, "ETL service stopped completely")
 }

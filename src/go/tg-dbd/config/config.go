@@ -15,11 +15,13 @@ type (
 		PG      `yaml:"postgres"`
 		HTTP    `yaml:"http"`
 		Swagger `yaml:"swagger"`
+		Metrics `yaml:"metrics"`
 	}
 	// App -.
 	App struct {
-		Name    string `env-required:"true" yaml:"name"    env:"DBD_APP_NAME"`
-		Version string `env-required:"true" yaml:"version" env:"DBD_APP_VERSION"`
+		Name       string `env-required:"true" yaml:"name"    env:"DBD_APP_NAME"`
+		Version    string `env-required:"true" yaml:"version" env:"DBD_APP_VERSION"`
+		DevVersion string `yaml:"dev_version"`
 	}
 	// Log -.
 	Log struct {
@@ -45,6 +47,15 @@ type (
 
 	Swagger struct {
 		Host string `env-required:"true" yaml:"host" env:"DBD_SWAGGER_HOST"`
+	}
+	Metrics struct {
+		PoolMax int    `env-required:"true" yaml:"pool_max" env:"DBD_METRICS_POOL_MAX"`
+		Host    string `env-required:"true" yaml:"host" env:"DBD_METRICS_HOST"`
+		Port    string `env-required:"true" yaml:"port" env:"DBD_METRICS_PORT"`
+		User    string `env-required:"true" yaml:"user" env:"DBD_METRICS_USER"`
+		Pass    string `env-required:"true" yaml:"pass" env:"DBD_METRICS_PASS"`
+		DBName  string `env-required:"true" yaml:"dbname" env:"DBD_METRICS_DBNAME"`
+		SSLMode string `env-required:"true" yaml:"sslmode" env:"DBD_METRICS_SSLMODE"`
 	}
 )
 

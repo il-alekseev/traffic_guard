@@ -1,18 +1,18 @@
 package postresql
 
 import (
-	"tg-dbd/pkg/logger"
+	"log/slog"
 	"tg-dbd/pkg/pgorm/pgorm"
 )
 
 type RepoPG struct {
-	db     pgorm.Interface
-	logger logger.Interface
+	db pgorm.Interface
+	l  slog.Logger
 }
 
-func New(db pgorm.Interface, l logger.Interface) *RepoPG {
+func New(db pgorm.Interface, l slog.Logger) *RepoPG {
 	return &RepoPG{
-		db:     db,
-		logger: l,
+		db: db,
+		l:  l,
 	}
 }

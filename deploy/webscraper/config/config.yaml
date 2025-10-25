@@ -1,0 +1,32 @@
+db_path: "data/ipinfo_lite.mmdb"
+workers: 10
+request_timeout: 15s
+content:
+  strategies:
+    - trafilatura
+    - http
+  min_text_length: 200
+  max_content_length: 50000
+  user_agents_path: data/user_agents.txt
+logging:
+  level: info
+kafka:
+  brokers:
+    - "192.168.130.112:9092"
+  group_id: "scraper-consumer_11"
+  client_id: "scraper"
+  input_topic: "url-processing-requests"
+  metadata_topic: "url-metadata-results"
+  content_topic: "url-content-analysis"
+  commit_interval: 5s
+  poll_timeout: 2s
+  auth:
+    username: ""
+    password: ""
+    sasl_mechanism: ""
+    tls_enabled: false
+http:
+  address: ":8010"
+  read_timeout: 5s
+  write_timeout: 10s
+  shutdown_timeout: 10s

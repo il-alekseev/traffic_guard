@@ -10,22 +10,47 @@ import (
 type (
 	// Config -.
 	Config struct {
-		App `yaml:"app"`
-		Log `yaml:"logger"`
-		PG  `yaml:"postgres"`
+		App           `yaml:"app"`
+		HTTP          `yaml:"http"`
+		Swagger       `yaml:"swagger"`
+		Log           `yaml:"logger"`
+		KSU           `yaml:"ksu_postgres"`
+		ETL           `yaml:"etl_postgres"`
+		EtlController `yaml:"etl_controller"`
+		Kafka         `yaml:"kafka"`
 	}
 	// App -.
 	App struct {
-		Name    string `env-required:"true" yaml:"name"    env:"ETL_APP_NAME"`
-		Version string `env-required:"true" yaml:"version" env:"ETL_APP_VERSION"`
+		Name       string `env-required:"true" yaml:"name"    env:"ETL_APP_NAME"`
+		Version    string `env-required:"true" yaml:"version" env:"ETL_APP_VERSION"`
+		DevVersion string `yaml:"dev_version"`
+	}
+	// HTTP -.
+	HTTP struct {
+		Port string `env-required:"true" yaml:"port" env:"ETL_HTTP_PORT"`
+		Host string `env-required:"true" yaml:"host" env:"ETL_HTTP_HOST"`
+	}
+	Swagger struct {
+		Host string `env-required:"true" yaml:"host" env:"DBD_SWAGGER_HOST"`
 	}
 	// Log -.
 	Log struct {
 		Level string `env-required:"true" yaml:"log_level"   env:"ETL_LOG_LEVEL"`
 	}
 
-	// PG -.
-	PG struct {
+	// KSU PG -.
+	KSU struct {
+		PoolMax int    `env-required:"true" yaml:"pool_max" env:"KSU_PG_POOL_MAX"`
+		Host    string `env-required:"true" yaml:"host" env:"KSU_PG_HOST"`
+		Port    string `env-required:"true" yaml:"port" env:"KSU_PG_PORT"`
+		User    string `env-required:"true" yaml:"user" env:"KSU_USER"`
+		Pass    string `env-required:"true" yaml:"pass" env:"KSU_PASS"`
+		DBName  string `env-required:"true" yaml:"dbname" env:"KSU_DBNAME"`
+		SSLMode string `env-required:"true" yaml:"sslmode" env:"KSU_SSLMODE"`
+	}
+
+	// ETL PG -.
+	ETL struct {
 		PoolMax int    `env-required:"true" yaml:"pool_max" env:"ETL_PG_POOL_MAX"`
 		Host    string `env-required:"true" yaml:"host" env:"ETL_PG_HOST"`
 		Port    string `env-required:"true" yaml:"port" env:"ETL_PG_PORT"`
@@ -33,6 +58,23 @@ type (
 		Pass    string `env-required:"true" yaml:"pass" env:"ETL_PASS"`
 		DBName  string `env-required:"true" yaml:"dbname" env:"ETL_DBNAME"`
 		SSLMode string `env-required:"true" yaml:"sslmode" env:"ETL_SSLMODE"`
+	}
+
+	Cache struct {
+	}
+
+	EtlController struct {
+		TTL      int  `env-required:"true" yaml:"ttl" env:"ETL_TTL"`
+		Refresh  uint `env-required:"true" yaml:"refresh" env:"ETL_REFRESH"`
+		MaxCount uint `env-required:"true" yaml:"max_count" env:"ETL_MAX_COUNT"`
+	}
+
+	Kafka struct {
+		Host          string `env-required:"true" yaml:"host" env:"ETL_KAFKA_HOST"`
+		Port          string `env-required:"true" yaml:"port" env:"ETL_KAFKA_PORT"`
+		URLTopic      string `yaml:"url_topic" env:"ETL_KAFKA_URL_TOPIC"`
+		MetadataTopic string `yaml:"metadata_topic" env:"ETL_KAFKA_METADATA_TOPIC"`
+		MLTopic       string `yaml:"ml_topic" env:"ETL_KAFKA_ML_TOPIC"`
 	}
 )
 
@@ -46,6 +88,7 @@ func NewConfig() (*Config, error) {
 	fmt.Printf("Текущая директория: %s\n", currentDir)
 
 	cfgPath := "./config/config.yaml"
+	//cfgPath := "C:/Users/Asus/Projects/VS Code/Continent/traffic_guard/src/go/tg-etl/config/config.yaml"
 
 	if _, err := os.Stat(cfgPath); err == nil {
 		fmt.Printf("Файл %s существует\n", cfgPath)

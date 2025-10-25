@@ -18,5 +18,5 @@ func (s *Server) Healthcheck(c *gin.Context) {
 		Message: "ready",
 	}
 	c.JSON(http.StatusOK, response)
-	s.logger.Debug("Healthcheck")
+	s.l.Debug("Healthcheck")
 }

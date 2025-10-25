@@ -1,18 +1,19 @@
 package usecase
 
-import "tg-dbd/pkg/logger"
-
-type RepoPGInterface interface {
-}
+import (
+	"log/slog"
+)
 
 type Usecase struct {
-	//db RepoPGInterface
-	l logger.Interface
+	db  RepoPGInterface
+	mdb RepoMetricsPGInterface
+	l   slog.Logger
 }
 
-func New( /*db RepoPGInterface, */ l logger.Interface) *Usecase {
+func New(db RepoPGInterface, mdb RepoMetricsPGInterface, l slog.Logger) *Usecase {
 	return &Usecase{
-		//db: db,
-		l: l,
+		db:  db,
+		mdb: mdb,
+		l:   l,
 	}
 }
