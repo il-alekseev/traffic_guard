@@ -7,7 +7,7 @@ import (
 	"tg-etl/pkg/slogger/wsl"
 )
 
-func (uc *UseCase) GetDeviceByID(ctx context.Context, id int) (*models.Device, error) {
+func (uc *QueryUseCase) GetDeviceByID(ctx context.Context, id int) (*models.Device, error) {
 	cacheKey := fmt.Sprintf("device:id:%d", id)
 	// Пытаемся получить из кеша
 	if cached, exists := uc.c.Get(cacheKey); exists {
@@ -29,7 +29,7 @@ func (uc *UseCase) GetDeviceByID(ctx context.Context, id int) (*models.Device, e
 	return device, nil
 }
 
-func (uc *UseCase) CreateDevice(ctx context.Context, device models.Device) error {
+func (uc *QueryUseCase) CreateDevice(ctx context.Context, device models.Device) error {
 	err := uc.etlDB.CreateDevice(ctx, device)
 	if err != nil {
 		uc.l.ErrorContext(ctx, "create device", wsl.Err((err)))
@@ -41,7 +41,7 @@ func (uc *UseCase) CreateDevice(ctx context.Context, device models.Device) error
 	return nil
 }
 
-func (uc *UseCase) GetDevices(ctx context.Context) ([]models.Device, error) {
+func (uc *QueryUseCase) GetDevices(ctx context.Context) ([]models.Device, error) {
 	cacheKey := "devices:all"
 	if cached, exists := uc.c.Get(cacheKey); exists {
 		//uc.l.DebugContext(ctx, "cache hit for all devices")

@@ -1,36 +1,45 @@
 package usecase
 
 import (
+	"context"
+	"fmt"
 	"log/slog"
+	"sync"
 	"tg-etl/config"
 	"tg-etl/internal/models"
+	"tg-etl/internal/repo/category"
 	"tg-etl/internal/repo/kafka"
-	"tg-etl/internal/repo/m_cache"
-	"time"
 )
 
 type UseCase struct {
-	ksuDB KSURepoPGInterface
-	etlDB ETLRepoPGInterface
+	q QueryUsecase
 	// TODO: добавить функционал очистки кешей по TTL
-	c        m_cache.MemoryCache
-	maxCount uint
-	lastLog  *models.IdsLog
-	kc       kafka.Client
-	l        slog.Logger
+	batchSize      uint
+	lastLog        *models.IdsLog
+	kc             kafka.Client
+	processingLock sync.Mutex
+	l              slog.Logger
 }
 
-func New(cfg *config.Config, ksuDB KSURepoPGInterface, etlDB ETLRepoPGInterface, kc kafka.Client, l slog.Logger) *UseCase {
+func New(cfg *config.Config, q QueryUsecase, kc kafka.Client, l slog.Logger) (*UseCase, error) {
 	uc := UseCase{
-		ksuDB:    ksuDB,
-		etlDB:    etlDB,
-		c:        *m_cache.New(time.Duration(cfg.TTL) * time.Minute),
-		maxCount: uint(cfg.MaxCount),
-		lastLog:  nil,
-		kc:       kc,
-		l:        l,
+		q:         q,
+		batchSize: uint(cfg.MaxCount),
+		lastLog:   nil,
+		kc:        kc,
+		l:         l,
 	}
-	// Регистрируем обработчики Kafka
-	uc.registerKafkaHandlers()
-	return &uc
+	// Заполняем вспомогательные таблицы для ETL
+	// Проверяем, пуста ли таблица с категориями, если пуста, то добавляем категории
+	categories, err := q.GetCategories(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("failed to get categories: %v", err)
+	}
+	if len(categories) == 0 {
+		err = q.CreateCategories(context.Background(), category.AllCategoryStrings())
+		if err != nil {
+			return nil, fmt.Errorf("failed to create categories: %v", err)
+		}
+	}
+	return &uc, nil
 }

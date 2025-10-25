@@ -36,4 +36,14 @@ type ETLRepoPGInterface interface {
 	GetCategoryByID(ctx context.Context, id uint) (*models.Category, error)
 	GetCategoryByName(ctx context.Context, name string) (*models.Category, error)
 	GetCategories(ctx context.Context) ([]models.Category, error)
+
+	GetListByDomainID(ctx context.Context, id uint) (*string, error)
+
+	GetURLByPath(ctx context.Context, path string) (*models.URL, error)
+	GetURLByPathDomain(ctx context.Context, path string, id uint) (*models.URL, error)
+	CreateURL(ctx context.Context, url models.URL) error
+}
+
+type KSURepoPGInterface interface {
+	GetLogs(ctx context.Context, start *models.IdsLog, maxCount uint) ([]models.IdsLog, error)
 }

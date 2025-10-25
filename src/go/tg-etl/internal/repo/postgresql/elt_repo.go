@@ -425,3 +425,72 @@ func (r *ELTRepoPG) GetCategories(ctx context.Context) ([]models.Category, error
 	}
 	return categories, nil
 }
+
+// GetListByDomainID получает тип списка (whitelist/blacklist) по ID домена
+func (r *ELTRepoPG) GetListByDomainID(ctx context.Context, id uint) (*string, error) {
+	var domainList models.DomainList
+
+	err := r.db.GetDB().WithContext(ctx).
+		Model(&models.DomainList{}).
+		Select("type").
+		Where("domain_id = ?", id).
+		First(&domainList).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		err = fmt.Errorf("failed to get list by domain id %d: %w", id, err)
+		return nil, slogger.WrapError(ctx, err)
+	}
+
+	return &domainList.Type, nil
+}
+
+// GetURLByPath получает URL по пути
+func (r *ELTRepoPG) GetURLByPath(ctx context.Context, path string) (*models.URL, error) {
+	var url models.URL
+
+	err := r.db.GetDB().WithContext(ctx).
+		Where("path = ?", path).
+		First(&url).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		err = fmt.Errorf("failed to get URL by path %s: %w", path, err)
+		return nil, slogger.WrapError(ctx, err)
+	}
+
+	return &url, nil
+}
+
+func (r *ELTRepoPG) GetURLByPathDomain(ctx context.Context, path string, id uint) (*models.URL, error) {
+	var url models.URL
+
+	err := r.db.GetDB().WithContext(ctx).
+		Where("path = ? and domain_id = ?", path, id).
+		First(&url).Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		err = fmt.Errorf("failed to get URL by path %s: %w", path, err)
+		return nil, slogger.WrapError(ctx, err)
+	}
+
+	return &url, nil
+}
+
+// CreateURL создает новый URL, если он еще не существует
+func (r *ELTRepoPG) CreateURL(ctx context.Context, url models.URL) error {
+	err := r.db.GetDB().WithContext(ctx).Create(&url).Error
+	if err != nil {
+		err = fmt.Errorf("failed to create URL: %w", err)
+		return slogger.WrapError(ctx, err)
+	}
+
+	return nil
+}

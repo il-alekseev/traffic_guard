@@ -6,7 +6,7 @@ import (
 	"tg-etl/pkg/slogger/wsl"
 )
 
-func (uc *UseCase) CreateSession(ctx context.Context, session models.Session) error {
+func (uc *QueryUseCase) CreateSession(ctx context.Context, session models.Session) error {
 	err := uc.etlDB.CreateSession(ctx, session)
 	if err != nil {
 		uc.l.ErrorContext(ctx, "create session",
@@ -18,7 +18,7 @@ func (uc *UseCase) CreateSession(ctx context.Context, session models.Session) er
 	return nil
 }
 
-func (uc *UseCase) GetSessionByID(ctx context.Context, id uint) (*models.Session, error) {
+func (uc *QueryUseCase) GetSessionByID(ctx context.Context, id uint) (*models.Session, error) {
 	session, err := uc.etlDB.GetSessionByID(ctx, id)
 	if err != nil {
 		uc.l.ErrorContext(ctx, "get session by id", wsl.Int("id", int(id)),
@@ -29,7 +29,7 @@ func (uc *UseCase) GetSessionByID(ctx context.Context, id uint) (*models.Session
 	return session, nil
 }
 
-func (uc *UseCase) GetSessions(ctx context.Context, limit, offset int) ([]models.Session, error) {
+func (uc *QueryUseCase) GetSessions(ctx context.Context, limit, offset int) ([]models.Session, error) {
 	sessions, err := uc.etlDB.GetSessions(ctx)
 	if err != nil {
 		uc.l.ErrorContext(ctx, "get sessions",

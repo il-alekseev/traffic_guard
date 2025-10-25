@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"fmt"
+	"os"
 	_ "tg-etl/docs" // Импорт сгенерированных docs
 	"tg-etl/internal/controllers/http/v1/middleware"
 
@@ -11,7 +13,13 @@ import (
 func (s *Server) configureRouter() {
 	s.router.Use(middleware.CorsMiddleware())
 	// Сваггер
-	s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// Динамический адрес для сваггера
+	addr := os.Getenv("ETL_SWAGGER")
+	if addr == "" {
+		addr = s.server.Addr
+	}
+	swaggerURL := ginSwagger.URL(fmt.Sprintf("http://%s/swagger/doc.json", addr))
+	s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, swaggerURL))
 	v1 := s.router.Group("/api/v1")
 	{
 		// Утилиты

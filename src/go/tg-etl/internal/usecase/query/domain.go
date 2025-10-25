@@ -9,7 +9,7 @@ import (
 )
 
 // GetDomainByID получает домен по ID с кешированием
-func (uc *UseCase) GetDomainByID(ctx context.Context, id uint) (*models.Domain, error) {
+func (uc *QueryUseCase) GetDomainByID(ctx context.Context, id uint) (*models.Domain, error) {
 	cacheKey := fmt.Sprintf("domain:id:%d", id)
 
 	// Пытаемся получить из кеша
@@ -36,7 +36,7 @@ func (uc *UseCase) GetDomainByID(ctx context.Context, id uint) (*models.Domain, 
 
 	return domain, nil
 }
-func (uc *UseCase) GetDomainByPath(ctx context.Context, path string) (*models.Domain, error) {
+func (uc *QueryUseCase) GetDomainByPath(ctx context.Context, path string) (*models.Domain, error) {
 	cacheKey := fmt.Sprintf("domain:path:%s", path)
 	// Пытаемся получить из кеша
 	if cached, exists := uc.c.Get(cacheKey); exists {
@@ -60,7 +60,7 @@ func (uc *UseCase) GetDomainByPath(ctx context.Context, path string) (*models.Do
 }
 
 // GetDomainByAddr получает домен по IP и порту с кешированием
-func (uc *UseCase) GetDomainByAddr(ctx context.Context, ip string, port int) (*models.Domain, error) {
+func (uc *QueryUseCase) GetDomainByAddr(ctx context.Context, ip string, port int) (*models.Domain, error) {
 	cacheKey := fmt.Sprintf("domain:addr:%s:%d", ip, port)
 
 	// Пытаемся получить из кеша
@@ -98,7 +98,7 @@ func (uc *UseCase) GetDomainByAddr(ctx context.Context, ip string, port int) (*m
 }
 
 // CreateDomain создает новый домен с инвалидацией кеша
-func (uc *UseCase) CreateDomain(ctx context.Context, domain models.Domain) error {
+func (uc *QueryUseCase) CreateDomain(ctx context.Context, domain models.Domain) error {
 	err := uc.etlDB.CreateDomain(ctx, domain)
 	if err != nil {
 		uc.l.ErrorContext(ctx, "create domain",
@@ -115,7 +115,7 @@ func (uc *UseCase) CreateDomain(ctx context.Context, domain models.Domain) error
 }
 
 // UpdateDomain обновляет домен с инвалидацией кеша
-func (uc *UseCase) UpdateDomain(ctx context.Context, domain models.Domain) error {
+func (uc *QueryUseCase) UpdateDomain(ctx context.Context, domain models.Domain) error {
 	// Получаем старые данные для инвалидации кеша по старому адресу
 	oldDomain, err := uc.etlDB.GetDomainByID(ctx, domain.ID)
 	if err != nil {
@@ -147,7 +147,7 @@ func (uc *UseCase) UpdateDomain(ctx context.Context, domain models.Domain) error
 }
 
 // GetDomains получает все домены с кешированием
-func (uc *UseCase) GetDomains(ctx context.Context) ([]models.Domain, error) {
+func (uc *QueryUseCase) GetDomains(ctx context.Context) ([]models.Domain, error) {
 	cacheKey := "domains:all"
 
 	if cached, exists := uc.c.Get(cacheKey); exists {
@@ -169,7 +169,7 @@ func (uc *UseCase) GetDomains(ctx context.Context) ([]models.Domain, error) {
 }
 
 // IncrementAccessCount инкрементирует счетчик доступа с инвалидацией кеша
-func (uc *UseCase) IncrementAccessCount(ctx context.Context, domainID uint) error {
+func (uc *QueryUseCase) IncrementAccessCount(ctx context.Context, domainID uint) error {
 	err := uc.etlDB.IncrementDomainAccessCount(ctx, domainID)
 	if err != nil {
 		uc.l.ErrorContext(ctx, "increment domain access count",
@@ -185,7 +185,7 @@ func (uc *UseCase) IncrementAccessCount(ctx context.Context, domainID uint) erro
 }
 
 // UpdateLastAccessDatetime обновляет время последнего доступа с инвалидацией кеша
-func (uc *UseCase) UpdateDomainLastAccess(ctx context.Context, domainID uint, datetime time.Time) error {
+func (uc *QueryUseCase) UpdateDomainLastAccess(ctx context.Context, domainID uint, datetime time.Time) error {
 	err := uc.etlDB.UpdateDomainLastAccess(ctx, domainID, datetime)
 	if err != nil {
 		uc.l.ErrorContext(ctx, "update domain last access datetime",
@@ -202,7 +202,7 @@ func (uc *UseCase) UpdateDomainLastAccess(ctx context.Context, domainID uint, da
 }
 
 // invalidateDomainCache инвалидирует все кеши связанные с доменом
-func (uc *UseCase) invalidateDomainCache(domain *models.Domain) {
+func (uc *QueryUseCase) invalidateDomainCache(domain *models.Domain) {
 	// Инвалидируем кеш по ID
 	uc.c.Delete(fmt.Sprintf("domain:id:%d", domain.ID))
 

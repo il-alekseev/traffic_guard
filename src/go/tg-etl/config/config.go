@@ -64,9 +64,10 @@ type (
 	}
 
 	EtlController struct {
-		TTL      int  `env-required:"true" yaml:"ttl" env:"ETL_TTL"`
-		Refresh  uint `env-required:"true" yaml:"refresh" env:"ETL_REFRESH"`
-		MaxCount uint `env-required:"true" yaml:"max_count" env:"ETL_MAX_COUNT"`
+		TTL       int  `env-required:"true" yaml:"ttl" env:"ETL_TTL"`
+		Refresh   uint `env-required:"true" yaml:"refresh" env:"ETL_REFRESH"`
+		MaxCount  uint `env-required:"true" yaml:"max_count" env:"ETL_MAX_COUNT"`
+		WLAttemps uint `env-required:"true" yaml:"wl_attemps" env:"ETL_WL_ATTEMPS"`
 	}
 
 	Kafka struct {

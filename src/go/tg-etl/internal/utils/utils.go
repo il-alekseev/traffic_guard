@@ -7,29 +7,41 @@ import (
 	"strings"
 )
 
-// ExtractDomain извлекает домен из строки
-func ExtractDomain(input string) (string, error) {
-	fullURL, err := ExtractURL(input)
-	if err != nil {
-		return "", err
-	}
-
-	// Парсим URL для извлечения домена
-	parsedURL, err := url.Parse(fullURL)
-	if err != nil {
-		return "", fmt.Errorf("ошибка парсинга URL: %w", err)
-	}
-
-	domain := parsedURL.Hostname()
-	if domain == "" {
-		return "", fmt.Errorf("не удалось извлечь домен из URL")
-	}
-
-	return domain, nil
+type URLInfo struct {
+	Proto  string
+	Domain string
+	URL    string
 }
 
-// ExtractURL извлекает полный URL из строки
-func ExtractURL(input string) (string, error) {
+func ParseRawURL(input string) (URLInfo, error) {
+	info := URLInfo{}
+
+	// Извлекаем полный URL
+	fullURL, err := extractURL(input)
+	if err != nil {
+		return info, fmt.Errorf("failed to extract URL: %w", err)
+	}
+	info.URL = fullURL
+
+	// Извлекаем протокол
+	proto, err := extractProto(fullURL)
+	if err != nil {
+		return info, fmt.Errorf("failed to extract protocol: %w", err)
+	}
+	info.Proto = proto
+
+	// Извлекаем домен
+	domain, err := extractDomain(fullURL)
+	if err != nil {
+		return info, fmt.Errorf("failed to extract domain: %w", err)
+	}
+	info.Domain = domain
+
+	return info, nil
+}
+
+// extractURL извлекает полный URL из строки
+func extractURL(input string) (string, error) {
 	// Регулярное выражение для поиска URL (учитывает GET/POST и другие методы)
 	re := regexp.MustCompile(`(?:GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)\s+(https?://[^\s\)]+)`)
 	matches := re.FindStringSubmatch(input)
@@ -39,7 +51,7 @@ func ExtractURL(input string) (string, error) {
 		re = regexp.MustCompile(`(https?://[^\s\)]+)`)
 		matches = re.FindStringSubmatch(input)
 		if len(matches) == 0 {
-			return "", fmt.Errorf("URL не найден в строке")
+			return "", fmt.Errorf("URL not found in string")
 		}
 	}
 
@@ -50,21 +62,30 @@ func ExtractURL(input string) (string, error) {
 	}
 }
 
-// Определяет тип протокола из записи URL
-func ExtractProto(input string) (*string, error) {
-	proto := ""
-	url, err := ExtractURL(input)
+// extractDomain извлекает домен из URL строки
+func extractDomain(fullURL string) (string, error) {
+	// Парсим URL для извлечения домена
+	parsedURL, err := url.Parse(fullURL)
 	if err != nil {
-		return nil, fmt.Errorf("не удалось извлечь протокол: %w", err)
+		return "", fmt.Errorf("URL parsing error: %w", err)
 	}
 
-	// Извлекаем протокол из URL
-	if strings.HasPrefix(url, "https://") {
-		proto = "https"
-	} else if strings.HasPrefix(url, "http://") {
-		proto = "http"
-	} else {
-		return nil, fmt.Errorf("неизвестный протокол в URL: %s", url)
+	domain := parsedURL.Hostname()
+	if domain == "" {
+		return "", fmt.Errorf("failed to extract domain from URL")
 	}
-	return &proto, nil
+
+	return domain, nil
+}
+
+// extractProto определяет тип протокола из URL
+func extractProto(fullURL string) (string, error) {
+	// Извлекаем протокол из URL
+	if strings.HasPrefix(fullURL, "https://") {
+		return "https", nil
+	} else if strings.HasPrefix(fullURL, "http://") {
+		return "http", nil
+	} else {
+		return "", fmt.Errorf("unknown protocol in URL: %s", fullURL)
+	}
 }

@@ -7,7 +7,7 @@ import (
 	"tg-etl/pkg/slogger/wsl"
 )
 
-func (uc *UseCase) CreateCategories(ctx context.Context, categories []string) error {
+func (uc *QueryUseCase) CreateCategories(ctx context.Context, categories []string) error {
 	err := uc.etlDB.CreateCategories(ctx, categories)
 	if err != nil {
 		uc.l.ErrorContext(ctx, "create categories", wsl.Err((err)))
@@ -16,7 +16,7 @@ func (uc *UseCase) CreateCategories(ctx context.Context, categories []string) er
 	return nil
 }
 
-func (uc *UseCase) GetCategoryByID(ctx context.Context, id uint) (*category.ContentCategory, error) {
+func (uc *QueryUseCase) GetCategoryByID(ctx context.Context, id uint) (*category.ContentCategory, error) {
 	cacheKey := fmt.Sprintf("category:id:%d", id)
 	// Пытаемся получить из кеша
 	if cached, exists := uc.c.Get(cacheKey); exists {
@@ -38,7 +38,7 @@ func (uc *UseCase) GetCategoryByID(ctx context.Context, id uint) (*category.Cont
 	return &cat, nil
 }
 
-func (uc *UseCase) GetCategoryByName(ctx context.Context, name string) (*category.ContentCategory, error) {
+func (uc *QueryUseCase) GetCategoryByName(ctx context.Context, name string) (*category.ContentCategory, error) {
 	cacheKey := fmt.Sprintf("category:name:%s", name)
 
 	// Пытаемся получить из кеша
@@ -66,7 +66,7 @@ func (uc *UseCase) GetCategoryByName(ctx context.Context, name string) (*categor
 	return &cat, nil
 }
 
-func (uc *UseCase) GetCategories(ctx context.Context) ([]category.ContentCategory, error) {
+func (uc *QueryUseCase) GetCategories(ctx context.Context) ([]category.ContentCategory, error) {
 	cacheKey := "categories:all"
 	// Пытаемся получить из кеша
 	if cached, exists := uc.c.Get(cacheKey); exists {
