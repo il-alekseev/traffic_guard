@@ -404,22 +404,78 @@ func (uc *UseCase) createSession(ctx context.Context, log models.IdsLog, source 
 		return fmt.Errorf("source is required")
 	}
 
+	status, err := uc.processStatus(ctx, log, domain)
+	if err != nil {
+		return fmt.Errorf("failed to process status")
+	}
+
+	sessionType, err := uc.processSessionType(ctx, log, domain)
+	if err != nil {
+		return fmt.Errorf("failed to process session type")
+	}
+
 	// Создаем сессию
 	session := models.Session{
 		DatetimeUTC: log.Timestamp,
 		DeviceID:    device.ID,
-		// TODO: логика сюда
-		Type: log.EventType,
-		// TODO: Добавить логику обработки и получения статуса
-		Status:   log.Action,
-		URLID:    uint(url.ID),
-		DomainID: uint(domain.ID),
-		SrcID:    source.ID,
+		Type:        sessionType.String(),
+		Status:      status.String(),
+		URLID:       uint(url.ID),
+		DomainID:    uint(domain.ID),
+		SrcID:       source.ID,
 	}
 
-	err := uc.q.CreateSession(ctx, session)
+	err = uc.q.CreateSession(ctx, session)
 	if err != nil {
 		return fmt.Errorf("failed to create session: %w", err)
 	}
 	return nil
+}
+
+func (uc *UseCase) processStatus(ctx context.Context, log models.IdsLog, domain *models.Domain) (models.Status, error) {
+	// log.Action = allowed && not in blacklist -> Разрешен
+	// log.Action = allowed && in blacklist && actionID != 0 -> Запрещен
+	// log.Action = allowed && in blacklist && actionID == 0 -> Ожидает
+	// log.Action = blocked -> Заблокирован
+	if log.Action == "blocked" {
+		return models.Blocked, nil
+	} else {
+		// Проверяем, находится ли домен в черном списке
+		list, err := uc.q.GetListByDomainID(ctx, domain.ID)
+		if err != nil {
+			return models.Allowed, fmt.Errorf("failed to get list for domain: %w", err)
+		}
+		if list == nil {
+			return models.Allowed, nil
+		} else {
+			if domain.ActionID == 0 {
+				return models.Pending, nil
+			} else {
+				return models.Forbidden, nil
+			}
+		}
+	}
+}
+
+// TODO: обсудить логику, скорее всего будет меняться
+func (uc *UseCase) processSessionType(ctx context.Context, log models.IdsLog, domain *models.Domain) (models.SessionType, error) {
+	if log.Action == "blocked" {
+		return models.Blocking, nil
+	} else {
+		// Проверяем, находится ли домен в черном списке
+		list, err := uc.q.GetListByDomainID(ctx, domain.ID)
+		if err != nil {
+			return models.Allowing, fmt.Errorf("failed to get list for domain: %w", err)
+		}
+		if list == nil {
+			return models.Allowing, nil
+		} else {
+			if domain.ActionID == 0 {
+				return models.Waiting, nil
+			} else {
+				// TODO: Здесь нужно добавить обработку Anomaly, Fierwal, VPN в зависимости от того , где мы запрещаем
+				return models.Anomaly, nil
+			}
+		}
+	}
 }
