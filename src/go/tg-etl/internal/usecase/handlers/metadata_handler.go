@@ -11,22 +11,32 @@ import (
 
 // MetadataHandler обрабатывает сообщения из metadata топика
 type MetadataHandler struct {
-	queryUsecase usecase.QueryUsecase
-	l            *slog.Logger
+	q usecase.QueryUsecase
+	l *slog.Logger
 }
 
 // NewMetadataHandler создает новый обработчик метаданных
 func NewMetadataHandler(queryUsecase usecase.QueryUsecase, l *slog.Logger) *MetadataHandler {
 	return &MetadataHandler{
-		queryUsecase: queryUsecase,
-		l:            l,
+		q: queryUsecase,
+		l: l,
 	}
 }
 
 func (h *MetadataHandler) HandleURLMetadata(ctx context.Context, result models.URLMetadataResult) {
-	h.l.InfoContext(ctx, "Processing URL metadata result",
-		slog.String("request_id", result.RequestID),
-		slog.String("url", result.URL))
+	//h.l.InfoContext(ctx, "Processing URL metadata result",
+	//	slog.String("request_id", result.RequestID),
+	//	slog.String("url", result.URL))
+	// Обновляем поля домена полученной информацией
+	// TODO: Продумать кейсы с различными данными (domain, ip, url)
+	domain := models.Domain{
+		IP:      result.Domain.IP,
+		Country: result.Domain.Geo.Country,
+		Path:    result.Domain.Name,
+	}
+	if err := h.q.UpdateDomain(ctx, domain); err != nil {
+		h.l.ErrorContext(ctx, "failed to handle URL metadata", wsl.Err(err))
+	}
 }
 
 // HandleRawMessage обрабатывает сырое сообщение из Kafka

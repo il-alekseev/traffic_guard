@@ -11,15 +11,15 @@ import (
 
 // MLAnalysisHandler обрабатывает сообщения из ML топика
 type MLAnalysisHandler struct {
-	queryUsecase usecase.QueryUsecase
-	l            *slog.Logger
+	q usecase.QueryUsecase
+	l *slog.Logger
 }
 
 // NewMLAnalysisHandler создает новый обработчик ML анализа
 func NewMLAnalysisHandler(queryUsecase usecase.QueryUsecase, logger *slog.Logger) *MLAnalysisHandler {
 	return &MLAnalysisHandler{
-		queryUsecase: queryUsecase,
-		l:            logger,
+		q: queryUsecase,
+		l: logger,
 	}
 }
 
@@ -27,9 +27,28 @@ func NewMLAnalysisHandler(queryUsecase usecase.QueryUsecase, logger *slog.Logger
 func (h *MLAnalysisHandler) HandleMLAnalysis(ctx context.Context, result models.MLAnalysisResult) {
 	h.l.InfoContext(ctx, "Processing ML analysis result",
 		slog.String("request_id", result.RequestID),
-		slog.String("url", result.URL),
-		slog.String("category", result.Category),
-		slog.Float64("confidence", result.Confidence))
+		slog.String("RecognisedClass", result.RecognisedClass),
+	)
+	domain, err := h.q.GetDomainByRequestID(ctx, result.RequestID)
+	if err != nil {
+		h.l.ErrorContext(ctx, "failed to handle ML data", wsl.Err(err))
+		return
+	}
+	categoryID, err := h.q.GetCategoryID(ctx, result.RecognisedClass)
+	if err != nil {
+		h.l.ErrorContext(ctx, "failed to handle ML data", wsl.Err(err))
+		return
+	}
+	if categoryID == 0 {
+		h.l.ErrorContext(ctx, "category not recognized", wsl.String("name", result.RecognisedClass))
+		return
+	}
+	if domain != nil {
+		domain.CategoryID = int(categoryID)
+		h.q.UpdateDomain(ctx, *domain)
+	} else {
+		h.l.ErrorContext(ctx, "domain not found", wsl.Err(err))
+	}
 }
 
 // HandleRawMessage обрабатывает сырое сообщение из Kafka

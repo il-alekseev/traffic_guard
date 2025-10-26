@@ -89,9 +89,13 @@ func (c ContentCategory) String() string {
 	case Gambling:
 		return "Азартные игры"
 	case DepressiveContentSuicide:
-		return "Депрессивный контент и суицид"
+		// TODO:  согласовать категорию!
+		//return "Депрессивный контент и суицид"
+		return "Депрессивный контент"
 	case AlcoholTobacco:
-		return "Алкоголь, табак"
+		// TODO:
+		//return "Алкоголь, табак"
+		return "Алкоголь и табак"
 	default:
 		return "Неизвестная категория"
 	}

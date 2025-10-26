@@ -2,6 +2,7 @@ package postgresql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"tg-etl/internal/models"
@@ -195,9 +196,36 @@ func (r *ELTRepoPG) CreateDomain(ctx context.Context, domain models.Domain) erro
 	return nil
 }
 
-func (r *ELTRepoPG) UpdateDomain(ctx context.Context, domain models.Domain) error {
+func (r *ELTRepoPG) UpdateDomainByID(ctx context.Context, domain models.Domain, id int) error {
 	err := r.db.WithTx(ctx, func(tx *gorm.DB) error {
-		result := tx.Save(&domain)
+		// Создаем map для обновления только переданных полей
+		updates := make(map[string]interface{})
+
+		if domain.IP != "" {
+			updates["ip"] = domain.IP
+		}
+		if domain.Country != "" {
+			updates["country"] = domain.Country
+		}
+		if domain.Path != "" {
+			updates["path"] = domain.Path
+		}
+		if domain.Port != 0 {
+			updates["port"] = domain.Port
+		}
+		if domain.CategoryID != 0 {
+			updates["category_id"] = domain.CategoryID
+		}
+		if domain.ActionID != 0 {
+			updates["action_id"] = domain.ActionID
+		}
+
+		// Если нет полей для обновления - выходим
+		if len(updates) == 0 {
+			return nil
+		}
+
+		result := tx.Model(&models.Domain{}).Where("id = ?", id).Updates(updates)
 		if result.Error != nil {
 			return fmt.Errorf("failed to update domain %d: %w", domain.ID, result.Error)
 		}
@@ -220,44 +248,6 @@ func (r *ELTRepoPG) GetDomains(ctx context.Context) ([]models.Domain, error) {
 		return nil, slogger.WrapError(ctx, err)
 	}
 	return domains, nil
-}
-
-func (r *ELTRepoPG) IncrementDomainAccessCount(ctx context.Context, domainID uint) error {
-	err := r.db.WithTx(ctx, func(tx *gorm.DB) error {
-		result := tx.Model(&models.Domain{}).
-			Where("id = ?", domainID).
-			Update("access_count", gorm.Expr("access_count + ?", 1))
-		if result.Error != nil {
-			return fmt.Errorf("failed to increment access count for domain %d: %w", domainID, result.Error)
-		}
-		if result.RowsAffected == 0 {
-			return fmt.Errorf("domain with id %d not found", domainID)
-		}
-		return nil
-	})
-	if err != nil {
-		return slogger.WrapError(ctx, err)
-	}
-	return nil
-}
-
-func (r *ELTRepoPG) UpdateDomainLastAccess(ctx context.Context, domainID uint, datetime time.Time) error {
-	err := r.db.WithTx(ctx, func(tx *gorm.DB) error {
-		result := tx.Model(&models.Domain{}).
-			Where("id = ?", domainID).
-			Update("last_access_datetime", datetime)
-		if result.Error != nil {
-			return fmt.Errorf("failed to update last access datetime for domain %d: %w", domainID, result.Error)
-		}
-		if result.RowsAffected == 0 {
-			return fmt.Errorf("domain with id %d not found", domainID)
-		}
-		return nil
-	})
-	if err != nil {
-		return slogger.WrapError(ctx, err)
-	}
-	return nil
 }
 
 func (r *ELTRepoPG) DeleteDomain(ctx context.Context, id uint) error {
@@ -493,4 +483,23 @@ func (r *ELTRepoPG) CreateURL(ctx context.Context, url models.URL) error {
 	}
 
 	return nil
+}
+
+func (r ELTRepoPG) GetDomainByRequestID(ctx context.Context, id string) (*models.Domain, error) {
+	var domain models.Domain
+
+	err := r.db.GetDB().WithContext(ctx).
+		Table("domains").
+		Joins("JOIN urls ON urls.domain_id = domains.id").
+		Where("urls.uuid = ?", id).
+		First(&domain).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("domain not found for request_id %s", id)
+		}
+		return nil, fmt.Errorf("failed to get domain by uuid %s: %w", id, err)
+	}
+
+	return &domain, nil
 }

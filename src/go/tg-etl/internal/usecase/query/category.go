@@ -16,6 +16,20 @@ func (uc *QueryUseCase) CreateCategories(ctx context.Context, categories []strin
 	return nil
 }
 
+// TODO: добавить кеширование
+func (uc *QueryUseCase) GetCategoryID(ctx context.Context, name string) (uint, error) {
+	c, err := uc.etlDB.GetCategoryByName(ctx, name)
+	if err != nil {
+		uc.l.ErrorContext(ctx, "get category by name from db", wsl.Err(err))
+		return 0, err
+	}
+	if c == nil {
+		return 0, nil
+	} else {
+		return c.ID, nil
+	}
+}
+
 func (uc *QueryUseCase) GetCategoryByID(ctx context.Context, id uint) (*category.ContentCategory, error) {
 	cacheKey := fmt.Sprintf("category:id:%d", id)
 	// Пытаемся получить из кеша

@@ -4,7 +4,6 @@ import (
 	"context"
 	"tg-etl/internal/models"
 	"tg-etl/internal/repo/category"
-	"time"
 )
 
 type UsecaseInterface interface {
@@ -44,11 +43,10 @@ type DomainUseCase interface {
 	GetDomainByID(ctx context.Context, id uint) (*models.Domain, error)
 	GetDomainByAddr(ctx context.Context, ip string, port int) (*models.Domain, error)
 	GetDomainByPath(ctx context.Context, path string) (*models.Domain, error)
+	GetDomainByRequestID(ctx context.Context, id string) (*models.Domain, error)
 	CreateDomain(ctx context.Context, domain models.Domain) error
 	UpdateDomain(ctx context.Context, domain models.Domain) error
 	GetDomains(ctx context.Context) ([]models.Domain, error)
-	IncrementAccessCount(ctx context.Context, domainID uint) error
-	UpdateDomainLastAccess(ctx context.Context, domainID uint, datetime time.Time) error
 }
 
 // DeviceUseCase определяет методы для работы с устройствами
@@ -75,6 +73,7 @@ type CategoryUseCase interface {
 	CreateCategories(ctx context.Context, categories []string) error
 	GetCategoryByID(ctx context.Context, id uint) (*category.ContentCategory, error)
 	GetCategoryByName(ctx context.Context, name string) (*category.ContentCategory, error)
+	GetCategoryID(ctx context.Context, name string) (uint, error)
 	GetCategories(ctx context.Context) ([]category.ContentCategory, error)
 }
 
