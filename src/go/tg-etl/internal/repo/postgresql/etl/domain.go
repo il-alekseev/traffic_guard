@@ -85,6 +85,12 @@ func (r *ELTRepoPG) UpdateDomainByID(ctx context.Context, domain models.Domain, 
 		if domain.ActionID != 0 {
 			updates["action_id"] = domain.ActionID
 		}
+		if domain.AnalysisCount != 0 {
+			updates["analysis_count"] = domain.AnalysisCount
+		}
+		if !domain.CategorizedAt.IsZero() {
+			updates["categorized_at"] = domain.CategorizedAt
+		}
 
 		// Если нет полей для обновления - выходим
 		if len(updates) == 0 {
@@ -152,18 +158,4 @@ func (r ELTRepoPG) GetDomainByRequestID(ctx context.Context, requestID uuid.UUID
 	}
 
 	return &domain, nil
-}
-
-// TODO: Реализовать методы
-
-func (r *ELTRepoPG) IncrementDomainAnalysisCount(ctx context.Context, domainID uint) error {
-	return nil
-}
-
-func (r *ELTRepoPG) UpdateDomainAction(ctx context.Context, domainID uint, action models.Action) error {
-	return nil
-}
-
-func (r *ELTRepoPG) UpdateDomainCategory(ctx context.Context, domainID uint, category models.Category) error {
-	return nil
 }

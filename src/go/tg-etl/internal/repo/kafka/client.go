@@ -47,7 +47,7 @@ func New(ctx context.Context, cfg config.Kafka, logger *slog.Logger) (*KafkaClie
 		Balancer:     &kafka.LeastBytes{},
 		BatchTimeout: 10 * time.Millisecond,
 		RequiredAcks: kafka.RequireOne,
-		Logger:       kafka.LoggerFunc(logger.Info),
+		//Logger:       kafka.LoggerFunc(logger.Info),
 		ErrorLogger: kafka.LoggerFunc(func(s string, i ...interface{}) {
 			logger.ErrorContext(ctx, "Kafka writer error", "msg", s, "args", i)
 		}),
@@ -105,12 +105,12 @@ func (kc *KafkaClient) SendAnalysisRequest(ctx context.Context, req models.Analy
 		return fmt.Errorf("failed to write message to topic %s: %w", kc.cfg.URLTopic, err)
 	}
 
-	kc.l.DebugContext(ctx, "Analysis request sent",
-		"request_id", req.RequestID,
-		"dst_type", req.Dst.Type,
-		"dst_resource", req.Dst.Resource,
-		"src_ip", req.Src.IP,
-		"topic", kc.cfg.URLTopic)
+	//kc.l.DebugContext(ctx, "Analysis request sent",
+	//	"request_id", req.RequestID,
+	//	"dst_type", req.Dst.Type,
+	//	"dst_resource", req.Dst.Resource,
+	//	"src_ip", req.Src.IP,
+	//	"topic", kc.cfg.URLTopic)
 
 	return nil
 }
@@ -155,11 +155,11 @@ func (kc *KafkaClient) consumeTopic(ctx context.Context, consumer *kafka.Reader,
 }
 
 func (kc *KafkaClient) handleMessage(ctx context.Context, msg kafka.Message, handlers ConsumerHandlers, consumerID int) {
-	kc.l.DebugContext(ctx, "Received message",
-		"topic", msg.Topic,
-		"partition", msg.Partition,
-		"offset", msg.Offset,
-		"consumer_id", consumerID)
+	//kc.l.DebugContext(ctx, "Received message",
+	//	"topic", msg.Topic,
+	//	"partition", msg.Partition,
+	//	"offset", msg.Offset,
+	//	"consumer_id", consumerID)
 
 	switch msg.Topic {
 	case kc.cfg.MetadataTopic:

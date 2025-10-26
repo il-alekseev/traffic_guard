@@ -81,5 +81,7 @@ type URL struct {
 	Proto            string    `gorm:"type:varchar(10);not null" json:"proto"`
 	DomainID         uint      `gorm:"type:integer;not null;index" json:"domain_id"`
 	PutKafkaDateTime time.Time `gorm:"column:put_kafka_datetime" json:"put_kafka_datetime"`
-	RequestID        uuid.UUID `gorm:"type:uuid;uniqueIndex" json:"request_id"`
+	//RequestID        uuid.UUID `gorm:"type:uuid;uniqueIndex" json:"request_id"`
+	// TODO:  Временно! отладить, почему requestID повторяется!
+	RequestID uuid.UUID `gorm:"type:uuid;" json:"request_id"`
 }

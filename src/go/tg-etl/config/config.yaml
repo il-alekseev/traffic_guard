@@ -40,10 +40,10 @@ etl_postgres:
   #sslmode: "disable"
 
 etl_controller:
-  refresh: 10
+  refresh: 1
   ttl: 10
-  max_count: 100
-  wl_attemps: 20
+  max_count: 200
+  ml_attemps: 20
   
 kafka:
   host: "192.168.130.112"  

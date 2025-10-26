@@ -2,10 +2,12 @@ package postgresql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"tg-etl/internal/models"
 	"tg-etl/pkg/slogger"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -55,4 +57,20 @@ func (r *ELTRepoPG) CreateURL(ctx context.Context, url models.URL) error {
 	}
 
 	return nil
+}
+
+func (r *ELTRepoPG) GetURLByRequestID(ctx context.Context, requestID uuid.UUID) (*models.URL, error) {
+	var url models.URL
+	err := r.db.GetDB().WithContext(ctx).
+		Where("request_id = ?", requestID).
+		First(&url).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get URL by request ID %s: %w", requestID, err)
+	}
+
+	return &url, nil
 }

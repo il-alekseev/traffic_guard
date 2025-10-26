@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"tg-etl/internal/models"
 	"tg-etl/pkg/slogger/wsl"
+
+	"github.com/google/uuid"
 )
 
 func (uc *QueryUseCase) CreateURL(ctx context.Context, url models.URL) error {
@@ -72,6 +74,11 @@ func (uc *QueryUseCase) GetURLByPathDomain(ctx context.Context, path string, id 
 		}
 	}
 	return url, nil
+}
+
+// TODO:  добавить кеширование
+func (uc *QueryUseCase) GetURLByRequestID(ctx context.Context, requestID uuid.UUID) (*models.URL, error) {
+	return uc.etlDB.GetURLByRequestID(ctx, requestID)
 }
 
 // invalidateSourceCache инвалидирует все кеши связанные с источником

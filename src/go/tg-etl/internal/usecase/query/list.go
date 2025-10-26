@@ -3,8 +3,30 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"tg-etl/internal/models"
 	"tg-etl/pkg/slogger/wsl"
 )
+
+func (uc *QueryUseCase) AddDomainToList(ctx context.Context, domain models.Domain, list models.ListType) error {
+	existedList, err := uc.GetListByDomainID(ctx, domain.ID)
+	if err != nil {
+		uc.l.ErrorContext(ctx, "get list for domain", wsl.Err((err)))
+		return err
+	}
+	// Домен может быть одновременно только в одном списке!
+	if existedList != nil {
+		err = fmt.Errorf("domain already in list %s", *existedList)
+		uc.l.ErrorContext(ctx, "get list for domain", wsl.Err((err)))
+		return err
+	}
+	if err := uc.etlDB.AddDomainToList(ctx, domain, list); err != nil {
+		uc.l.ErrorContext(ctx, "add domain to list", wsl.Err((err)))
+		return err
+	}
+	// Инвалидируем возможные кеши
+	uc.c.Delete(fmt.Sprintf("list:domain_id:%d", domain.ID))
+	return nil
+}
 
 // GetListByDomainID получает список по ID домена с кешированием
 func (uc *QueryUseCase) GetListByDomainID(ctx context.Context, id uint) (*string, error) {

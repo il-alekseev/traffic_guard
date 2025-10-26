@@ -9,8 +9,9 @@ import (
 )
 
 type QueryUseCase struct {
-	ksuDB KSURepoPGInterface
-	etlDB ETLRepoPGInterface
+	MLAttemps uint
+	ksuDB     KSURepoPGInterface
+	etlDB     ETLRepoPGInterface
 	// TODO: добавить функционал очистки кешей по TTL
 	c       m_cache.MemoryCache
 	lastLog *models.IdsLog
@@ -19,11 +20,12 @@ type QueryUseCase struct {
 
 func New(cfg *config.Config, ksuDB KSURepoPGInterface, etlDB ETLRepoPGInterface, l slog.Logger) *QueryUseCase {
 	uc := QueryUseCase{
-		ksuDB:   ksuDB,
-		etlDB:   etlDB,
-		c:       *m_cache.New(time.Duration(cfg.TTL) * time.Minute),
-		lastLog: nil,
-		l:       l,
+		MLAttemps: cfg.MLAttemps,
+		ksuDB:     ksuDB,
+		etlDB:     etlDB,
+		c:         *m_cache.New(time.Duration(cfg.TTL) * time.Minute),
+		lastLog:   nil,
+		l:         l,
 	}
 	return &uc
 }

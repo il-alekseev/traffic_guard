@@ -39,12 +39,14 @@ func (uc *UseCase) ProcessNewLogs(ctx context.Context) error {
 			uc.lastLog = &log
 		}
 	}
-	uc.l.DebugContext(ctx, "successfully processed IDS logs",
-		slog.Int("processed_count", len(logs)))
+	id := 0
 	if uc.lastLog != nil {
-		uc.l.InfoContext(ctx, "last log",
-			slog.Int("id", int(uc.lastLog.ID)))
+		id = int(uc.lastLog.ID)
 	}
+	uc.l.InfoContext(ctx, "successfully processed IDS logs",
+		wsl.Int("processed_count", len(logs)),
+		wsl.Int("last_log id", id),
+	)
 	return nil
 }
 

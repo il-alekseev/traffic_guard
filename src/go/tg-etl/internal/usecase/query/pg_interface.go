@@ -37,10 +37,12 @@ type ETLRepoPGInterface interface {
 	GetCategoryByName(ctx context.Context, name string) (*models.Category, error)
 	GetCategories(ctx context.Context) ([]models.Category, error)
 
+	AddDomainToList(ctx context.Context, domain models.Domain, list models.ListType) error
 	GetListByDomainID(ctx context.Context, id uint) (*string, error)
 
 	GetURLByPath(ctx context.Context, path string) (*models.URL, error)
 	GetURLByPathDomain(ctx context.Context, path string, id uint) (*models.URL, error)
+	GetURLByRequestID(ctx context.Context, requestID uuid.UUID) (*models.URL, error)
 	CreateURL(ctx context.Context, url models.URL) error
 }
 

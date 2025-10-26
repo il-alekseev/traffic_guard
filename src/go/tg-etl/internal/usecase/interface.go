@@ -80,6 +80,7 @@ type CategoryUseCase interface {
 
 // ListUseCase определяет методы для работы со списками
 type ListUseCase interface {
+	AddDomainToList(ctx context.Context, domain models.Domain, list models.ListType) error
 	GetListByDomainID(ctx context.Context, id uint) (*string, error)
 }
 
