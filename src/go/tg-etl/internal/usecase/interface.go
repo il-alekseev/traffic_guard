@@ -3,7 +3,8 @@ package usecase
 import (
 	"context"
 	"tg-etl/internal/models"
-	"tg-etl/internal/repo/category"
+
+	"github.com/google/uuid"
 )
 
 type UsecaseInterface interface {
@@ -43,7 +44,7 @@ type DomainUseCase interface {
 	GetDomainByID(ctx context.Context, id uint) (*models.Domain, error)
 	GetDomainByAddr(ctx context.Context, ip string, port int) (*models.Domain, error)
 	GetDomainByPath(ctx context.Context, path string) (*models.Domain, error)
-	GetDomainByRequestID(ctx context.Context, id string) (*models.Domain, error)
+	GetDomainByRequestID(ctx context.Context, requestID uuid.UUID) (*models.Domain, error)
 	CreateDomain(ctx context.Context, domain models.Domain) error
 	UpdateDomain(ctx context.Context, domain models.Domain) error
 	GetDomains(ctx context.Context) ([]models.Domain, error)
@@ -70,11 +71,11 @@ type IdsUseCase interface {
 
 // CategoryUseCase определяет методы для работы с категориями
 type CategoryUseCase interface {
-	CreateCategories(ctx context.Context, categories []string) error
-	GetCategoryByID(ctx context.Context, id uint) (*category.ContentCategory, error)
-	GetCategoryByName(ctx context.Context, name string) (*category.ContentCategory, error)
-	GetCategoryID(ctx context.Context, name string) (uint, error)
-	GetCategories(ctx context.Context) ([]category.ContentCategory, error)
+	CreatePredefinedCategories(ctx context.Context, categories []models.Category) error
+	GetCategoryByID(ctx context.Context, id uint) (*models.Category, error)
+	GetCategoryByName(ctx context.Context, name string) (*models.Category, error)
+	GetCategoryIDByName(ctx context.Context, name string) (uint, error)
+	GetCategories(ctx context.Context) ([]models.Category, error)
 }
 
 // ListUseCase определяет методы для работы со списками

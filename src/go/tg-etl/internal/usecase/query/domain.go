@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"tg-etl/internal/models"
 	"tg-etl/pkg/slogger/wsl"
+
+	"github.com/google/uuid"
 )
 
-func (uc *QueryUseCase) GetDomainByRequestID(ctx context.Context, id string) (*models.Domain, error) {
-	return uc.etlDB.GetDomainByRequestID(ctx, id)
+func (uc *QueryUseCase) GetDomainByRequestID(ctx context.Context, requestID uuid.UUID) (*models.Domain, error) {
+	return uc.etlDB.GetDomainByRequestID(ctx, requestID)
 }
 
 // GetDomainByID получает домен по ID с кешированием

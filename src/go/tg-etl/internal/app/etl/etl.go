@@ -14,7 +14,8 @@ import (
 	v1 "tg-etl/internal/controllers/http/v1"
 	"tg-etl/internal/models"
 	"tg-etl/internal/repo/kafka"
-	"tg-etl/internal/repo/postgresql"
+	ksuRepo "tg-etl/internal/repo/postgresql"
+	etlRepo "tg-etl/internal/repo/postgresql/etl"
 	"tg-etl/internal/usecase"
 	"tg-etl/internal/usecase/handlers"
 	q "tg-etl/internal/usecase/query"
@@ -56,20 +57,20 @@ func createConnection(ctx context.Context,
 	return db, nil
 }
 
-func createKSUConnection(ctx context.Context, dsn string, maxPoolSize int, l slog.Logger, models ...interface{}) (*postgresql.KSURepoPG, error) {
+func createKSUConnection(ctx context.Context, dsn string, maxPoolSize int, l slog.Logger, models ...interface{}) (*ksuRepo.KSURepoPG, error) {
 	db, err := createConnection(ctx, dsn, maxPoolSize, l, false, models...)
 	if err != nil {
 		return nil, err
 	}
-	return postgresql.NewKSURepoPG(db, l), nil
+	return ksuRepo.NewKSURepoPG(db, l), nil
 }
 
-func createETLConnection(ctx context.Context, dsn string, maxPoolSize int, l slog.Logger, models ...interface{}) (*postgresql.ELTRepoPG, error) {
+func createETLConnection(ctx context.Context, dsn string, maxPoolSize int, l slog.Logger, models ...interface{}) (*etlRepo.ELTRepoPG, error) {
 	db, err := createConnection(ctx, dsn, maxPoolSize, l, true, models...)
 	if err != nil {
 		return nil, err
 	}
-	return postgresql.NewELTRepoPG(db, l), nil
+	return etlRepo.NewELTRepoPG(db, l), nil
 }
 
 func Run(cfg *config.Config) {
@@ -103,9 +104,9 @@ func Run(cfg *config.Config) {
 		models.Domain{},
 		models.Action{},
 		models.Category{},
-		models.ContentCategory{},
-		models.CategoryDomain{},
-		models.DomainList{},
+		//models.ContentCategory{},
+		//models.CategoryDomain{},
+		models.DomainControlLists{},
 		models.URL{},
 	)
 	if err != nil {

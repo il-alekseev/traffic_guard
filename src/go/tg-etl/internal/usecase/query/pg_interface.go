@@ -3,6 +3,8 @@ package usecase
 import (
 	"context"
 	"tg-etl/internal/models"
+
+	"github.com/google/uuid"
 )
 
 type ETLRepoPGInterface interface {
@@ -17,7 +19,7 @@ type ETLRepoPGInterface interface {
 	GetSources(ctx context.Context) ([]models.Source, error)
 	DeleteSource(ctx context.Context, id uint) error
 
-	GetDomainByRequestID(ctx context.Context, id string) (*models.Domain, error)
+	GetDomainByRequestID(ctx context.Context, requestID uuid.UUID) (*models.Domain, error)
 	GetDomainByID(ctx context.Context, id uint) (*models.Domain, error)
 	GetDomainByAddr(ctx context.Context, ip string, port int) (*models.Domain, error)
 	GetDomainByPath(ctx context.Context, path string) (*models.Domain, error)
@@ -30,7 +32,7 @@ type ETLRepoPGInterface interface {
 	GetSessionByID(ctx context.Context, id uint) (*models.Session, error)
 	GetSessions(ctx context.Context) ([]models.Session, error)
 
-	CreateCategories(ctx context.Context, categories []string) error
+	CreateCategories(ctx context.Context, categories []models.Category) error
 	GetCategoryByID(ctx context.Context, id uint) (*models.Category, error)
 	GetCategoryByName(ctx context.Context, name string) (*models.Category, error)
 	GetCategories(ctx context.Context) ([]models.Category, error)

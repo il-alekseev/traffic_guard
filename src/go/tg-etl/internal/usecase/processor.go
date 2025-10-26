@@ -215,11 +215,11 @@ func (uc *UseCase) createURLForDomain(ctx context.Context, log models.IdsLog, do
 	if list == nil {
 		ts := time.Now()
 		uuid := uuid.New()
-		newURL.UUID = uuid
+		newURL.RequestID = uuid
 		newURL.PutKafkaDateTime = ts
 
 		req := models.AnalysisRequest{
-			RequestID: newURL.UUID,
+			RequestID: newURL.RequestID,
 			Src:       models.Src{IP: log.SrcIP},
 			Dst: models.Destination{
 				Type:     models.DestinationURL,
@@ -267,16 +267,16 @@ func (uc *UseCase) createNewDomainAndURL(ctx context.Context, log models.IdsLog,
 	}
 
 	newURL := models.URL{
-		Path:     urlInfo.URL,
-		Proto:    urlInfo.Proto,
-		DomainID: domain.ID,
-		UUID:     uuid.New(),
+		Path:      urlInfo.URL,
+		Proto:     urlInfo.Proto,
+		DomainID:  domain.ID,
+		RequestID: uuid.New(),
 	}
 
 	// Отправляем в Kafka
 	ts := time.Now()
 	req := models.AnalysisRequest{
-		RequestID: newURL.UUID,
+		RequestID: newURL.RequestID,
 		Src:       models.Src{IP: log.SrcIP},
 		Dst: models.Destination{
 			Type:     models.DestinationURL,
@@ -352,14 +352,14 @@ func (uc *UseCase) createDomainWithAnalysis(ctx context.Context, log models.IdsL
 	}
 
 	newURL := models.URL{
-		DomainID: createdDomain.ID,
-		UUID:     uuid.New(),
+		DomainID:  createdDomain.ID,
+		RequestID: uuid.New(),
 	}
 
 	// Отправляем в Kafka
 	ts := time.Now()
 	req := models.AnalysisRequest{
-		RequestID: newURL.UUID,
+		RequestID: newURL.RequestID,
 		Src:       models.Src{IP: log.SrcIP},
 		Dst: models.Destination{
 			Type:     destType,

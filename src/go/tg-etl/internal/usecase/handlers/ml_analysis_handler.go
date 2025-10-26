@@ -7,6 +7,8 @@ import (
 	"tg-etl/internal/models"
 	"tg-etl/internal/usecase"
 	"tg-etl/pkg/slogger/wsl"
+
+	"github.com/google/uuid"
 )
 
 // MLAnalysisHandler обрабатывает сообщения из ML топика
@@ -29,12 +31,17 @@ func (h *MLAnalysisHandler) HandleMLAnalysis(ctx context.Context, result models.
 		slog.String("request_id", result.RequestID),
 		slog.String("RecognisedClass", result.RecognisedClass),
 	)
-	domain, err := h.q.GetDomainByRequestID(ctx, result.RequestID)
+	requestID, err := uuid.Parse(result.RequestID)
+	if err != nil {
+		h.l.ErrorContext(ctx, "failed to parse request_id to uuid", wsl.Err(err))
+		return
+	}
+	domain, err := h.q.GetDomainByRequestID(ctx, requestID)
 	if err != nil {
 		h.l.ErrorContext(ctx, "failed to handle ML data", wsl.Err(err))
 		return
 	}
-	categoryID, err := h.q.GetCategoryID(ctx, result.RecognisedClass)
+	categoryID, err := h.q.GetCategoryIDByName(ctx, result.RecognisedClass)
 	if err != nil {
 		h.l.ErrorContext(ctx, "failed to handle ML data", wsl.Err(err))
 		return

@@ -3,11 +3,11 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"tg-etl/internal/repo/category"
+	"tg-etl/internal/models"
 	"tg-etl/pkg/slogger/wsl"
 )
 
-func (uc *QueryUseCase) CreateCategories(ctx context.Context, categories []string) error {
+func (uc *QueryUseCase) CreatePredefinedCategories(ctx context.Context, categories []models.Category) error {
 	err := uc.etlDB.CreateCategories(ctx, categories)
 	if err != nil {
 		uc.l.ErrorContext(ctx, "create categories", wsl.Err((err)))
@@ -17,7 +17,7 @@ func (uc *QueryUseCase) CreateCategories(ctx context.Context, categories []strin
 }
 
 // TODO: добавить кеширование
-func (uc *QueryUseCase) GetCategoryID(ctx context.Context, name string) (uint, error) {
+func (uc *QueryUseCase) GetCategoryIDByName(ctx context.Context, name string) (uint, error) {
 	c, err := uc.etlDB.GetCategoryByName(ctx, name)
 	if err != nil {
 		uc.l.ErrorContext(ctx, "get category by name from db", wsl.Err(err))
@@ -30,18 +30,18 @@ func (uc *QueryUseCase) GetCategoryID(ctx context.Context, name string) (uint, e
 	}
 }
 
-func (uc *QueryUseCase) GetCategoryByID(ctx context.Context, id uint) (*category.ContentCategory, error) {
+func (uc *QueryUseCase) GetCategoryByID(ctx context.Context, id uint) (*models.Category, error) {
 	cacheKey := fmt.Sprintf("category:id:%d", id)
 	// Пытаемся получить из кеша
 	if cached, exists := uc.c.Get(cacheKey); exists {
-		return cached.(*category.ContentCategory), nil
+		return cached.(*models.Category), nil
 	}
 	// Если нет в кеше, ищем в БД
 	c, err := uc.etlDB.GetCategoryByID(ctx, id)
 	if err != nil {
 		uc.l.ErrorContext(ctx, "get category by id from db", wsl.Err((err)))
 	}
-	cat, err := category.ParseContentCategory(c.Name)
+	cat, err := models.ParseContentCategory(c.Name)
 	if err != nil {
 		uc.l.ErrorContext(ctx, "get category by id from db", wsl.Err((err)))
 		return nil, err
@@ -52,12 +52,12 @@ func (uc *QueryUseCase) GetCategoryByID(ctx context.Context, id uint) (*category
 	return &cat, nil
 }
 
-func (uc *QueryUseCase) GetCategoryByName(ctx context.Context, name string) (*category.ContentCategory, error) {
+func (uc *QueryUseCase) GetCategoryByName(ctx context.Context, name string) (*models.Category, error) {
 	cacheKey := fmt.Sprintf("category:name:%s", name)
 
 	// Пытаемся получить из кеша
 	if cached, exists := uc.c.Get(cacheKey); exists {
-		return cached.(*category.ContentCategory), nil
+		return cached.(*models.Category), nil
 	}
 
 	// Если нет в кеше, ищем в БД
@@ -68,7 +68,7 @@ func (uc *QueryUseCase) GetCategoryByName(ctx context.Context, name string) (*ca
 	}
 
 	// Парсим категорию из строки
-	cat, err := category.ParseContentCategory(c.Name)
+	cat, err := models.ParseContentCategory(c.Name)
 	if err != nil {
 		uc.l.ErrorContext(ctx, "parse category by name", wsl.Err(err))
 		return nil, err
@@ -80,11 +80,11 @@ func (uc *QueryUseCase) GetCategoryByName(ctx context.Context, name string) (*ca
 	return &cat, nil
 }
 
-func (uc *QueryUseCase) GetCategories(ctx context.Context) ([]category.ContentCategory, error) {
+func (uc *QueryUseCase) GetCategories(ctx context.Context) ([]models.Category, error) {
 	cacheKey := "categories:all"
 	// Пытаемся получить из кеша
 	if cached, exists := uc.c.Get(cacheKey); exists {
-		return cached.([]category.ContentCategory), nil
+		return cached.([]models.Category), nil
 	}
 	// Получаем категории из БД
 	categories, err := uc.etlDB.GetCategories(ctx)
@@ -93,9 +93,9 @@ func (uc *QueryUseCase) GetCategories(ctx context.Context) ([]category.ContentCa
 		return nil, err
 	}
 	// Конвертируем категории из БД в ContentCategory
-	result := make([]category.ContentCategory, 0, len(categories))
+	result := make([]models.Category, 0, len(categories))
 	for _, cat := range categories {
-		contentCat, err := category.ParseContentCategory(cat.Name)
+		contentCat, err := models.ParseContentCategory(cat.Name)
 		if err != nil {
 			uc.l.ErrorContext(ctx, "parse category", wsl.Err(err))
 			continue // Пропускаем некорректные категории, но продолжаем обработку

@@ -10,14 +10,12 @@ type Session struct {
 	ID          uint      `gorm:"primaryKey;autoIncrement" json:"id"`
 	DatetimeUTC time.Time `gorm:"type:timestamp;not null;index" json:"datetime_utc"`
 	DeviceID    uint      `gorm:"type:integer;not null;index" json:"device_id"`
-	// TODO: корректный тип
-	Type string `gorm:"type:varchar(255);not null" json:"type"`
-	// TODO: логика получения  статусаы
-	Status   string `gorm:"type:text;not null" json:"status"`
-	IP       string `gorm:"type:varchar(45);not null" json:"ip"`
-	URLID    uint   `gorm:"type:integer;not null;index" json:"url_id"`
-	DomainID uint   `gorm:"type:integer;not null;index" json:"domain_id"`
-	SrcID    uint   `gorm:"type:integer;not null;index" json:"src_id"`
+	Type        string    `gorm:"type:varchar(255);not null" json:"type"`
+	Status      string    `gorm:"type:text;not null" json:"status"`
+	IP          string    `gorm:"type:varchar(45);not null" json:"ip"`
+	URLID       uint      `gorm:"type:integer;not null;index" json:"url_id"`
+	DomainID    uint      `gorm:"type:integer;not null;index" json:"domain_id"`
+	SrcID       uint      `gorm:"type:integer;not null;index" json:"src_id"`
 }
 
 // Device представляет таблицу device
@@ -36,13 +34,15 @@ type Source struct {
 
 // Domain представляет таблицу domain
 type Domain struct {
-	ID         uint   `gorm:"primaryKey" json:"id"`
-	IP         string `gorm:"type:varchar" json:"ip"`
-	Port       int    `gorm:"type:integer" json:"port"`
-	Country    string `gorm:"type:varchar" json:"country"`
-	Path       string `gorm:"type:varchar" json:"path"`
-	CategoryID int    `gorm:"type:integer;default:0" json:"category_id"`
-	ActionID   uint   `gorm:"column:action_id;default:0" json:"action_id"`
+	ID            uint      `gorm:"primaryKey" json:"id"`
+	IP            string    `gorm:"type:varchar" json:"ip"`
+	Port          int       `gorm:"type:integer" json:"port"`
+	Country       string    `gorm:"type:varchar" json:"country"`
+	Path          string    `gorm:"type:varchar" json:"path"`
+	CategoryID    int       `gorm:"type:integer;default:1" json:"category_id"`
+	CategorizedAt time.Time `gorm:"type:timestamp;" json:"categorized_at"`
+	ActionID      uint      `gorm:"column:action_id;default:0" json:"action_id"`
+	AnalysisCount uint      `gorm:"column:analysis_count;default:0" json:"analysis_count"`
 }
 
 // Action представляет таблицу action
@@ -53,14 +53,9 @@ type Action struct {
 	CreatedBy string    `gorm:"column:created_by" json:"created_by"`
 }
 
-// Category представляет таблицу category
-type Category struct {
-	ID   uint   `gorm:"primaryKey" json:"id"`
-	Name string `gorm:"type:varchar;unique" json:"name"`
-}
-
+// Пока приходит только одна категория контента, поэтому эти таблицы не нужны
 // Category представляет таблицу content_category
-type ContentCategory struct {
+/*type ContentCategory struct {
 	ID         uint    `gorm:"primaryKey" json:"id"`
 	CategoryID uint    `gorm:"type:integer" json:"category_id"`
 	Percent    float64 `gorm:"type:float" json:"percent"`
@@ -70,10 +65,10 @@ type ContentCategory struct {
 type CategoryDomain struct {
 	ContentCategoryID uint `gorm:"primaryKey;column:content_category_id" json:"content_category_id"`
 	DomainID          uint `gorm:"primaryKey;column:domain_id" json:"domain_id"`
-}
+}*/
 
-// DomainList представляет таблицу domain_lists белого списка доменов
-type DomainList struct {
+// DomainControlLists представляет таблицу domain_control_lists белого и черного списка доменов
+type DomainControlLists struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	DomainID  uint      `gorm:"type:integer;not null;index" json:"domain_id"`
 	CreatedAt time.Time `gorm:"type:timestamp;not null;" json:"created_at"`
@@ -85,7 +80,6 @@ type URL struct {
 	Path             string    `gorm:"type:varchar" json:"path"`
 	Proto            string    `gorm:"type:varchar(10);not null" json:"proto"`
 	DomainID         uint      `gorm:"type:integer;not null;index" json:"domain_id"`
-	CategoryID       uint      `gorm:"type:integer;default:0" json:"category_id"`
 	PutKafkaDateTime time.Time `gorm:"column:put_kafka_datetime" json:"put_kafka_datetime"`
-	UUID             uuid.UUID `gorm:"type:uuid;uniqueIndex" json:"uuid"`
+	RequestID        uuid.UUID `gorm:"type:uuid;uniqueIndex" json:"request_id"`
 }

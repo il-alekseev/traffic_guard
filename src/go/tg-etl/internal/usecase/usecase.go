@@ -7,7 +7,6 @@ import (
 	"sync"
 	"tg-etl/config"
 	"tg-etl/internal/models"
-	"tg-etl/internal/repo/category"
 	"tg-etl/internal/repo/kafka"
 )
 
@@ -36,7 +35,7 @@ func New(cfg *config.Config, q QueryUsecase, kc kafka.Client, l slog.Logger) (*U
 		return nil, fmt.Errorf("failed to get categories: %v", err)
 	}
 	if len(categories) == 0 {
-		err = q.CreateCategories(context.Background(), category.AllCategoryStrings())
+		err = q.CreatePredefinedCategories(context.Background(), models.PredefinedCategories)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create categories: %v", err)
 		}
