@@ -6,6 +6,7 @@ import (
 	"api-gateway/pkg/analytics/detections"
 	"api-gateway/pkg/analytics/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/go-openapi/runtime"
 	"net/http"
 	"strconv"
 )
@@ -20,14 +21,14 @@ import (
 // @Failure 500 {object} models.DtoErrorResponse "Ошибка при получении списка категорий"
 // @Router /v1/analytics/categories [get]
 func (s *Server) getCategories(c *gin.Context) {
-	// Создаем authInfoWriter для передачи токена
+	//Создаем authInfoWriter для передачи токена
 	//authInfo, err := utils.GetAuthInfo(c)
 	//if err != nil {
 	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
 	//	return
 	//}
 
-	resp, err := s.analyticsCL.Common.GetCategories(&common.GetCategoriesParams{}, nil)
+	resp, err := s.analyticsCL.Common.GetCategories(&common.GetCategoriesParams{}, func(operation *runtime.ClientOperation) {})
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -145,7 +146,7 @@ func (s *Server) getDashboardsRequests(c *gin.Context) {
 // @Param hostname query string false "Фильтр по имени хоста"
 // @Param type query string false "Фильтр по типу сессии" Enums(Заблокирован, Запрещен, Ожидает, Разрешен)
 // @Param count query int false "Количество возвращаемых категорий" default(5) minimum(1) maximum(50)
-// @Success 200 {array} models.CategoryCount
+// @Success 200 {array} []models.ModelsCategoryCount
 // @Failure 400 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
 // @Router /v1/analytics/dashboards/top-categories [get]
@@ -202,7 +203,7 @@ func (s *Server) getDashboardsTopCategories(c *gin.Context) {
 // @Param from query string false "Начало временного диапазона в формате парсера времени (по умолчанию now-10m)" default(now-10m)
 // @Param to query string false "Конец временного диапазона в формате парсера времени (по умолчанию now)" default(now)
 // @Param count query integer false "Количество точек данных для возврата (по умолчанию 20)" minimum(1) default(20)
-// @Success 200 {object} dto.TrafficStatResponse "Успешный ответ со статистикой трафика"
+// @Success 200 {object} models.DtoTrafficStatResponse "Успешный ответ со статистикой трафика"
 // @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров запроса"
 // @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера при получении статистики"
 // @Router /v1/analytics/dashboards/traffic [get]

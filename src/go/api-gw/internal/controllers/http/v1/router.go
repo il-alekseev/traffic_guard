@@ -96,13 +96,13 @@ func (s *Server) configureRouter() {
 		analytics.GET("/sessions", s.getSessions)
 
 		//not implemented
-		analytics.GET("/v1/dashboards/anomalies", s.getV1DashboardsAnomalies)
-		analytics.GET("/v1/dashboards/devices", s.getV1DashboardsDevices)
-		analytics.GET("/v1/dashboards/proh_activity", s.getV1DashboardsProhActivity)
-		analytics.GET("/v1/dashboards/resources", s.getV1DashboardsResources)
+		// analytics.GET("/v1/dashboards/anomalies", s.getV1DashboardsAnomalies)
+		// analytics.GET("/v1/dashboards/devices", s.getV1DashboardsDevices)
+		// analytics.GET("/v1/dashboards/proh_activity", s.getV1DashboardsProhActivity)
+		// analytics.GET("/v1/dashboards/resources", s.getV1DashboardsResources)
 
 		//utils
-		analytics.GET("/v1/healthcheck", s.getV1Healthcheck)
-		analytics.GET("/version", s.getVersion)
+		// analytics.GET("/v1/healthcheck", s.getV1Healthcheck)
+		// analytics.GET("/version", s.getVersion)
 	}
 }

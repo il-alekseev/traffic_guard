@@ -30,8 +30,8 @@ blog_serv:
 
 analytics:
   proto: "http"
-  host: "127.0.0.1"
-  port: "8005"
+  host: "192.168.130.112"
+  port: "7000"
 
 keycloak:
   pem_fiel_path: "./data/keycloak/key.RS256.pub.pem"

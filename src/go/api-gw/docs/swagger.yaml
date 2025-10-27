@@ -11,16 +11,16 @@ definitions:
         description: Метаданные пагинации
         properties:
           limit:
-            description: limit
+            description: Количество элементов на странице
             type: integer
           page:
-            description: page
+            description: Текущая страница (начинается с 1)
             type: integer
           pages:
-            description: pages
+            description: Общее количество страниц
             type: integer
           total:
-            description: total
+            description: Общее количество элементов
             type: integer
         type: object
     type: object
@@ -80,11 +80,47 @@ definitions:
         description: Протокол транспортного уровня для получения метрик
         type: string
     type: object
+  models.DtoDetectionStat:
+    properties:
+      accepted:
+        description: accepted
+        type: integer
+      denied:
+        description: denied
+        type: integer
+      detected:
+        description: detected
+        type: integer
+      unresolved:
+        description: unresolved
+        type: integer
+    type: object
   models.DtoErrorResponse:
     properties:
       error:
-        description: error
+        description: Описание ошибки
         type: string
+    type: object
+  models.DtoListResponse:
+    properties:
+      data:
+        description: Список однотипных данных
+      meta:
+        description: Метаданные пагинации
+        properties:
+          limit:
+            description: Количество элементов на странице
+            type: integer
+          page:
+            description: Текущая страница (начинается с 1)
+            type: integer
+          pages:
+            description: Общее количество страниц
+            type: integer
+          total:
+            description: Общее количество элементов
+            type: integer
+        type: object
     type: object
   models.DtoLogUser:
     properties:
@@ -102,16 +138,16 @@ definitions:
   models.DtoPaginationMeta:
     properties:
       limit:
-        description: limit
+        description: Количество элементов на странице
         type: integer
       page:
-        description: page
+        description: Текущая страница (начинается с 1)
         type: integer
       pages:
-        description: pages
+        description: Общее количество страниц
         type: integer
       total:
-        description: total
+        description: Общее количество элементов
         type: integer
     type: object
   models.DtoRolesListResponse:
@@ -131,6 +167,16 @@ definitions:
       message:
         description: message
         type: string
+    type: object
+  models.DtoTrafficStatResponse:
+    properties:
+      count:
+        description: count
+        type: integer
+      data:
+        allOf:
+        - $ref: '#/definitions/models.ModelsTrafficStat'
+        description: data
     type: object
   models.DtoUpdateContextRequest:
     properties:
@@ -296,6 +342,15 @@ definitions:
         description: SA, CA
         type: string
     type: object
+  models.ModelsCategoryCount:
+    properties:
+      category:
+        description: category
+        type: string
+      count:
+        description: count
+        type: integer
+    type: object
   models.ModelsContext:
     properties:
       admins_count:
@@ -396,6 +451,24 @@ definitions:
         description: refresh token
         type: string
     type: object
+  models.ModelsTrafficStat:
+    properties:
+      input:
+        description: input
+        items:
+          type: integer
+        type: array
+      output:
+        description: output
+        items:
+          type: integer
+        type: array
+      time:
+        description: time
+        items:
+          type: string
+        type: array
+    type: object
   models.ModelsUser:
     properties:
       created_at:
@@ -455,6 +528,536 @@ info:
   title: API Gw
   version: "1.0"
 paths:
+  /v1/analytics/categories:
+    get:
+      description: Получение списка всех категорий контента
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "500":
+          description: Ошибка при получении списка категорий
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение списка категорий контента
+      tags:
+      - dashboard
+  /v1/analytics/dashboards/requests:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает статистику запросов за указанный период с фильтрацией
+        по статусу, хосту и категории
+      parameters:
+      - default: now-10m
+        description: 'Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)'
+        in: query
+        name: from
+        type: string
+      - default: now
+        description: 'Конец временного диапазона (формат: now, 2024-01-01T00:00:00Z)'
+        in: query
+        name: to
+        type: string
+      - default: prohibited
+        description: Статус запросов (allowed, blocked, prohibited, waiting)
+        in: query
+        name: status
+        type: string
+      - description: Фильтр по имени хоста
+        in: query
+        name: hostname
+        type: string
+      - description: Фильтр по категории
+        enum:
+        - Агрессия
+        - расизм
+        - терроризм
+        - Ботнеты
+        - Веб-почта
+        - Досуг и развлечения
+        - Интернет-магазины
+        - Компьютерные игры
+        - Криптомайнинг
+        - Наркотики
+        - Порнография и секс
+        - Прокси и анонимайзеры
+        - Реестр запрещенных сайтов
+        - Сайты для взрослых
+        - Сайты
+        - распространяющие вирусы
+        - Социальные сети
+        - Торренты и Р2Р-сети
+        - Файловые архивы
+        - Фильмы и видео онлайн
+        - Фишинг
+        - Чаты и мессенджеры
+        - Дополнительно
+        - Криптоджекинг
+        - Реклама
+        - Онлайн-игры
+        - Игровые платформы
+        - Вредоносное ПО
+        - Азартные игры
+        - Депресивный контент и суицид
+        - Алкоголь
+        - табак
+        in: query
+        name: category
+        type: string
+      - default: 10
+        description: Количество интервалов
+        in: query
+        name: count
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Статистика запросов (массив чисел)
+          schema:
+            items:
+              type: integer
+            type: array
+        "400":
+          description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+      summary: Получить статистику запросов
+      tags:
+      - dashboards
+  /v1/analytics/dashboards/top-categories:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает наиболее часто встречаемые категории в сессиях с возможностью
+        фильтрации
+      parameters:
+      - default: now-24h
+        description: Начало временного диапазона
+        in: query
+        name: from
+        type: string
+      - default: now
+        description: Конец временного диапазона
+        in: query
+        name: to
+        type: string
+      - description: Фильтр по имени хоста
+        in: query
+        name: hostname
+        type: string
+      - description: Фильтр по типу сессии
+        enum:
+        - Заблокирован
+        - Запрещен
+        - Ожидает
+        - Разрешен
+        in: query
+        name: type
+        type: string
+      - default: 5
+        description: Количество возвращаемых категорий
+        in: query
+        maximum: 50
+        minimum: 1
+        name: count
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              items:
+                $ref: '#/definitions/models.ModelsCategoryCount'
+              type: array
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+      summary: Получить топ категорий сессий
+      tags:
+      - dashboards
+  /v1/analytics/dashboards/traffic:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает статистику трафика за указанный временной диапазон с
+        заданным количеством точек данных в Кб
+      parameters:
+      - default: now-10m
+        description: Начало временного диапазона в формате парсера времени (по умолчанию
+          now-10m)
+        in: query
+        name: from
+        type: string
+      - default: now
+        description: Конец временного диапазона в формате парсера времени (по умолчанию
+          now)
+        in: query
+        name: to
+        type: string
+      - default: 20
+        description: Количество точек данных для возврата (по умолчанию 20)
+        in: query
+        minimum: 1
+        name: count
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный ответ со статистикой трафика
+          schema:
+            $ref: '#/definitions/models.DtoTrafficStatResponse'
+        "400":
+          description: Неверный формат параметров запроса
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера при получении статистики
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+      summary: Получить статистику трафика
+      tags:
+      - dashboards
+  /v1/analytics/detections:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список наиболее частых детекций за указанный временной
+        период с пагинацией
+      parameters:
+      - default: now-10m
+        description: 'Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)'
+        in: query
+        name: from
+        type: string
+      - default: now
+        description: 'Конец временного диапазона (формат: now, 2023-12-01T11:00:00Z)'
+        in: query
+        name: to
+        type: string
+      - description: Фильтр по имени хоста
+        in: query
+        name: hostname
+        type: string
+      - description: Фильтр по категории
+        enum:
+        - Агрессия
+        - расизм
+        - терроризм
+        - Ботнеты
+        - Веб-почта
+        - Досуг и развлечения
+        - Интернет-магазины
+        - Компьютерные игры
+        - Криптомайнинг
+        - Наркотики
+        - Порнография и секс
+        - Прокси и анонимайзеры
+        - Реестр запрещенных сайтов
+        - Сайты для взрослых
+        - Сайты
+        - распространяющие вирусы
+        - Социальные сети
+        - Торренты и Р2Р-сети
+        - Файловые архивы
+        - Фильмы и видео онлайн
+        - Фишинг
+        - Чаты и мессенджеры
+        - Дополнительно
+        - Криптоджекинг
+        - Реклама
+        - Онлайн-игры
+        - Игровые платформы
+        - Вредоносное ПО
+        - Азартные игры
+        - Депресивный контент и суицид
+        - Алкоголь
+        - табак
+        in: query
+        name: category
+        type: string
+      - default: 1
+        description: Номер страницы
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 10
+        description: Количество записей на странице
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный ответ
+          schema:
+            $ref: '#/definitions/models.DtoListResponse'
+        "400":
+          description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+      summary: Получить список топ выявлений
+      tags:
+      - detections
+  /v1/analytics/detections/stat:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает статистику детекций по категориям (обнаружено, принято,
+        отклонено, неразрешено) за указанный период
+      parameters:
+      - default: now-10m
+        description: 'Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)'
+        in: query
+        name: from
+        type: string
+      - default: now
+        description: 'Конец временного диапазона (формат: now, 2024-01-01T00:00:00Z)'
+        in: query
+        name: to
+        type: string
+      - description: Фильтр по имени хоста
+        in: query
+        name: hostname
+        type: string
+      - description: Фильтр по категории
+        enum:
+        - Агрессия
+        - расизм
+        - терроризм
+        - Ботнеты
+        - Веб-почта
+        - Досуг и развлечения
+        - Интернет-магазины
+        - Компьютерные игры
+        - Криптомайнинг
+        - Наркотики
+        - Порнография и секс
+        - Прокси и анонимайзеры
+        - Реестр запрещенных сайтов
+        - Сайты для взрослых
+        - Сайты
+        - распространяющие вирусы
+        - Социальные сети
+        - Торренты и Р2Р-сети
+        - Файловые архивы
+        - Фильмы и видео онлайн
+        - Фишинг
+        - Чаты и мессенджеры
+        - Дополнительно
+        - Криптоджекинг
+        - Реклама
+        - Онлайн-игры
+        - Игровые платформы
+        - Вредоносное ПО
+        - Азартные игры
+        - Депресивный контент и суицид
+        - Алкоголь
+        - табак
+        in: query
+        name: category
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Статистика детекций
+          schema:
+            $ref: '#/definitions/models.DtoDetectionStat'
+        "400":
+          description: Неверный формат временного диапазона
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "500":
+          description: Ошибка при получении статистики выявлений
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+      summary: Получение статистики по детекциям
+      tags:
+      - detections
+  /v1/analytics/devices:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список всех уникальных имен устройств (хостов) из системы
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список имен устройств
+          schema:
+            items:
+              type: string
+            type: array
+        "500":
+          description: Ошибка при получении имен устройств
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+      summary: Получить список имен устройств
+      tags:
+      - common
+  /v1/analytics/sessions:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список сессий с возможностью фильтрации, поиска, сортировки
+        и пагинации
+      parameters:
+      - default: now-10m
+        description: 'Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z).
+          По умолчанию: now-10m'
+        in: query
+        name: from
+        type: string
+      - default: now
+        description: 'Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z).
+          По умолчанию: now'
+        in: query
+        name: to
+        type: string
+      - description: Фильтр по имени хоста
+        in: query
+        name: hostname
+        type: string
+      - description: Фильтр по категории
+        enum:
+        - Агрессия
+        - расизм
+        - терроризм
+        - Ботнеты
+        - Веб-почта
+        - Досуг и развлечения
+        - Интернет-магазины
+        - Компьютерные игры
+        - Криптомайнинг
+        - Наркотики
+        - Порнография и секс
+        - Прокси и анонимайзеры
+        - Реестр запрещенных сайтов
+        - Сайты для взрослых
+        - Сайты
+        - распространяющие вирусы
+        - Социальные сети
+        - Торренты и Р2Р-сети
+        - Файловые архивы
+        - Фильмы и видео онлайн
+        - Фишинг
+        - Чаты и мессенджеры
+        - Дополнительно
+        - Криптоджекинг
+        - Реклама
+        - Онлайн-игры
+        - Игровые платформы
+        - Вредоносное ПО
+        - Азартные игры
+        - Депресивный контент и суицид
+        - Алкоголь
+        - табак
+        in: query
+        name: category
+        type: string
+      - description: Фильтр по типу сессии
+        enum:
+        - Заблокирован
+        - Запрещен
+        - Ожидает
+        - Разрешен
+        in: query
+        name: type
+        type: string
+      - description: Поиск по частичному совпадению
+        in: query
+        name: search
+        type: string
+      - default: 1
+        description: Номер страницы
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 10
+        description: Количество записей на странице
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - default: id
+        description: Поле для сортировки
+        enum:
+        - id
+        - datetime_utc
+        - type
+        - status
+        - url
+        - proto
+        - host_name
+        - src_ip
+        - src_port
+        - src_country
+        - username
+        - dst_ip
+        - dst_port
+        - dst_country
+        - category
+        in: query
+        name: order_by
+        type: string
+      - default: desc
+        description: Направление сортировки (asc/desc)
+        enum:
+        - asc
+        - desc
+        in: query
+        name: order_dir
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный ответ
+          schema:
+            $ref: '#/definitions/models.DtoListResponse'
+        "400":
+          description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+      summary: Получить список сессий
+      tags:
+      - sessions
   /v1/auth/refresh:
     post:
       description: Для успешного обновления токена пользователю необходимо передать
@@ -566,159 +1169,6 @@ paths:
       summary: Выход пользователя из системы
       tags:
       - auth
-  /v1/clixon/controller/config:
-    get:
-      consumes:
-      - application/json
-      description: Возвращает xml конфигурацию, использует имя пользователя из jwt
-        токена
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "401":
-          description: Ошибки авторизации
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "500":
-          description: internal error
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Получение текущей конфигурации (running) Clixon-controller
-      tags:
-      - clixon
-  /v1/clixon/controller/devices:
-    get:
-      description: |-
-        Возвращает статусы подключенных устройств, использует имя пользователя из jwt токена
-        401 - "Invalid token format. Expected 'Bearer <token>'", "authorization header is required", "error: Authorization header is required", "error: Invalid authorization header format" ,"error: Invalid token" ,"error: Invalid token claims" ,"error: sub claim is required (user uuid)" ,"error: preferred_username claim is required (username)" ,"error: Invalid token claims" ,"Ошибки авторизации"
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "401":
-          description: Ошибки авторизации
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "500":
-          description: internal error
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Получение статуса подключенных устройств к Clixon-controller
-      tags:
-      - clixon
-  /v1/clixon/device/config:
-    get:
-      description: '401 - "Invalid token format. Expected ''Bearer <token>''", "authorization
-        header is required", "error: Authorization header is required", "error: Invalid
-        authorization header format" ,"error: Invalid token" ,"error: Invalid token
-        claims" ,"error: sub claim is required (user uuid)" ,"error: preferred_username
-        claim is required (username)" ,"error: Invalid token claims" ,"Ошибки авторизации"'
-      parameters:
-      - description: имя устройства
-        in: query
-        name: device
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "401":
-          description: Ошибки авторизации
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "500":
-          description: internal error
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Получение конфигурации подключенного устройства
-      tags:
-      - clixon
-  /v1/clixon/rawXml:
-    post:
-      description: |-
-        В сообщении не должно быть заголовка rpc и сепаратора "]]>]]"
-        401 - "Invalid token format. Expected 'Bearer <token>'", "authorization header is required", "error: Authorization header is required", "error: Invalid authorization header format" ,"error: Invalid token" ,"error: Invalid token claims" ,"error: sub claim is required (user uuid)" ,"error: preferred_username claim is required (username)" ,"error: Invalid token claims" ,"Ошибки авторизации"
-      parameters:
-      - description: xml сообщение
-        in: body
-        name: input
-        required: true
-        schema:
-          type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "400":
-          description: Ошибка в теле запроса
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "401":
-          description: Ошибки авторизации
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "500":
-          description: internal error
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Отправка произвольного xml на clixon-controller
-      tags:
-      - clixon
-  /v1/clixon/reconnect/device:
-    get:
-      description: |-
-        Переподключает устройства, использует имя пользователя из jwt токена
-        401 - "Invalid token format. Expected 'Bearer <token>'", "authorization header is required", "error: Authorization header is required", "error: Invalid authorization header format" ,"error: Invalid token" ,"error: Invalid token claims" ,"error: sub claim is required (user uuid)" ,"error: preferred_username claim is required (username)" ,"error: Invalid token claims" ,"Ошибки авторизации"
-      parameters:
-      - description: имя устройства
-        in: query
-        name: device
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            type: string
-        "401":
-          description: Ошибки авторизации
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "500":
-          description: internal error
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Переподключение устройств к Clixon-controller
-      tags:
-      - clixon
   /v1/contexts:
     get:
       consumes:
