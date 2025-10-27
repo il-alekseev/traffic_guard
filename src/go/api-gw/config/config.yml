@@ -26,7 +26,12 @@ ctxcontrol:
 blog_serv:
   proto: "http"
   host: "127.0.0.1"
-  port: "8004"  
+  port: "8004"
+
+analytics:
+  proto: "http"
+  host: "127.0.0.1"
+  port: "8005"
 
 keycloak:
   pem_fiel_path: "./data/keycloak/key.RS256.pub.pem"
