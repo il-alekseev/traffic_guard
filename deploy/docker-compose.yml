@@ -128,9 +128,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 6
-      start_period: 5s
+      start_period: 15s
     depends_on:
       configdb:
+        condition: service_healthy
+      keycloak:
         condition: service_healthy
     networks:
       - continent
@@ -176,7 +178,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 6
-      start_period: 5s
+      start_period: 15s
     command: start --https-certificate-file=/certs/fullchain.crt --https-certificate-key-file=/certs/keycloak.key --import-realm --verbose
     depends_on:
       configdb:
@@ -236,23 +238,39 @@ services:
       context: ../src/go/blog
       dockerfile: "build/Dockerfile"
     image: ${BLOG_APP_NAME}:1.0.1
-    restart: always
     ports:
       - 8004:8004
-    env_file: .env
+    env_file: ./tg-blog/.env
+    restart: always
+    depends_on:
+      configdb:
+        condition: service_healthy
     networks:
       - continent
   
   tg-usercontrol:
     container_name: tg-usercontrol
     build:
-      context: ../src/go/usrctrl
+      context: ../src/go/userctrl
       dockerfile: "build/Dockerfile"
     image: ${USER_CTRL_IMAGE_NAME}
     ports:
       - 8002:8002
     restart: always
-    env_file: .env
+    env_file: ./tg-usercontrol/.env
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:${USER_CTRL_HTTP_PORT}/v1/healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+    depends_on:
+      configdb:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      grafana:
+        condition: service_healthy
     networks:
       - continent
 
@@ -263,9 +281,12 @@ services:
       dockerfile: "build/Dockerfile"
     image: ${API_GW_IMAGE_NAME}
     ports:
-      - '${API_GW_HTTP_PORT}:${API_GW_HTTP_PORT}'
+      - ${API_GW_HTTP_PORT}:${API_GW_HTTP_PORT}
     restart: always
-    env_file: .env
+    env_file: ./api-gw/.env
+    depends_on:
+      tg-usercontrol:
+        condition: service_healthy
     networks:
       - continent
 
@@ -276,9 +297,12 @@ services:
       dockerfile: "build/Dockerfile"
     image: tg-dbd
     ports:
-      - '${DBD_HTTP_PORT}:${DBD_HTTP_PORT}'
+      - ${DBD_HTTP_PORT}:${DBD_HTTP_PORT}
     restart: always
-    env_file: .env
+    env_file: ./tg-dbd/.env
+    depends_on:
+      configdb:
+        condition: service_healthy
     networks:
       - continent
   
@@ -291,7 +315,12 @@ services:
     ports:
       - '${ETL_HTTP_PORT}:${ETL_HTTP_PORT}'
     restart: always
-    env_file: .env
+    env_file: ./tg-etl/.env
+    depends_on:
+      configdb:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     networks:
       - continent
 
@@ -301,20 +330,103 @@ services:
       dockerfile: deploy/Dockerfile
     container_name: webscraper
     extra_hosts:
-      - kafka:192.168.130.112
+      - kafka:192.168.130.114
       - webscraper:127.0.0.1
-    environment:
-      - WEBSCRAPER_KAFKA_BROKERS=kafka:9092
-      - SCRAPER_CONFIG=/app/config/config.yaml
+    env_file: ./webscraper/.env
     volumes:
       - ./webscraper/config:/app/config:ro
       - ./webscraper/docs:/app/docs:ro
       - ./webscraper/data:/app/data:ro
     ports:
       - "8010:8010"
-    restart: unless-stopped
+    restart: always
+    depends_on:
+      kafka:
+        condition: service_healthy
     networks:
       - continent
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    volumes:
+      - ./zookeeper/data:/var/lib/zookeeper/data
+      - ./zookeeper/log:/var/lib/zookeeper/log
+    env_file: ./zookeeper/.env
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo stat | nc localhost 2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    networks:
+      - continent
+
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    volumes:
+      - ./kafka/data:/var/lib/kafka/data
+      - ./kafka/init_topics.sh:/tmp/init-topics.sh
+    env_file: ./kafka/.env 
+    healthcheck:
+      test: ["CMD", "bash", "-c", "kafka-topics --bootstrap-server localhost:9092 --list && /tmp/init-topics.sh"]
+      interval: 20s
+      timeout: 15s
+      retries: 5
+      start_period: 40s
+    restart: always
+    depends_on:
+      zookeeper:
+        condition: service_healthy   
+    networks:
+      - continent
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    # depends_on:
+    #   kafka:
+    #     condition: service_healthy
+    ports:
+      - "8081:8080"
+    env_file: ./kafka_ui/.env
+    volumes:
+      - ./kafka_ui/data:/etc/kafka-ui
+    networks:
+      - continent
+  
+  neuro:
+    container_name: neuro
+    build:
+      context: ../src/python/neuro
+      dockerfile: deploy/Dockerfile
+    environment:
+      - DATABASE_NAME=${NEURO_DATABASE_NAME}
+      - DATABASE_PASSWORD=${NEURO_DATABASE_PASSWORD}
+      - DATABASE_HOST=${NEURO_DATABASE_HOST}
+      - DATABASE_PORT=${NEURO_DATABASE_PORT}
+      - DATABASE_USER=${NEURO_DATABASE_USER}
+      - KAFKA_CONSUMER_GROUP_ID=${NEURO_KAFKA_CONSUMER_GROUP_ID}
+      - KAFKA_PRODUCER_GROUP_ID=${NEURO_KAFKA_PRODUCER_GROUP_ID}
+      - KAFKA_TIMEOUT=${NEURO_KAFKA_TIMEOUT}
+      - KAFKA_URL=${NEURO_KAFKA_URL}
+      - MODEL_NAME=${NEURO_MODEL_NAME}
+      - LLM_URL=${NEURO_LLM_URL}
+      - PRODUCER_TOPIC=${NEURO_PRODUCER_TOPIC}
+      - CONSUMER_TOPIC=${NEURO_CONSUMER_TOPIC}
+    depends_on:
+      kafka:
+        condition: service_healthy  
+      configdb:
+        condition: service_healthy
+    networks:
+      - continent 
 
 networks:
   continent:

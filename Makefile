@@ -42,6 +42,22 @@ deploy:
 		mkdir ./deploy/prometheus/data; \
 		chmod 777 ./deploy/prometheus/data; \
 	fi
+	if [ ! -d "./deploy/kafka/data" ]; then \
+		mkdir ./deploy/kafka/data; \
+		chmod 777 ./deploy/kafka/data; \
+	fi
+	if [ ! -d "./deploy/kafka_ui/data" ]; then \
+		mkdir ./deploy/kafka_ui/data; \
+		chmod 777 ./deploy/kafka_ui/data; \
+	fi
+	if [ ! -d "./deploy/zookeeper/data" ]; then \
+		mkdir ./deploy/zookeeper/data; \
+		chmod 777 ./deploy/zookeeper/data; \
+	fi
+	if [ ! -d "./deploy/zookeeper/log" ]; then \
+		mkdir ./deploy/zookeeper/log; \
+		chmod 777 ./deploy/zookeeper/log; \
+	fi
 	@echo "Starting Docker containers..."
 	docker compose up -d 
 
@@ -70,6 +86,18 @@ clean:
 	fi
 	if [ -d "./deploy/prometheus/data" ]; then \
 		sudo rm -rf ./deploy/prometheus/data; \
+	fi
+	if [ -d "./deploy/kafka/data" ]; then \
+		sudo rm -rf ./deploy/kafka/data; \
+	fi
+	if [ -d "./deploy/kafka_ui/data" ]; then \
+		sudo rm -rf ./deploy/kafka_ui/data; \
+	fi
+	if [ -d "./deploy/zookeeper/data" ]; then \
+		sudo rm -rf ./deploy/zookeeper/data; \
+	fi
+	if [ -d "./deploy/zookeeper/log" ]; then \
+		sudo rm -rf ./deploy/zookeeper/log; \
 	fi
 
 
