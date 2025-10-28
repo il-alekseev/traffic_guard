@@ -19,7 +19,7 @@ import (
 // @Tags utils
 // @Produce json
 // @Success 200 {object} dto.SuccessResponse
-// @Router /version [get]
+// @Router /api/v1/version [get]
 func (s *Server) Version(c *gin.Context) {
 	response := dto.SuccessResponse{
 		Message: s.devVersion,
@@ -46,7 +46,7 @@ func (s *Server) Version(c *gin.Context) {
 // @Success 200 {object} dto.ListResponse "Успешный ответ"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /sessions [get]
+// @Router /api/v1/sessions [get]
 func (s *Server) GetSessions(c *gin.Context) {
 	// Парсим временные метки
 	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
@@ -134,7 +134,7 @@ func (s *Server) GetSessions(c *gin.Context) {
 // @Success 200 {array} models.CategoryCount
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
-// @Router /dashboards/top-categories [get]
+// @Router /api/v1/dashboards/top-categories [get]
 func (s *Server) GetTopCategories(c *gin.Context) {
 	// Парсим временные метки
 	from := c.DefaultQuery("from", "now-10m")
@@ -190,7 +190,7 @@ func (s *Server) GetTopCategories(c *gin.Context) {
 // @Success 200 {object} dto.ListResponse "Успешный ответ"
 // @Failure 400 {object} object "Неверный формат параметров"
 // @Failure 500 {object} object "Внутренняя ошибка сервера"
-// @Router /detections [get]
+// @Router /api/v1/detections [get]
 func (s *Server) GetTopDetections(c *gin.Context) {
 	// Парсим временные метки
 	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
@@ -261,7 +261,7 @@ func (s *Server) GetTopDetections(c *gin.Context) {
 // @Success 200 {object} dto.DetectionStat "Статистика детекций"
 // @Failure 400 {object} map[string]string "Неверный формат временного диапазона"
 // @Failure 500 {object} map[string]string "Ошибка при получении статистики выявлений"
-// @Router /detections/stat [get]
+// @Router /api/v1/detections/stat [get]
 func (s *Server) GetDetectionStat(c *gin.Context) {
 	// Парсим временные метки
 	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
@@ -305,7 +305,7 @@ func (s *Server) GetDetectionStat(c *gin.Context) {
 // @Success 200 {array} integer "Статистика запросов (массив чисел)"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /dashboards/requests [get]
+// @Router /api/v1/dashboards/requests [get]
 func (s *Server) GetRequestsStat(c *gin.Context) {
 	//Парсим временные метки
 	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
@@ -364,7 +364,7 @@ func (s *Server) GetRequestsStat(c *gin.Context) {
 // @Produce json
 // @Success 200 {array} string "Список имен устройств"
 // @Failure 500 {object} map[string]string "Ошибка при получении имен устройств"
-// @Router /devices [get]
+// @Router /api/v1/devices [get]
 func (s *Server) GetDevices(c *gin.Context) {
 	// Получем данные
 	devices, err := s.u.GetDevices(c)
@@ -384,7 +384,7 @@ func (s *Server) GetDevices(c *gin.Context) {
 // @Produce json
 // @Success 200 {array} string "Список категорий контента"
 // @Failure 500 {object} map[string]string "Ошибка при получении списка категорий"
-// @Router /categories [get]
+// @Router /api/v1/categories [get]
 func (s *Server) GetContentCategories(c *gin.Context) {
 	// Получем данные
 	devices, err := s.u.GetContentCategories(c)
@@ -409,7 +409,7 @@ func (s *Server) GetContentCategories(c *gin.Context) {
 // @Success 200 {object} dto.TrafficStatResponse "Успешный ответ со статистикой трафика"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров запроса"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера при получении статистики"
-// @Router /dashboards/traffic [get]
+// @Router /api/v1/dashboards/traffic [get]
 func (s *Server) GetTrafficStat(c *gin.Context) {
 	// Парсим временные метки
 	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
@@ -458,7 +458,7 @@ func (s *Server) GetTrafficStat(c *gin.Context) {
 // @Success 200 {object} map[string]int "JSON объект, где ключ - URL ресурса, значение - количество обращений"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /v1/dashboards/resources [get]
+// @Router /api/v1/dashboards/resources [get]
 func (s *Server) GetResources(c *gin.Context) {
 	start, err := strconv.ParseInt(c.Query("start"), 10, 64)
 	if err != nil {
@@ -512,7 +512,7 @@ func (s *Server) GetResources(c *gin.Context) {
 // @Success 200 {object} models.DeviceStat "Статистика по устройствам"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /v1/dashboards/devices [get]
+// @Router /api/v1/dashboards/devices [get]
 func (s *Server) GetDevicesStat(c *gin.Context) {
 	start, err := strconv.ParseInt(c.Query("start"), 10, 64)
 	if err != nil {
@@ -555,7 +555,7 @@ func (s *Server) GetDevicesStat(c *gin.Context) {
 // @Success 200 {object} map[int64]int "График запрещенной активности"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /v1/dashboards/proh_activity [get]
+// @Router /api/v1/dashboards/proh_activity [get]
 func (s *Server) GetProhActivity(c *gin.Context) {
 	start, err := strconv.ParseInt(c.Query("start"), 10, 64)
 	if err != nil {
@@ -590,7 +590,7 @@ func (s *Server) GetProhActivity(c *gin.Context) {
 // @Success 200 {array} models.Anomaly "Список обнаруженных аномалий"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /v1/dashboards/anomalies [get]
+// @Router /api/v1/dashboards/anomalies [get]
 func (s *Server) GetAnomalies(c *gin.Context) {
 	start, err := strconv.ParseInt(c.Query("start"), 10, 64)
 	if err != nil {

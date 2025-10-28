@@ -12,7 +12,7 @@ import (
 // @title           Analytics API
 // @version         1.0
 // @description     API для аналитики
-// @BasePath        /api/v1
+// @BasePath        /
 // @schemes         http
 type Server struct {
 	devVersion string
