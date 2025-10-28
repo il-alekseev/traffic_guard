@@ -1,4 +1,4 @@
-basePath: /api/v1
+basePath: /
 definitions:
   dto.DetectionStat:
     properties:
@@ -119,7 +119,7 @@ info:
   title: Analytics API
   version: "1.0"
 paths:
-  /categories:
+  /api/v1/categories:
     get:
       consumes:
       - application/json
@@ -142,7 +142,105 @@ paths:
       summary: Получить список категорий контента
       tags:
       - common
-  /dashboards/requests:
+  /api/v1/dashboards/anomalies:
+    get:
+      description: Получение списка обнаруженных аномалий в сетевом трафике за указанный
+        период
+      parameters:
+      - description: Начало периода в timestamp
+        in: query
+        name: start
+        required: true
+        type: integer
+      - description: Конец периода в timestamp
+        in: query
+        name: end
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список обнаруженных аномалий
+          schema:
+            items:
+              $ref: '#/definitions/models.Anomaly'
+            type: array
+        "400":
+          description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Получение информации об аномалиях
+      tags:
+      - not implemented
+  /api/v1/dashboards/devices:
+    get:
+      description: Получение агрегированной статистики по сетевым узлам за указанный
+        период
+      parameters:
+      - description: Начало периода в timestamp
+        in: query
+        name: start
+        required: true
+        type: integer
+      - description: Конец периода в timestamp
+        in: query
+        name: end
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Статистика по устройствам
+          schema:
+            $ref: '#/definitions/models.DeviceStat'
+        "400":
+          description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Получение статистики по устройствам
+      tags:
+      - not implemented
+  /api/v1/dashboards/proh_activity:
+    get:
+      description: Получение расписания запрещенной активности начиная с указанной
+        даты
+      parameters:
+      - description: Дата начала в timestamp
+        in: query
+        name: start
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: График запрещенной активности
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+        "400":
+          description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Получение графика запрещенной активности
+      tags:
+      - not implemented
+  /api/v1/dashboards/requests:
     get:
       consumes:
       - application/json
@@ -230,7 +328,47 @@ paths:
       summary: Получить статистику запросов
       tags:
       - dashboards
-  /dashboards/top-categories:
+  /api/v1/dashboards/resources:
+    get:
+      description: Получение топ ресурсов с указанием количества обращений за указанный
+        период
+      parameters:
+      - description: Начало периода в timestamp
+        in: query
+        name: start
+        required: true
+        type: integer
+      - description: Конец периода в timestamp
+        in: query
+        name: end
+        required: true
+        type: integer
+      - description: Количество возвращаемых ресурсов (по умолчанию 5)
+        in: query
+        name: count
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: JSON объект, где ключ - URL ресурса, значение - количество
+            обращений
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+        "400":
+          description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Получение списка популярных ресурсов
+      tags:
+      - not implemented
+  /api/v1/dashboards/top-categories:
     get:
       consumes:
       - application/json
@@ -287,7 +425,7 @@ paths:
       summary: Получить топ категорий сессий
       tags:
       - dashboards
-  /dashboards/traffic:
+  /api/v1/dashboards/traffic:
     get:
       consumes:
       - application/json
@@ -330,7 +468,7 @@ paths:
       summary: Получить статистику трафика
       tags:
       - dashboards
-  /detections:
+  /api/v1/detections:
     get:
       consumes:
       - application/json
@@ -419,7 +557,7 @@ paths:
       summary: Получить список топ выявлений
       tags:
       - detections
-  /detections/stat:
+  /api/v1/detections/stat:
     get:
       consumes:
       - application/json
@@ -499,7 +637,7 @@ paths:
       summary: Получение статистики по детекциям
       tags:
       - detections
-  /devices:
+  /api/v1/devices:
     get:
       consumes:
       - application/json
@@ -522,7 +660,7 @@ paths:
       summary: Получить список имен устройств
       tags:
       - common
-  /sessions:
+  /api/v1/sessions:
     get:
       consumes:
       - application/json
@@ -655,144 +793,19 @@ paths:
       summary: Получить список сессий
       tags:
       - sessions
-  /v1/dashboards/anomalies:
+  /api/v1/version:
     get:
-      description: Получение списка обнаруженных аномалий в сетевом трафике за указанный
-        период
-      parameters:
-      - description: Начало периода в timestamp
-        in: query
-        name: start
-        required: true
-        type: integer
-      - description: Конец периода в timestamp
-        in: query
-        name: end
-        required: true
-        type: integer
+      description: Возвращает информацию о версии
       produces:
       - application/json
       responses:
         "200":
-          description: Список обнаруженных аномалий
+          description: OK
           schema:
-            items:
-              $ref: '#/definitions/models.Anomaly'
-            type: array
-        "400":
-          description: Неверный формат параметров
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "500":
-          description: Внутренняя ошибка сервера
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-      summary: Получение информации об аномалиях
+            $ref: '#/definitions/dto.SuccessResponse'
+      summary: Получение версии сервиса
       tags:
-      - not implemented
-  /v1/dashboards/devices:
-    get:
-      description: Получение агрегированной статистики по сетевым узлам за указанный
-        период
-      parameters:
-      - description: Начало периода в timestamp
-        in: query
-        name: start
-        required: true
-        type: integer
-      - description: Конец периода в timestamp
-        in: query
-        name: end
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Статистика по устройствам
-          schema:
-            $ref: '#/definitions/models.DeviceStat'
-        "400":
-          description: Неверный формат параметров
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "500":
-          description: Внутренняя ошибка сервера
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-      summary: Получение статистики по устройствам
-      tags:
-      - not implemented
-  /v1/dashboards/proh_activity:
-    get:
-      description: Получение расписания запрещенной активности начиная с указанной
-        даты
-      parameters:
-      - description: Дата начала в timestamp
-        in: query
-        name: start
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: График запрещенной активности
-          schema:
-            additionalProperties:
-              type: integer
-            type: object
-        "400":
-          description: Неверный формат параметров
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "500":
-          description: Внутренняя ошибка сервера
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-      summary: Получение графика запрещенной активности
-      tags:
-      - not implemented
-  /v1/dashboards/resources:
-    get:
-      description: Получение топ ресурсов с указанием количества обращений за указанный
-        период
-      parameters:
-      - description: Начало периода в timestamp
-        in: query
-        name: start
-        required: true
-        type: integer
-      - description: Конец периода в timestamp
-        in: query
-        name: end
-        required: true
-        type: integer
-      - description: Количество возвращаемых ресурсов (по умолчанию 5)
-        in: query
-        name: count
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: JSON объект, где ключ - URL ресурса, значение - количество
-            обращений
-          schema:
-            additionalProperties:
-              type: integer
-            type: object
-        "400":
-          description: Неверный формат параметров
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-        "500":
-          description: Внутренняя ошибка сервера
-          schema:
-            $ref: '#/definitions/dto.ErrorResponse'
-      summary: Получение списка популярных ресурсов
-      tags:
-      - not implemented
+      - utils
   /v1/healthcheck:
     get:
       description: Проверка, что сервер работает
@@ -804,19 +817,6 @@ paths:
           schema:
             $ref: '#/definitions/dto.SuccessResponse'
       summary: Проверка работоспособности сервера
-      tags:
-      - utils
-  /version:
-    get:
-      description: Возвращает информацию о версии
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.SuccessResponse'
-      summary: Получение версии сервиса
       tags:
       - utils
 schemes:
