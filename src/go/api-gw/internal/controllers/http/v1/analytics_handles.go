@@ -4,6 +4,7 @@ import (
 	"api-gateway/pkg/analytics/common"
 	"api-gateway/pkg/analytics/dashboards"
 	"api-gateway/pkg/analytics/detections"
+	"api-gateway/pkg/analytics/not_implemented"
 	"api-gateway/pkg/analytics/sessions"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -73,69 +74,6 @@ func (s *Server) getDevices(c *gin.Context) {
 	c.JSON(resp.Code(), resp.GetPayload())
 }
 
-// getDashboardsRequests -
-// @Summary Получить статистику запросов
-// @Description Возвращает статистику запросов за указанный период с фильтрацией по статусу, хосту и категории
-// @Tags dashboards
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param from query string false "Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)" default(now-10m)
-// @Param to query string false "Конец временного диапазона (формат: now, 2024-01-01T00:00:00Z)" default(now)
-// @Param status query string false "Статус запросов (allowed, blocked, prohibited, waiting)" default(prohibited)
-// @Param hostname query string false "Фильтр по имени хоста"
-// @Param category query string false "Фильтр по категории" Enums(Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет-магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты, распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Дополнительно, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депресивный контент и суицид, Алкоголь, табак)
-// @Param count query integer false "Количество интервалов" default(10)
-// @Success 200 {object} models.DtoDataPointsResponse "Статистика запросов (массив чисел)"
-// @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров"
-// @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера"
-// @Router /v1/analytics/dashboards/requests [get]
-func (s *Server) getDashboardsRequests(c *gin.Context) {
-	// Создаем authInfoWriter для передачи токена
-	//authInfo, err := utils.GetAuthInfo(c)
-	//if err != nil {
-	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-	//	return
-	//}
-
-	//Парсим входные данные
-	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
-	to := c.DefaultQuery("to", "now")
-	status := c.Query("status")
-	hostname := c.Query("hostname")
-	category := c.Query("category")
-	count, err := strconv.ParseInt(c.Query("count"), 10, 64)
-	if err != nil {
-		if conflictErr, ok := err.(ResponseErrorInterface); ok {
-			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
-			return
-		}
-
-		s.ErrorResponse(c, http.StatusBadRequest, "Parse int", err)
-		return
-	}
-
-	resp, err := s.analyticsCL.Dashboards.GetAPIV1DashboardsRequests(&dashboards.GetAPIV1DashboardsRequestsParams{
-		From:     &from,
-		To:       &to,
-		Status:   &status,
-		Hostname: &hostname,
-		Category: &category,
-		Count:    &count,
-	})
-	if err != nil {
-		if conflictErr, ok := err.(ResponseErrorInterface); ok {
-			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
-			return
-		}
-
-		s.ErrorResponse(c, http.StatusBadRequest, "Dashboards.GetAPIV1DashboardsRequests", err)
-		return
-	}
-
-	c.JSON(resp.Code(), resp.GetPayload())
-}
-
 // getDashboardsTopCategories -
 // @Summary Получить топ категорий сессий
 // @Description Возвращает наиболее часто встречаемые категории в сессиях с возможностью фильтрации
@@ -148,7 +86,7 @@ func (s *Server) getDashboardsRequests(c *gin.Context) {
 // @Param hostname query string false "Фильтр по имени хоста"
 // @Param type query string false "Фильтр по типу сессии" Enums(Заблокирован, Запрещен, Ожидает, Разрешен)
 // @Param count query int false "Количество возвращаемых категорий" default(5) minimum(1) maximum(50)
-// @Success 200 {array} []models.ModelsCategoryCount
+// @Success 200 {array} models.ModelsCategoryCount
 // @Failure 400 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
 // @Router /v1/analytics/dashboards/top-categories [get]
@@ -196,7 +134,7 @@ func (s *Server) getDashboardsTopCategories(c *gin.Context) {
 	c.JSON(resp.Code(), resp.GetPayload())
 }
 
-// getDashboardsTraffic возвращает статистику трафика за указанный временной диапазон
+// getDashboardsTraffic - возвращает статистику трафика за указанный временной диапазон
 // @Summary Получить статистику трафика
 // @Description Возвращает статистику трафика за указанный временной диапазон с заданным количеством точек данных в Кб
 // @Tags dashboards
@@ -263,7 +201,7 @@ func (s *Server) getDashboardsTraffic(c *gin.Context) {
 // @Param category query string false "Фильтр по категории" Enums(Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет-магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты, распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Дополнительно, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депресивный контент и суицид, Алкоголь, табак)
 // @Param page query int false "Номер страницы" default(1) minimum(1)
 // @Param limit query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
-// @Success 200 {object} models.DtoListResponse "Успешный ответ"
+// @Success 200 {object} models.DtoGetDetectionsResponse "Успешный ответ"
 // @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера"
 // @Router /v1/analytics/detections [get]
@@ -323,8 +261,8 @@ func (s *Server) getDetections(c *gin.Context) {
 }
 
 // getDetectionsStat -
-// @Summary Получение статистики по детекциям
-// @Description Возвращает статистику детекций по категориям (обнаружено, принято, отклонено, неразрешено) за указанный период
+// @Summary Получение статистики по выявлениям
+// @Description Возвращает статистику выявлений за указанный период с фильтрацией
 // @Tags detections
 // @Accept json
 // @Produce json
@@ -387,7 +325,7 @@ func (s *Server) getDetectionsStat(c *gin.Context) {
 // @Param limit query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
 // @Param order_by query string false "Поле для сортировки" default(id) Enums(id, datetime_utc, type, status, url, proto, host_name, src_ip, src_port, src_country, username, dst_ip, dst_port, dst_country, category)
 // @Param order_dir query string false "Направление сортировки (asc/desc)" default(desc) Enums(asc, desc)
-// @Success 200 {object} models.DtoListResponse "Успешный ответ"
+// @Success 200 {object} models.DtoGetSessionsResponse "Успешный ответ"
 // @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера"
 // @Router /v1/analytics/sessions [get]
@@ -453,3 +391,234 @@ func (s *Server) getSessions(c *gin.Context) {
 
 	c.JSON(resp.Code(), resp.GetPayload())
 }
+
+// getV1DashboardsAnomalies -
+// @Summary Получение информации об аномалиях
+// @Description Получение списка обнаруженных аномалий в сетевом трафике за указанный период
+// @Tags not implemented
+// @Produce application/json
+// @Security BearerAuth
+// @Param start query int64 true "Начало периода в timestamp"
+// @Param end query int64 true "Конец периода в timestamp"
+// @Success 200 {array} models.ModelsAnomaly "Список обнаруженных аномалий"
+// @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров"
+// @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера"
+// @Router /v1/analytics/dashboards/anomalies [get]
+func (s *Server) getV1DashboardsAnomalies(c *gin.Context) {
+	// Создаем authInfoWriter для передачи токена
+	//authInfo, err := utils.GetAuthInfo(c)
+	//if err != nil {
+	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+	//	return
+	//}
+
+	//Парсим входные данные
+	start, err := strconv.ParseInt(c.Query("start"), 10, 64)
+	if err != nil {
+		if conflictErr, ok := err.(ResponseErrorInterface); ok {
+			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
+			return
+		}
+
+		s.ErrorResponse(c, http.StatusBadRequest, "Parse int start", err)
+		return
+	}
+	end, err := strconv.ParseInt(c.Query("end"), 10, 64)
+	if err != nil {
+		if conflictErr, ok := err.(ResponseErrorInterface); ok {
+			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
+			return
+		}
+
+		s.ErrorResponse(c, http.StatusBadRequest, "Parse int end", err)
+		return
+	}
+
+	resp, err := s.analyticsCL.NotImplemented.GetAPIV1DashboardsAnomalies(&not_implemented.GetAPIV1DashboardsAnomaliesParams{
+		Start: start,
+		End:   end,
+	})
+	if err != nil {
+		if conflictErr, ok := err.(ResponseErrorInterface); ok {
+			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
+			return
+		}
+
+		s.ErrorResponse(c, http.StatusBadRequest, "Dashboards.GetAPIV1DashboardsRequests", err)
+		return
+	}
+
+	c.JSON(resp.Code(), resp.GetPayload())
+}
+
+// getV1DashboardsDevices -
+// @Summary Получение статистики по устройствам
+// @Description Получение агрегированной статистики по сетевым узлам за указанный период
+// @Tags not implemented
+// @Produce application/json
+// @Security BearerAuth
+// @Param start query int64 true "Начало периода в timestamp"
+// @Param end query int64 true "Конец периода в timestamp"
+// @Success 200 {object} models.ModelsDeviceStat "Статистика по устройствам"
+// @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров"
+// @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера"
+// @Router /v1/analytics/dashboards/devices [get]
+func (s *Server) getV1DashboardsDevices(c *gin.Context) {
+	// Создаем authInfoWriter для передачи токена
+	//authInfo, err := utils.GetAuthInfo(c)
+	//if err != nil {
+	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+	//	return
+	//}
+
+	//Парсим входные данные
+	start, err := strconv.ParseInt(c.Query("start"), 10, 64)
+	if err != nil {
+		if conflictErr, ok := err.(ResponseErrorInterface); ok {
+			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
+			return
+		}
+
+		s.ErrorResponse(c, http.StatusBadRequest, "Parse int start", err)
+		return
+	}
+	end, err := strconv.ParseInt(c.Query("end"), 10, 64)
+	if err != nil {
+		if conflictErr, ok := err.(ResponseErrorInterface); ok {
+			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
+			return
+		}
+
+		s.ErrorResponse(c, http.StatusBadRequest, "Parse int end", err)
+		return
+	}
+
+	resp, err := s.analyticsCL.NotImplemented.GetAPIV1DashboardsDevices(&not_implemented.GetAPIV1DashboardsDevicesParams{
+		Start: start,
+		End:   end,
+	})
+	if err != nil {
+		if conflictErr, ok := err.(ResponseErrorInterface); ok {
+			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
+			return
+		}
+
+		s.ErrorResponse(c, http.StatusBadRequest, "Dashboards.GetAPIV1DashboardsRequests", err)
+		return
+	}
+
+	c.JSON(resp.Code(), resp.GetPayload())
+}
+
+// getV1DashboardsProhActivity -
+// @Summary Получение графика запрещенной активности
+// @Description Получение расписания запрещенной активности начиная с указанной даты
+// @Tags not implemented
+// @Produce application/json
+// @Security BearerAuth
+// @Param start query int64 true "Дата начала в timestamp"
+// @Success 200 {object} map[int64]int "График запрещенной активности"
+// @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров"
+// @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера"
+// @Router /v1/analytics/dashboards/proh_activity [get]
+func (s *Server) getV1DashboardsProhActivity(c *gin.Context) {
+	// Создаем authInfoWriter для передачи токена
+	//authInfo, err := utils.GetAuthInfo(c)
+	//if err != nil {
+	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+	//	return
+	//}
+
+	//Парсим входные данные
+	start, err := strconv.ParseInt(c.Query("start"), 10, 64)
+	if err != nil {
+		if conflictErr, ok := err.(ResponseErrorInterface); ok {
+			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
+			return
+		}
+
+		s.ErrorResponse(c, http.StatusBadRequest, "Parse int start", err)
+		return
+	}
+
+	resp, err := s.analyticsCL.NotImplemented.GetAPIV1DashboardsProhActivity(&not_implemented.GetAPIV1DashboardsProhActivityParams{
+		Start: start,
+	})
+	if err != nil {
+		if conflictErr, ok := err.(ResponseErrorInterface); ok {
+			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
+			return
+		}
+
+		s.ErrorResponse(c, http.StatusBadRequest, "Dashboards.GetAPIV1DashboardsRequests", err)
+		return
+	}
+
+	c.JSON(resp.Code(), resp.GetPayload())
+}
+
+// getDashboardsRequests -
+// @Summary Получить статистику запросов
+// @Description Возвращает статистику запросов за указанный период с фильтрацией по статусу, хосту и категории
+// @Tags not implemented
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param from query string false "Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)" default(now-10m)
+// @Param to query string false "Конец временного диапазона (формат: now, 2024-01-01T00:00:00Z)" default(now)
+// @Param status query string false "Статус запросов (allowed, blocked, prohibited, waiting)" default(prohibited)
+// @Param hostname query string false "Фильтр по имени хоста"
+// @Param category query string false "Фильтр по категории" Enums(Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет-магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты, распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Дополнительно, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депресивный контент и суицид, Алкоголь, табак)
+// @Param count query integer false "Количество интервалов" default(10)
+// @Success 200 {object} models.DtoDataPointsResponse "Статистика запросов (массив чисел)"
+// @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров"
+// @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера"
+// @Router /v1/analytics/dashboards/requests [get]
+func (s *Server) getDashboardsRequests(c *gin.Context) {
+	// Создаем authInfoWriter для передачи токена
+	//authInfo, err := utils.GetAuthInfo(c)
+	//if err != nil {
+	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+	//	return
+	//}
+
+	//Парсим входные данные
+	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
+	to := c.DefaultQuery("to", "now")
+	status := c.Query("status")
+	hostname := c.Query("hostname")
+	category := c.Query("category")
+	count, err := strconv.ParseInt(c.Query("count"), 10, 64)
+	if err != nil {
+		if conflictErr, ok := err.(ResponseErrorInterface); ok {
+			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
+			return
+		}
+
+		s.ErrorResponse(c, http.StatusBadRequest, "Parse int", err)
+		return
+	}
+
+	resp, err := s.analyticsCL.NotImplemented.GetAPIV1DashboardsRequests(&not_implemented.GetAPIV1DashboardsRequestsParams{
+		From:     &from,
+		To:       &to,
+		Status:   &status,
+		Hostname: &hostname,
+		Category: &category,
+		Count:    &count,
+	})
+	if err != nil {
+		if conflictErr, ok := err.(ResponseErrorInterface); ok {
+			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
+			return
+		}
+
+		s.ErrorResponse(c, http.StatusBadRequest, "Dashboards.GetAPIV1DashboardsRequests", err)
+		return
+	}
+
+	c.JSON(resp.Code(), resp.GetPayload())
+}
+
+// getV1DashboardsResources -
+func (s *Server) getV1DashboardsResources(c *gin.Context) {}

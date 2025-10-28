@@ -58,7 +58,7 @@ GetAPIV1DetectionsOK describes a response with status code 200, with default hea
 Успешный ответ
 */
 type GetAPIV1DetectionsOK struct {
-	Payload *models.DtoListResponse
+	Payload *models.DtoGetDetectionsResponse
 }
 
 // IsSuccess returns true when this get Api v1 detections o k response has a 2xx status code
@@ -101,13 +101,13 @@ func (o *GetAPIV1DetectionsOK) String() string {
 	return fmt.Sprintf("[GET /api/v1/detections][%d] getApiV1DetectionsOK %s", 200, payload)
 }
 
-func (o *GetAPIV1DetectionsOK) GetPayload() *models.DtoListResponse {
+func (o *GetAPIV1DetectionsOK) GetPayload() *models.DtoGetDetectionsResponse {
 	return o.Payload
 }
 
 func (o *GetAPIV1DetectionsOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.DtoListResponse)
+	o.Payload = new(models.DtoGetDetectionsResponse)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -128,7 +128,7 @@ GetAPIV1DetectionsBadRequest describes a response with status code 400, with def
 Неверный формат параметров
 */
 type GetAPIV1DetectionsBadRequest struct {
-	Payload interface{}
+	Payload *models.DtoErrorResponse
 }
 
 // IsSuccess returns true when this get Api v1 detections bad request response has a 2xx status code
@@ -171,14 +171,16 @@ func (o *GetAPIV1DetectionsBadRequest) String() string {
 	return fmt.Sprintf("[GET /api/v1/detections][%d] getApiV1DetectionsBadRequest %s", 400, payload)
 }
 
-func (o *GetAPIV1DetectionsBadRequest) GetPayload() interface{} {
+func (o *GetAPIV1DetectionsBadRequest) GetPayload() *models.DtoErrorResponse {
 	return o.Payload
 }
 
 func (o *GetAPIV1DetectionsBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
+	o.Payload = new(models.DtoErrorResponse)
+
 	// response payload
-	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
@@ -196,7 +198,7 @@ GetAPIV1DetectionsInternalServerError describes a response with status code 500,
 Внутренняя ошибка сервера
 */
 type GetAPIV1DetectionsInternalServerError struct {
-	Payload interface{}
+	Payload *models.DtoErrorResponse
 }
 
 // IsSuccess returns true when this get Api v1 detections internal server error response has a 2xx status code
@@ -239,14 +241,16 @@ func (o *GetAPIV1DetectionsInternalServerError) String() string {
 	return fmt.Sprintf("[GET /api/v1/detections][%d] getApiV1DetectionsInternalServerError %s", 500, payload)
 }
 
-func (o *GetAPIV1DetectionsInternalServerError) GetPayload() interface{} {
+func (o *GetAPIV1DetectionsInternalServerError) GetPayload() *models.DtoErrorResponse {
 	return o.Payload
 }
 
 func (o *GetAPIV1DetectionsInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
+	o.Payload = new(models.DtoErrorResponse)
+
 	// response payload
-	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 

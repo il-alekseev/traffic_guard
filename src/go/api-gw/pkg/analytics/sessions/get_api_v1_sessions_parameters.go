@@ -94,7 +94,7 @@ type GetAPIV1SessionsParams struct {
 
 	   Поле для сортировки
 
-	   Default: "id"
+	   Default: "datetime_utc"
 	*/
 	OrderBy *string
 
@@ -116,7 +116,7 @@ type GetAPIV1SessionsParams struct {
 
 	/* Search.
 
-	   Поиск по частичному совпадению
+	   Поиск по URL или имени пользователя
 	*/
 	Search *string
 
@@ -156,7 +156,7 @@ func (o *GetAPIV1SessionsParams) SetDefaults() {
 
 		limitDefault = int64(10)
 
-		orderByDefault = string("id")
+		orderByDefault = string("datetime_utc")
 
 		orderDirDefault = string("desc")
 

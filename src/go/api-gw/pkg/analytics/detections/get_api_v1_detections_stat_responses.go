@@ -128,7 +128,7 @@ GetAPIV1DetectionsStatBadRequest describes a response with status code 400, with
 Неверный формат временного диапазона
 */
 type GetAPIV1DetectionsStatBadRequest struct {
-	Payload map[string]string
+	Payload *models.DtoErrorResponse
 }
 
 // IsSuccess returns true when this get Api v1 detections stat bad request response has a 2xx status code
@@ -171,14 +171,16 @@ func (o *GetAPIV1DetectionsStatBadRequest) String() string {
 	return fmt.Sprintf("[GET /api/v1/detections/stat][%d] getApiV1DetectionsStatBadRequest %s", 400, payload)
 }
 
-func (o *GetAPIV1DetectionsStatBadRequest) GetPayload() map[string]string {
+func (o *GetAPIV1DetectionsStatBadRequest) GetPayload() *models.DtoErrorResponse {
 	return o.Payload
 }
 
 func (o *GetAPIV1DetectionsStatBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
+	o.Payload = new(models.DtoErrorResponse)
+
 	// response payload
-	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
@@ -196,7 +198,7 @@ GetAPIV1DetectionsStatInternalServerError describes a response with status code 
 Ошибка при получении статистики выявлений
 */
 type GetAPIV1DetectionsStatInternalServerError struct {
-	Payload map[string]string
+	Payload *models.DtoErrorResponse
 }
 
 // IsSuccess returns true when this get Api v1 detections stat internal server error response has a 2xx status code
@@ -239,14 +241,16 @@ func (o *GetAPIV1DetectionsStatInternalServerError) String() string {
 	return fmt.Sprintf("[GET /api/v1/detections/stat][%d] getApiV1DetectionsStatInternalServerError %s", 500, payload)
 }
 
-func (o *GetAPIV1DetectionsStatInternalServerError) GetPayload() map[string]string {
+func (o *GetAPIV1DetectionsStatInternalServerError) GetPayload() *models.DtoErrorResponse {
 	return o.Payload
 }
 
 func (o *GetAPIV1DetectionsStatInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
+	o.Payload = new(models.DtoErrorResponse)
+
 	// response payload
-	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
