@@ -58,7 +58,7 @@ GetAPIV1SessionsOK describes a response with status code 200, with default heade
 Успешный ответ
 */
 type GetAPIV1SessionsOK struct {
-	Payload *models.DtoListResponse
+	Payload *models.DtoGetSessionsResponse
 }
 
 // IsSuccess returns true when this get Api v1 sessions o k response has a 2xx status code
@@ -101,13 +101,13 @@ func (o *GetAPIV1SessionsOK) String() string {
 	return fmt.Sprintf("[GET /api/v1/sessions][%d] getApiV1SessionsOK %s", 200, payload)
 }
 
-func (o *GetAPIV1SessionsOK) GetPayload() *models.DtoListResponse {
+func (o *GetAPIV1SessionsOK) GetPayload() *models.DtoGetSessionsResponse {
 	return o.Payload
 }
 
 func (o *GetAPIV1SessionsOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.DtoListResponse)
+	o.Payload = new(models.DtoGetSessionsResponse)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

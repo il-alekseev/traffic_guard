@@ -80,6 +80,53 @@ definitions:
         description: Протокол транспортного уровня для получения метрик
         type: string
     type: object
+  models.DtoDataPointsResponse:
+    properties:
+      count:
+        description: Число точек с данными
+        type: integer
+      data:
+        description: Список однотипных данных
+        items:
+          type: integer
+        type: array
+      type:
+        description: Тип данных
+        type: string
+    type: object
+  models.DtoDetection:
+    properties:
+      action:
+        description: action
+        type: string
+      categorized_at:
+        description: categorized at
+        type: string
+      category:
+        description: category
+        type: string
+      description:
+        description: description
+        type: string
+      domain:
+        description: domain
+        type: string
+      host_name:
+        description: host name
+        type: string
+      ip:
+        description: ip
+        type: string
+      location:
+        description: location
+        type: string
+      port:
+        description: port
+        type: integer
+      request_count:
+        description: request count
+        type: integer
+    type: object
   models.DtoDetectionStat:
     properties:
       accepted:
@@ -101,10 +148,37 @@ definitions:
         description: Описание ошибки
         type: string
     type: object
-  models.DtoListResponse:
+  models.DtoGetDetectionsResponse:
     properties:
       data:
-        description: Список однотипных данных
+        description: Список выявлений
+        items:
+          $ref: '#/definitions/models.DtoDetection'
+        type: array
+      meta:
+        description: Метаданные пагинации
+        properties:
+          limit:
+            description: Количество элементов на странице
+            type: integer
+          page:
+            description: Текущая страница (начинается с 1)
+            type: integer
+          pages:
+            description: Общее количество страниц
+            type: integer
+          total:
+            description: Общее количество элементов
+            type: integer
+        type: object
+    type: object
+  models.DtoGetSessionsResponse:
+    properties:
+      data:
+        description: Список сессий
+        items:
+          $ref: '#/definitions/models.DtoSession'
+        type: array
       meta:
         description: Метаданные пагинации
         properties:
@@ -161,6 +235,51 @@ definitions:
         allOf:
         - $ref: '#/definitions/models.DtoPaginationMeta'
         description: meta
+    type: object
+  models.DtoSession:
+    properties:
+      category:
+        description: category
+        type: string
+      datetime_utc:
+        description: datetime utc
+        type: string
+      dst_country:
+        description: dst country
+        type: string
+      dst_ip:
+        description: dst ip
+        type: string
+      dst_port:
+        description: dst port
+        type: integer
+      host_name:
+        description: host name
+        type: string
+      id:
+        description: id
+        type: integer
+      proto:
+        description: proto
+        type: string
+      src_country:
+        description: src country
+        type: string
+      src_ip:
+        description: src ip
+        type: string
+      status:
+        description: status
+        type: string
+      type:
+        description: type
+        type: string
+      url:
+        description: url
+        type: string
+      username:
+        description: username
+        type: string
     type: object
   models.DtoSuccessResponse:
     properties:
@@ -305,6 +424,29 @@ definitions:
         description: message
         type: string
     type: object
+  models.ModelsAnomaly:
+    properties:
+      blocked_resources_count:
+        description: blocked resources count
+        type: integer
+      firewalls_count:
+        description: firewalls count
+        type: integer
+      stat:
+        description: stat
+        items:
+          $ref: '#/definitions/models.ModelsAnomalyResourse'
+        type: array
+    type: object
+  models.ModelsAnomalyResourse:
+    properties:
+      resourse_name:
+        description: resourse name
+        type: string
+      unblocked_requests:
+        description: unblocked requests
+        type: integer
+    type: object
   models.ModelsBusinessLog:
     properties:
       context:
@@ -398,6 +540,20 @@ definitions:
         description: retention duration
         type: integer
     type: object
+  models.ModelsDeviceStat:
+    properties:
+      name:
+        description: name
+        type: string
+      state:
+        description: state
+        type: string
+      statistics:
+        description: statistics
+        items:
+          $ref: '#/definitions/models.ModelsResourcePoint'
+        type: array
+    type: object
   models.ModelsLogs:
     properties:
       data:
@@ -423,6 +579,18 @@ definitions:
         type: integer
       total:
         description: total
+        type: integer
+    type: object
+  models.ModelsResourcePoint:
+    properties:
+      date:
+        description: date
+        type: integer
+      delayed:
+        description: delayed
+        type: integer
+      locked:
+        description: locked
         type: integer
     type: object
   models.ModelsRole:
@@ -549,6 +717,115 @@ paths:
       summary: Получение списка категорий контента
       tags:
       - common
+  /v1/analytics/dashboards/anomalies:
+    get:
+      description: Получение списка обнаруженных аномалий в сетевом трафике за указанный
+        период
+      parameters:
+      - description: Начало периода в timestamp
+        format: int64
+        in: query
+        name: start
+        required: true
+        type: integer
+      - description: Конец периода в timestamp
+        format: int64
+        in: query
+        name: end
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список обнаруженных аномалий
+          schema:
+            items:
+              $ref: '#/definitions/models.ModelsAnomaly'
+            type: array
+        "400":
+          description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение информации об аномалиях
+      tags:
+      - not implemented
+  /v1/analytics/dashboards/devices:
+    get:
+      description: Получение агрегированной статистики по сетевым узлам за указанный
+        период
+      parameters:
+      - description: Начало периода в timestamp
+        format: int64
+        in: query
+        name: start
+        required: true
+        type: integer
+      - description: Конец периода в timestamp
+        format: int64
+        in: query
+        name: end
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Статистика по устройствам
+          schema:
+            $ref: '#/definitions/models.ModelsDeviceStat'
+        "400":
+          description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение статистики по устройствам
+      tags:
+      - not implemented
+  /v1/analytics/dashboards/proh_activity:
+    get:
+      description: Получение расписания запрещенной активности начиная с указанной
+        даты
+      parameters:
+      - description: Дата начала в timestamp
+        format: int64
+        in: query
+        name: start
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: График запрещенной активности
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+        "400":
+          description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение графика запрещенной активности
+      tags:
+      - not implemented
   /v1/analytics/dashboards/requests:
     get:
       consumes:
@@ -623,9 +900,7 @@ paths:
         "200":
           description: Статистика запросов (массив чисел)
           schema:
-            items:
-              type: integer
-            type: array
+            $ref: '#/definitions/models.DtoDataPointsResponse'
         "400":
           description: Неверный формат параметров
           schema:
@@ -638,7 +913,7 @@ paths:
       - BearerAuth: []
       summary: Получить статистику запросов
       tags:
-      - dashboards
+      - not implemented
   /v1/analytics/dashboards/top-categories:
     get:
       consumes:
@@ -683,9 +958,7 @@ paths:
           description: OK
           schema:
             items:
-              items:
-                $ref: '#/definitions/models.ModelsCategoryCount'
-              type: array
+              $ref: '#/definitions/models.ModelsCategoryCount'
             type: array
         "400":
           description: Bad Request
@@ -822,7 +1095,7 @@ paths:
         "200":
           description: Успешный ответ
           schema:
-            $ref: '#/definitions/models.DtoListResponse'
+            $ref: '#/definitions/models.DtoGetDetectionsResponse'
         "400":
           description: Неверный формат параметров
           schema:
@@ -840,8 +1113,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: Возвращает статистику детекций по категориям (обнаружено, принято,
-        отклонено, неразрешено) за указанный период
+      description: Возвращает статистику выявлений за указанный период с фильтрацией
       parameters:
       - default: now-10m
         description: 'Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)'
@@ -911,7 +1183,7 @@ paths:
             $ref: '#/definitions/models.DtoErrorResponse'
       security:
       - BearerAuth: []
-      summary: Получение статистики по детекциям
+      summary: Получение статистики по выявлениям
       tags:
       - detections
   /v1/analytics/devices:
@@ -1058,7 +1330,7 @@ paths:
         "200":
           description: Успешный ответ
           schema:
-            $ref: '#/definitions/models.DtoListResponse'
+            $ref: '#/definitions/models.DtoGetSessionsResponse'
         "400":
           description: Неверный формат параметров
           schema:

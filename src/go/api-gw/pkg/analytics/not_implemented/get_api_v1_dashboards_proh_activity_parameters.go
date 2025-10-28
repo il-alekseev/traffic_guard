@@ -65,8 +65,6 @@ type GetAPIV1DashboardsProhActivityParams struct {
 	/* Start.
 
 	   Дата начала в timestamp
-
-	   Format: int64
 	*/
 	Start int64
 

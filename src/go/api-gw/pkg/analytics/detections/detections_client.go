@@ -64,9 +64,9 @@ type ClientService interface {
 }
 
 /*
-GetAPIV1Detections получитьs список топ выявлений
+GetAPIV1Detections получениеs списка выявлений
 
-Возвращает список наиболее частых детекций за указанный временной период с пагинацией
+Возвращает список выявлений за указанный временной период с пагинацией и фильтрацией
 */
 func (a *Client) GetAPIV1Detections(params *GetAPIV1DetectionsParams, opts ...ClientOption) (*GetAPIV1DetectionsOK, error) {
 	// TODO: Validate the params before sending
@@ -104,9 +104,9 @@ func (a *Client) GetAPIV1Detections(params *GetAPIV1DetectionsParams, opts ...Cl
 }
 
 /*
-GetAPIV1DetectionsStat получениеs статистики по детекциям
+GetAPIV1DetectionsStat получениеs статистики по выявлениям
 
-Возвращает статистику детекций по категориям (обнаружено, принято, отклонено, неразрешено) за указанный период
+Возвращает статистику выявлений за указанный период с фильтрацией
 */
 func (a *Client) GetAPIV1DetectionsStat(params *GetAPIV1DetectionsStatParams, opts ...ClientOption) (*GetAPIV1DetectionsStatOK, error) {
 	// TODO: Validate the params before sending
