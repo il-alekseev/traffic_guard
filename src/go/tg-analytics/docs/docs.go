@@ -63,7 +63,6 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Начало периода в timestamp",
                         "name": "start",
                         "in": "query",
@@ -71,7 +70,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Конец периода в timestamp",
                         "name": "end",
                         "in": "query",
@@ -116,7 +114,6 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Начало периода в timestamp",
                         "name": "start",
                         "in": "query",
@@ -124,7 +121,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Конец периода в timestamp",
                         "name": "end",
                         "in": "query",
@@ -166,7 +162,6 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Дата начала в timestamp",
                         "name": "start",
                         "in": "query",
@@ -322,7 +317,6 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Начало периода в timestamp",
                         "name": "start",
                         "in": "query",
@@ -330,7 +324,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Конец периода в timestamp",
                         "name": "end",
                         "in": "query",
@@ -979,6 +972,41 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.Detection": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "categorized_at": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "domain": {
+                    "type": "string"
+                },
+                "host_name": {
+                    "type": "string"
+                },
+                "ip": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "integer"
+                },
+                "request_count": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.DetectionStat": {
             "type": "object",
             "properties": {
@@ -1238,8 +1266,8 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "API для аналитики",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-	//LeftDelim:        "{{",
-	//RightDelim:       "}}",
+	LeftDelim:        "{{",
+	RightDelim:       "}}",
 }
 
 func init() {

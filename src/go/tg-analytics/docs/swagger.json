@@ -59,7 +59,6 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Начало периода в timestamp",
                         "name": "start",
                         "in": "query",
@@ -67,7 +66,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Конец периода в timestamp",
                         "name": "end",
                         "in": "query",
@@ -112,7 +110,6 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Начало периода в timestamp",
                         "name": "start",
                         "in": "query",
@@ -120,7 +117,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Конец периода в timestamp",
                         "name": "end",
                         "in": "query",
@@ -162,7 +158,6 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Дата начала в timestamp",
                         "name": "start",
                         "in": "query",
@@ -318,7 +313,6 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Начало периода в timestamp",
                         "name": "start",
                         "in": "query",
@@ -326,7 +320,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Конец периода в timestamp",
                         "name": "end",
                         "in": "query",
@@ -972,6 +965,41 @@
                 "type": {
                     "description": "Тип данных",
                     "type": "string"
+                }
+            }
+        },
+        "dto.Detection": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "categorized_at": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "domain": {
+                    "type": "string"
+                },
+                "host_name": {
+                    "type": "string"
+                },
+                "ip": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "integer"
+                },
+                "request_count": {
+                    "type": "integer"
                 }
             }
         },

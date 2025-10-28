@@ -14,6 +14,29 @@ definitions:
         description: Тип данных
         type: string
     type: object
+  dto.Detection:
+    properties:
+      action:
+        type: string
+      categorized_at:
+        type: string
+      category:
+        type: string
+      description:
+        type: string
+      domain:
+        type: string
+      host_name:
+        type: string
+      ip:
+        type: string
+      location:
+        type: string
+      port:
+        type: integer
+      request_count:
+        type: integer
+    type: object
   dto.DetectionStat:
     properties:
       accepted:
@@ -208,13 +231,11 @@ paths:
         период
       parameters:
       - description: Начало периода в timestamp
-        format: int64
         in: query
         name: start
         required: true
         type: integer
       - description: Конец периода в timestamp
-        format: int64
         in: query
         name: end
         required: true
@@ -245,13 +266,11 @@ paths:
         период
       parameters:
       - description: Начало периода в timestamp
-        format: int64
         in: query
         name: start
         required: true
         type: integer
       - description: Конец периода в timestamp
-        format: int64
         in: query
         name: end
         required: true
@@ -280,7 +299,6 @@ paths:
         даты
       parameters:
       - description: Дата начала в timestamp
-        format: int64
         in: query
         name: start
         required: true
@@ -397,13 +415,11 @@ paths:
         период
       parameters:
       - description: Начало периода в timestamp
-        format: int64
         in: query
         name: start
         required: true
         type: integer
       - description: Конец периода в timestamp
-        format: int64
         in: query
         name: end
         required: true
