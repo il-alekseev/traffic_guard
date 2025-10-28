@@ -174,6 +174,7 @@ func (s *Server) GetTopCategories(c *gin.Context) {
 // @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T11:00:00Z)" default(now)
 // @Param hostname query string false "Фильтр по имени хоста"
 // @Param category query string false "Фильтр по категории" Enums(Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет-магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Дополнительно, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депресивный контент и суицид, Алкоголь, табак)
+// @Param action query string false "Действие пользователя" Enums(Разрешено, Заблокировано, Не решено)
 // @Param page query int false "Номер страницы" default(1) minimum(1)
 // @Param limit query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
 // @Success 200 {object} dto.GetDetectionsResponse "Успешный ответ"
@@ -219,9 +220,8 @@ func (s *Server) GetTopDetections(c *gin.Context) {
 		Page:  req.Page,
 		Limit: req.Limit,
 	}
-
 	// Получаем данные из usecase
-	detections, total, err := s.u.GetTopDetections(c, timeRange, filter, pagination)
+	detections, total, err := s.u.GetTopDetections(c, timeRange, filter, req.Action, pagination)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "ошибка при получении списка выявлений",

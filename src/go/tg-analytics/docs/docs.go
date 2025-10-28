@@ -575,6 +575,17 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "Разрешено",
+                            "Заблокировано",
+                            "Не решено"
+                        ],
+                        "type": "string",
+                        "description": "Действие пользователя",
+                        "name": "action",
+                        "in": "query"
+                    },
+                    {
                         "minimum": 1,
                         "type": "integer",
                         "default": 1,

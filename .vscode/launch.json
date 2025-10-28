@@ -9,10 +9,11 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/src/go/tg-etl/cmd/etl/main.go",
-            "cwd": "${workspaceFolder}/src/go/tg-etl",  // директория текущего файла
-            //"program": "${workspaceFolder}/src/go/tg-dbd/cmd/dbd/main.go",
-            //"cwd": "${workspaceFolder}/src/go/tg-dbd",  // директория текущего файла
+            //"program": "${workspaceFolder}/src/go/tg-etl/cmd/etl/main.go",
+            //"cwd": "${workspaceFolder}/src/go/tg-etl",  // директория текущего файла
+            "program": "${workspaceFolder}/src/go/tg-analytics/cmd/analytics/main.go",
+            "cwd": "${workspaceFolder}/src/go/tg-analytics",  // директория текущего файла
+            
         }
     ]
 }

@@ -1,13 +1,17 @@
 package models
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // ActionType представляет тип действия/решения
 type ActionType string
 
 const (
-	ActionTypeAllowed ActionType = "allowed" // Разрешено
-	ActionTypeDenied  ActionType = "denied"  // Запрещено
+	ActionTypeAllowed    ActionType = "allowed"    // Разрешено
+	ActionTypeDenied     ActionType = "denied"     // Заблокировано
+	ActionTypeUnresolved ActionType = "unresolved" // Не решено
 )
 
 func (t ActionType) String() string {
@@ -15,10 +19,18 @@ func (t ActionType) String() string {
 	case ActionTypeAllowed:
 		return "Разрешено"
 	case ActionTypeDenied:
-		return "Запрещено"
+		return "Заблокировано"
+	case ActionTypeUnresolved:
+		return "Не решено"
 	default:
 		return "Неизвестный тип"
 	}
+}
+
+var AllActions = []ActionType{
+	ActionTypeAllowed,
+	ActionTypeDenied,
+	ActionTypeUnresolved,
 }
 
 // Action представляет действие/решение в базе данных
@@ -36,7 +48,7 @@ func (a Action) String() string {
 
 // IsValid проверяет, является ли действие допустимым
 func (a Action) IsValid() bool {
-	return a.Action == ActionTypeAllowed || a.Action == ActionTypeDenied
+	return a.Action == ActionTypeAllowed || a.Action == ActionTypeDenied || a.Action == ActionTypeUnresolved
 }
 
 // IsAllowed проверяет, является ли действие разрешающим
@@ -47,4 +59,19 @@ func (a Action) IsAllowed() bool {
 // IsDenied проверяет, является ли действие запрещающим
 func (a Action) IsDenied() bool {
 	return a.Action == ActionTypeDenied
+}
+
+// IsUnresolved проверяет, является ли действие не решенным
+func (a Action) IsUnresolved() bool {
+	return a.Action == ActionTypeUnresolved
+}
+
+// ParseContentCategory парсит строку в категорию
+func ParseActionType(input string) (ActionType, error) {
+	for _, a := range AllActions {
+		if a.String() == input {
+			return a, nil
+		}
+	}
+	return ActionTypeAllowed, fmt.Errorf("недопустимое значение категории типа действия: %q", input)
 }

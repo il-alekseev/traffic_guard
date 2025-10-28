@@ -9,6 +9,7 @@ import (
 type GetTopDetectionsRequest struct {
 	From     string `form:"from" binding:"omitempty"`
 	To       string `form:"to" binding:"omitempty"`
+	Action   string `form:"action" binding:"omitempty"`
 	HostName string `form:"hostname" binding:"omitempty,max=100"`
 	Category string `form:"category" binding:"omitempty,max=50"`
 	Page     int    `form:"page" binding:"omitempty,min=1"`
@@ -59,6 +60,15 @@ func (r *GetTopDetectionsRequest) Validate() error {
 
 	if r.Category != "" && !contains(allowedCategories, r.Category) {
 		return fmt.Errorf("invalid category")
+	}
+	// Валидация типа действия
+	allowedActions := []string{}
+	for _, a := range models.AllActions {
+		allowedActions = append(allowedActions, a.String())
+	}
+
+	if r.Action != "" && !contains(allowedActions, r.Action) {
+		return fmt.Errorf("invalid action")
 	}
 
 	return nil

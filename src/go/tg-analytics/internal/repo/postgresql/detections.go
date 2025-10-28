@@ -10,13 +10,13 @@ import (
 )
 
 // GetTopDetections возвращает список детекций с пагинацией
-func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, p models.Pagination) ([]dto.Detection, int64, error) {
+func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, action string, p models.Pagination) ([]dto.Detection, int64, error) {
 	var detections []dto.Detection
 	var total int64
 
 	// TODO: пока поле "Описание" дублирует категорию
 	query := r.db.GetDB().WithContext(ctx).Table("sessions").
-		Select(`
+		Select(fmt.Sprintf(`
 			domains.ip,
 			domains.port,
 			domains.country as location,
@@ -26,8 +26,8 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 			devices.host_name,
 			categories.name as category,
 			categories.name as description,
-			actions.action as action
-		`).
+			COALESCE(actions.action, '%s') as action
+		`, pkg.ActionTypeUnresolved.String())).
 		Joins("LEFT JOIN devices ON sessions.device_id = devices.id").
 		Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
 		Joins("LEFT JOIN actions ON domains.action_id = actions.id").
@@ -47,11 +47,21 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 		query = query.Where("categories.name = ?", f.TopCategory)
 	}
 
+	// Применяем фильтр по действию
+	if action != "" {
+		// Для действия "Не решено" ищем записи где actions.action IS NULL
+		if action == pkg.ActionTypeUnresolved.String() {
+			query = query.Where("actions.action IS NULL")
+		} else {
+			query = query.Where("actions.action = ?", action)
+		}
+	}
+
 	// Группируем по уникальным детекциям
-	query = query.Group(`
-		domains.ip, domains.port, domains.country, domains.path, domains.categorized_at,
-		devices.host_name, categories.name, actions.action
-	`)
+	query = query.Group(fmt.Sprintf(`
+    domains.ip, domains.port, domains.country, domains.path, domains.categorized_at,
+    devices.host_name, categories.name, COALESCE(actions.action, '%s')
+`, pkg.ActionTypeUnresolved.String()))
 	// Получаем общее количество записей (до пагинации)
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to count detections: %w", err)
