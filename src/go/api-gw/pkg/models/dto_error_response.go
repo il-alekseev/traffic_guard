@@ -17,7 +17,7 @@ import (
 // swagger:model dto.ErrorResponse
 type DtoErrorResponse struct {
 
-	// error
+	// Описание ошибки
 	Error string `json:"error,omitempty"`
 }
 

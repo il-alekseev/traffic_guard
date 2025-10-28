@@ -16,6 +16,7 @@ type (
 		UserControl `yaml:"usercontrol"`
 		CtxControl  `yaml:"ctxcontrol"`
 		BlogServ    `yaml:"blog_serv"`
+		Analytics   `yaml:"analytics"`
 		KeyCloak    `yaml:"keycloak"`
 	}
 
@@ -60,6 +61,13 @@ type (
 		Proto string `env-required:"true" yaml:"proto" env:"API_GW_BLOG_SERV_PROTO"`
 		Host  string `env-required:"true" yaml:"host" env:"API_GW_BLOG_SERV_HOST"`
 		Port  string `env-required:"true" yaml:"port" env:"API_GW_BLOG_SERV_PORT"`
+	}
+
+	// Analytics - параметры Analytics сервиса
+	Analytics struct {
+		Proto string `env-required:"true" yaml:"proto" env:"API_GW_ANALYTICS_PROTO"`
+		Host  string `env-required:"true" yaml:"host" env:"API_GW_ANALYTICS_HOST"`
+		Port  string `env-required:"true" yaml:"port" env:"API_GW_ANALYTICS_PORT"`
 	}
 
 	KeyCloak struct {

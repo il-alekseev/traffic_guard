@@ -4,6 +4,7 @@ import (
 	"api-gateway/config"
 	"api-gateway/docs"
 	v1 "api-gateway/internal/controllers/http/v1"
+	"api-gateway/pkg/analytics"
 	"api-gateway/pkg/blogserv"
 	"api-gateway/pkg/ctxcontrol"
 	"api-gateway/pkg/slogger"
@@ -60,7 +61,16 @@ func Run(cfg *config.Config) {
 		nil,
 	)
 
-	server, err := v1.New(ctx, cfg, userCtrlCl, ctxCtrlCl, blogCl)
+	analyticsCl := analytics.New(
+		httptransport.New(
+			cfg.Analytics.Host+":"+cfg.Analytics.Port,
+			"/",
+			[]string{cfg.Analytics.Proto},
+		),
+		nil,
+	)
+
+	server, err := v1.New(ctx, cfg, userCtrlCl, ctxCtrlCl, blogCl, analyticsCl)
 	if err != nil {
 		slog.ErrorContext(slogger.ErrorCtx(ctx, err), "create http server: "+err.Error())
 	}

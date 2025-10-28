@@ -1,27 +1,18 @@
 basePath: /
 definitions:
-  dto.Detection:
+  dto.DataPointsResponse:
     properties:
-      action:
-        type: string
-      categorized_at:
-        type: string
-      category:
-        type: string
-      description:
-        type: string
-      domain:
-        type: string
-      host_name:
-        type: string
-      ip:
-        type: string
-      location:
-        type: string
-      port:
+      count:
+        description: Число точек с данными
         type: integer
-      request_count:
-        type: integer
+      data:
+        description: Список однотипных данных
+        items:
+          type: integer
+        type: array
+      type:
+        description: Тип данных
+        type: string
     type: object
   dto.DetectionStat:
     properties:
@@ -217,11 +208,13 @@ paths:
         период
       parameters:
       - description: Начало периода в timestamp
+        format: int64
         in: query
         name: start
         required: true
         type: integer
       - description: Конец периода в timestamp
+        format: int64
         in: query
         name: end
         required: true
@@ -252,11 +245,13 @@ paths:
         период
       parameters:
       - description: Начало периода в timestamp
+        format: int64
         in: query
         name: start
         required: true
         type: integer
       - description: Конец периода в timestamp
+        format: int64
         in: query
         name: end
         required: true
@@ -285,6 +280,7 @@ paths:
         даты
       parameters:
       - description: Дата начала в timestamp
+        format: int64
         in: query
         name: start
         required: true
@@ -383,9 +379,7 @@ paths:
         "200":
           description: Статистика запросов (массив чисел)
           schema:
-            items:
-              type: integer
-            type: array
+            $ref: '#/definitions/dto.DataPointsResponse'
         "400":
           description: Неверный формат параметров
           schema:
@@ -403,11 +397,13 @@ paths:
         период
       parameters:
       - description: Начало периода в timestamp
+        format: int64
         in: query
         name: start
         required: true
         type: integer
       - description: Конец периода в timestamp
+        format: int64
         in: query
         name: end
         required: true
