@@ -6,6 +6,7 @@ import (
 	"tg-an/internal/controllers/http/v1/dto"
 	"tg-an/internal/models"
 	"tg-an/internal/pkg/status"
+	pkg "tg-an/pkg/models"
 	"tg-an/pkg/trparser"
 	"time"
 )
@@ -131,4 +132,44 @@ func (r *RepoPG) GetRequestsStat(ctx context.Context, tr *trparser.TimeRange, f 
 	}
 
 	return stats, nil
+}
+
+// GetTopUnresolvedDetections возвращает топ нерешенных выявлений по числу запросов
+func (r *RepoPG) GetTopUnresolvedDetections(ctx context.Context, tr *trparser.TimeRange, hostName string, count int) ([]dto.UnresolvedDetection, error) {
+	var detections []dto.UnresolvedDetection
+
+	query := r.db.GetDB().WithContext(ctx).Table("sessions").
+		Select(`
+			domains.path as domain,
+			COUNT(*) as requests_all,
+			COUNT(CASE WHEN sessions.datetime_utc < domains.categorized_at THEN 1 END) as requests_before,
+			COUNT(CASE WHEN sessions.datetime_utc >= domains.categorized_at THEN 1 END) as requests_after
+		`).
+		Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
+		Joins("LEFT JOIN categories ON domains.category_id = categories.id").
+		Where("categories.type = ?", pkg.CategoryTypeNegative).       // признак выявления
+		Where("(domains.action_id IS NULL OR domains.action_id = 0)") // признак того, что выявление нерешенное
+
+	// Применяем временной диапазон
+	if tr != nil && !tr.To.IsZero() {
+		query = query.Where("sessions.datetime_utc BETWEEN ? AND ?", tr.From, tr.To)
+	}
+
+	// Применяем фильтр по hostname
+	if hostName != "" {
+		query = query.Joins("JOIN devices ON sessions.device_id = devices.id").
+			Where("devices.host_name = ?", hostName)
+	}
+
+	err := query.
+		Group("domains.path").
+		Order("requests_after DESC, requests_before DESC").
+		Limit(count).
+		Find(&detections).Error
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get top unresolved detections: %w", err)
+	}
+
+	return detections, nil
 }

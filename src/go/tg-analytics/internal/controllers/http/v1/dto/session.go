@@ -58,3 +58,10 @@ type GetDetectionsResponse struct {
 	Data []Detection    `json:"data"` // Список выявлений
 	Meta PaginationMeta `json:"meta"` // Метаданные пагинации
 }
+
+type UnresolvedDetection struct {
+	Domain         string `json:"domain"`
+	RequestsAll    uint   `json:"requests_all"`
+	RequestsBefore uint   `json:"requests_before"`
+	RequestsAfter  uint   `json:"requests_after"`
+}

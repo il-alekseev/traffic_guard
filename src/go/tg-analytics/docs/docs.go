@@ -304,63 +304,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/dashboards/resources": {
-            "get": {
-                "description": "Получение топ ресурсов с указанием количества обращений за указанный период",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "not implemented"
-                ],
-                "summary": "Получение списка популярных ресурсов",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Начало периода в timestamp",
-                        "name": "start",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Конец периода в timestamp",
-                        "name": "end",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Количество возвращаемых ресурсов (по умолчанию 5)",
-                        "name": "count",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "JSON объект, где ключ - URL ресурса, значение - количество обращений",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "integer"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Неверный формат параметров",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/dashboards/top-categories": {
             "get": {
                 "description": "Возвращает наиболее часто встречаемые категории в сессиях с возможностью фильтрации",
@@ -435,6 +378,74 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/dashboards/top-unresolved_detections": {
+            "get": {
+                "description": "Возвращает список наиболее частых нерешенных выявлений за указанный временной период с возможностью фильтрации",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "Получение списка топ нерешенных выявлений",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "now-10m",
+                        "description": "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени хоста",
+                        "name": "hostname",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 5,
+                        "description": "Количество возвращаемых записей",
+                        "name": "count",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ со списком нерешенных выявлений",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.UnresolvedDetection"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -1174,6 +1185,23 @@ const docTemplate = `{
                 },
                 "data": {
                     "$ref": "#/definitions/models.TrafficStat"
+                }
+            }
+        },
+        "dto.UnresolvedDetection": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "type": "string"
+                },
+                "requests_after": {
+                    "type": "integer"
+                },
+                "requests_all": {
+                    "type": "integer"
+                },
+                "requests_before": {
+                    "type": "integer"
                 }
             }
         },

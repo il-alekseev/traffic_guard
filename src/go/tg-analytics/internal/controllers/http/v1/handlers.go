@@ -181,7 +181,7 @@ func (s *Server) GetTopCategories(c *gin.Context) {
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/detections [get]
-func (s *Server) GetTopDetections(c *gin.Context) {
+func (s *Server) GetDetections(c *gin.Context) {
 	// Валидация запроса
 	var req validation.GetTopDetectionsRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -466,62 +466,57 @@ func (s *Server) GetTrafficStat(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-//Устарело!
-
-// @Summary Получение списка популярных ресурсов
-// @Description Получение топ ресурсов с указанием количества обращений за указанный период
-// @Tags not implemented
-// @Produce application/json
-// @Param start query int64 true "Начало периода в timestamp"
-// @Param end query int64 true "Конец периода в timestamp"
-// @Param count query int false "Количество возвращаемых ресурсов (по умолчанию 5)"
-// @Success 200 {object} map[string]int "JSON объект, где ключ - URL ресурса, значение - количество обращений"
+// @Summary Получение списка топ нерешенных выявлений
+// @Description Возвращает список наиболее частых нерешенных выявлений за указанный временной период с возможностью фильтрации
+// @Tags dashboards
+// @Accept json
+// @Produce json
+// @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)" default(now-10m)
+// @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)" default(now)
+// @Param hostname query string false "Фильтр по имени хоста"
+// @Param count query int false "Количество возвращаемых записей" default(5) minimum(1)
+// @Success 200 {array} dto.UnresolvedDetection "Успешный ответ со списком нерешенных выявлений"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /api/v1/dashboards/resources [get]
-func (s *Server) GetResources(c *gin.Context) {
-	start, err := strconv.ParseInt(c.Query("start"), 10, 64)
-	if err != nil {
+// @Router /api/v1/dashboards/top-unresolved_detections [get]
+func (s *Server) GetTopUnresolvedDetections(c *gin.Context) {
+	// Валидация запроса
+	var req validation.GetTopCategoriesRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат start timestamp",
+			"error": fmt.Sprintf("Invalid query parameters: %v", err),
 		})
 		return
 	}
-
-	end, err := strconv.ParseInt(c.Query("end"), 10, 64)
-	if err != nil {
+	// Нормализация и валидация
+	if err := req.ValidateAndNormalize(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат end timestamp",
+			"error": err.Error(),
 		})
 		return
 	}
-
-	count, err := strconv.Atoi(c.DefaultQuery("count", "5"))
+	// Парсим временной диапазон
+	parser := &trparser.TimeRangeParser{}
+	now := time.Now()
+	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", req.From, req.To), now)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат count",
+			"error": "Неверный формат временного диапазона",
 		})
 		return
 	}
-
-	startTime := time.Unix(start, 0)
-	endTime := time.Unix(end, 0)
-
-	response, err := s.u.GetResources(
-		c,
-		startTime,
-		endTime,
-		count,
-		"",
-	)
+	// Получаем данные из usecase
+	UnresolvedDetections, err := s.u.GetTopUnresolvedDetections(c.Request.Context(), timeRange, req.HostName, req.Count)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "ошибка при получении ресурсов",
+			"error": "Ошибка при получении топ нерешенных выявлений",
 		})
 		return
 	}
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, UnresolvedDetections)
 }
+
+// Устарело
 
 // @Summary Получение статистики по устройствам
 // @Description Получение агрегированной статистики по сетевым узлам за указанный период

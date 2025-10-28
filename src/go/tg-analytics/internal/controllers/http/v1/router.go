@@ -31,7 +31,7 @@ func (s *Server) configureRouter() {
 		dashboards := v1.Group("/dashboards")
 		{
 			dashboards.GET("/top-categories", s.GetTopCategories)
-			dashboards.GET("/resources", s.GetResources)
+			dashboards.GET("/top-unresolved_detections", s.GetTopUnresolvedDetections)
 			dashboards.GET("/anomalies", s.GetAnomalies)
 			dashboards.GET("/proh_activity", s.GetProhActivity)
 			dashboards.GET("/devices", s.GetDevicesStat)
@@ -41,7 +41,7 @@ func (s *Server) configureRouter() {
 		// Вкладка Выявления
 		detections := v1.Group("/detections")
 		{
-			detections.GET("/", s.GetTopDetections)
+			detections.GET("/", s.GetDetections)
 			detections.GET("/stat", s.GetDetectionStat)
 		}
 		// Утилиты

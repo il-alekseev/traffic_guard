@@ -93,3 +93,30 @@ func (u *Usecase) GetTrafficStat(ctx context.Context, tr *trparser.TimeRange, ho
 	)
 	return stat, nil
 }
+
+func (u *Usecase) GetTopUnresolvedDetections(ctx context.Context, tr *trparser.TimeRange, hostName string, count int) ([]dto.UnresolvedDetection, error) {
+	method := "GetTopUnresolvedDetections"
+	u.l.InfoContext(ctx,
+		method,
+		slog.Any("time_range", tr),
+		slog.Any("hostname", hostName),
+		slog.Int("count", count),
+	)
+
+	ud, err := u.db.GetTopUnresolvedDetections(ctx, tr, hostName, count)
+	if err != nil {
+		err = fmt.Errorf("%s: failed to get top unresolved detecrtions: %w", method, err)
+		u.l.ErrorContext(ctx, "Database operation failed",
+			wsl.String("method", method),
+			wsl.String("error", err.Error()),
+		)
+		return nil, err
+	}
+
+	u.l.InfoContext(ctx, "Top unresolved detections retrieved",
+		slog.String("method", method),
+		slog.Int("categories_count", len(ud)),
+		slog.Int("requested_count", count),
+	)
+	return ud, nil
+}
