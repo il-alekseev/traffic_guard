@@ -367,7 +367,7 @@ func (s *Server) GetRequestsStat(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// @Summary Получить список имен устройств
+// @Summary Полуечение списка имен устройств
 // @Description Возвращает список всех уникальных имен устройств (хостов) из системы
 // @Tags common
 // @Accept json
@@ -387,7 +387,7 @@ func (s *Server) GetDevices(c *gin.Context) {
 	c.JSON(http.StatusOK, devices)
 }
 
-// @Summary Получить список категорий контента
+// @Summary Получение списка категорий контента
 // @Description Возвращает список всех уникальных категорий контента из системы
 // @Tags common
 // @Accept json
@@ -407,51 +407,61 @@ func (s *Server) GetContentCategories(c *gin.Context) {
 	c.JSON(http.StatusOK, devices)
 }
 
-// GetTrafficStat возвращает статистику трафика за указанный временной диапазон
-// @Summary Получить статистику трафика
+// @Summary Получение статистики трафика
 // @Description Возвращает статистику трафика за указанный временной диапазон с заданным количеством точек данных в Кб
 // @Tags dashboards
 // @Accept json
 // @Produce json
 // @Param from query string false "Начало временного диапазона в формате парсера времени (по умолчанию now-10m)" default(now-10m)
 // @Param to query string false "Конец временного диапазона в формате парсера времени (по умолчанию now)" default(now)
+// @Param hostname query string false "Фильтр по имени хоста"
 // @Param count query integer false "Количество точек данных для возврата (по умолчанию 20)" minimum(1) default(20)
 // @Success 200 {object} dto.TrafficStatResponse "Успешный ответ со статистикой трафика"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров запроса"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера при получении статистики"
 // @Router /api/v1/dashboards/traffic [get]
 func (s *Server) GetTrafficStat(c *gin.Context) {
-	// Парсим временные метки
-	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
-	to := c.DefaultQuery("to", "now")
+	// Валидация запроса
+	var req validation.GetTrafficStatRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("Invalid query parameters: %v", err),
+		})
+		return
+	}
 
+	// Нормализация и валидация
+	if err := req.ValidateAndNormalize(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	// Парсим временной диапазон
 	parser := &trparser.TimeRangeParser{}
 	now := time.Now()
-	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", from, to), now)
+	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", req.From, req.To), now)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Неверный формат временного диапазона",
 		})
 		return
 	}
-	// Парсим колтчество точек
-	count, err := strconv.ParseUint(c.DefaultQuery("count", "20"), 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат count",
-		})
-		return
-	}
-	stat, err := s.u.GetTrafficStat(c, timeRange, uint(count))
+
+	// Получаем данные из usecase
+	stat, err := s.u.GetTrafficStat(c.Request.Context(), timeRange, req.HostName, req.Count)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "ошибка при получении статистики трафика",
 		})
 		return
 	}
+
+	// Формируем ответ
 	resp := dto.TrafficStatResponse{
 		Data:  stat,
-		Count: uint(count),
+		Count: req.Count,
 	}
 	c.JSON(http.StatusOK, resp)
 }

@@ -27,7 +27,7 @@ const docTemplate = `{
                 "tags": [
                     "common"
                 ],
-                "summary": "Получить список категорий контента",
+                "summary": "Получение списка категорий контента",
                 "responses": {
                     "200": {
                         "description": "Список категорий контента",
@@ -454,7 +454,7 @@ const docTemplate = `{
                 "tags": [
                     "dashboards"
                 ],
-                "summary": "Получить статистику трафика",
+                "summary": "Получение статистики трафика",
                 "parameters": [
                     {
                         "type": "string",
@@ -468,6 +468,12 @@ const docTemplate = `{
                         "default": "now",
                         "description": "Конец временного диапазона в формате парсера времени (по умолчанию now)",
                         "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени хоста",
+                        "name": "hostname",
                         "in": "query"
                     },
                     {
@@ -733,7 +739,7 @@ const docTemplate = `{
                 "tags": [
                     "common"
                 ],
-                "summary": "Получить список имен устройств",
+                "summary": "Полуечение списка имен устройств",
                 "responses": {
                     "200": {
                         "description": "Список имен устройств",

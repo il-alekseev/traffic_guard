@@ -21,6 +21,9 @@ func (StatsJSON) TableName() string {
 // Структуры для парсинга JSON
 type Statistics struct {
 	Statistics struct {
+		Common struct {
+			Hostname string `json:"hostname"`
+		} `json:"common"`
 		Network struct {
 			Interfaces map[string]Interface `json:"interfaces"`
 		} `json:"network"`

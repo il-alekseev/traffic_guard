@@ -23,5 +23,5 @@ type RepoPGInterface interface {
 }
 
 type RepoMetricsPGInterface interface {
-	GetTrafficStat(ctx context.Context, tr *trparser.TimeRange, count uint) (models.TrafficStat, error)
+	GetTrafficStat(ctx context.Context, tr *trparser.TimeRange, hostname string, count uint) (models.TrafficStat, error)
 }

@@ -10,7 +10,7 @@ import (
 )
 
 // Получение статистики по входящему и исходящему трафику за временной интервал в килобайтах
-func (r *RepoPG) GetTrafficStat(ctx context.Context, tr *trparser.TimeRange, count uint) (models.TrafficStat, error) {
+func (r *RepoPG) GetTrafficStat(ctx context.Context, tr *trparser.TimeRange, hostname string, count uint) (models.TrafficStat, error) {
 	result := models.TrafficStat{
 		Time:   make([]time.Time, count),
 		Input:  make([]uint, count),
@@ -63,7 +63,8 @@ func (r *RepoPG) GetTrafficStat(ctx context.Context, tr *trparser.TimeRange, cou
 		intervalIndex := int(timeDiff / intervalDuration)
 
 		if intervalIndex >= 0 && intervalIndex < int(count) {
-			inputBytes, outputBytes, err := getInterfaceBytes(statJSON, "ge-0-0")
+			// TODO: Фильтрация по сетевым интерфейсам, суммирование по всем интерфейсам и пр. (backlog)
+			inputBytes, outputBytes, err := getInterfaceBytes(statJSON, hostname, "ge-0-0")
 			if err == nil {
 				inputBytesTotal[intervalIndex] += inputBytes
 				outputBytesTotal[intervalIndex] += outputBytes
@@ -81,11 +82,16 @@ func (r *RepoPG) GetTrafficStat(ctx context.Context, tr *trparser.TimeRange, cou
 }
 
 // Функция для получения числа байтов из JSON
-func getInterfaceBytes(statsJSON []byte, interfaceName string) (inputBytes, outputBytes int64, err error) {
+func getInterfaceBytes(statsJSON []byte, hostName string, interfaceName string) (inputBytes, outputBytes int64, err error) {
 	var data models.Statistics
 
 	if err := json.Unmarshal(statsJSON, &data); err != nil {
 		return 0, 0, fmt.Errorf("ошибка парсинга JSON: %v", err)
+	}
+	// Проверяем, относится ли статистика к указанному узлу
+	// если hostname == "", то не используем фильтрацию
+	if hostName != "" && data.Statistics.Common.Hostname != hostName {
+		return 0, 0, nil
 	}
 
 	iface, exists := data.Statistics.Network.Interfaces[interfaceName]

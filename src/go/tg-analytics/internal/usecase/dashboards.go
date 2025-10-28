@@ -71,14 +71,14 @@ func (u *Usecase) GetRequestsStat(ctx context.Context, tr *trparser.TimeRange, f
 }
 
 // GetTrafficStat возвращает статистику трафика за указанный период
-func (u *Usecase) GetTrafficStat(ctx context.Context, tr *trparser.TimeRange, count uint) (models.TrafficStat, error) {
+func (u *Usecase) GetTrafficStat(ctx context.Context, tr *trparser.TimeRange, hostName string, count uint) (models.TrafficStat, error) {
 	method := "GetTrafficStat"
 	u.l.InfoContext(ctx,
 		method,
 		slog.Any("time_range", tr),
 		slog.Uint64("count", uint64(count)),
 	)
-	stat, err := u.mdb.GetTrafficStat(ctx, tr, count)
+	stat, err := u.mdb.GetTrafficStat(ctx, tr, hostName, count)
 	if err != nil {
 		err = fmt.Errorf("%s: failed to get traffic statistics: %w", method, err)
 		u.l.ErrorContext(ctx, "Database operation failed",
