@@ -21,22 +21,22 @@ func (r *RepoPG) GetSessions(ctx context.Context, tr *trparser.TimeRange, f mode
 			sessions.datetime_utc,
 			sessions.type,
 			sessions.status,
-			sessions.url,
-			sessions.proto,
+			urls.path,
+			urls.proto,
 			devices.host_name,
 			sources.ip as src_ip,
-			sources.port as src_port,
 			sources.country as src_country,
 			sources.username,
 			domains.ip as dst_ip,
 			domains.port as dst_port,
 			domains.country as dst_country,
-			decisions.decision as category
+			categories.name as category
 		`).
 		Joins("LEFT JOIN devices ON sessions.device_id = devices.id").
 		Joins("LEFT JOIN sources ON sessions.src_id = sources.id").
 		Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
-		Joins("LEFT JOIN decisions ON domains.decision_id = decisions.id")
+		Joins("LEFT JOIN urls ON domains.id = urls.domain_id").
+		Joins("LEFT JOIN categories ON domains.category_id = categories.id")
 
 	// Применяем временной диапазон
 	if tr != nil && !tr.From.IsZero() && !tr.To.IsZero() {
@@ -45,10 +45,10 @@ func (r *RepoPG) GetSessions(ctx context.Context, tr *trparser.TimeRange, f mode
 
 	// Применяем фильтры
 	if f.HostName != "" {
-		query = query.Where("devices.host_name ILIKE ?", "%"+f.HostName+"%")
+		query = query.Where("devices.host_name = ?", f.HostName)
 	}
 	if f.Category != "" {
-		query = query.Where("decisions.decision ILIKE ?", "%"+f.Category+"%")
+		query = query.Where("categories.name = ?", f.Category)
 	}
 	if f.Type != "" {
 		query = query.Where("sessions.type = ?", f.Type)
@@ -58,7 +58,7 @@ func (r *RepoPG) GetSessions(ctx context.Context, tr *trparser.TimeRange, f mode
 	if search != "" {
 		searchPattern := "%" + strings.ToLower(search) + "%"
 		query = query.Where(
-			"LOWER(sessions.url) LIKE ? OR LOWER(sources.username) LIKE ?",
+			"LOWER(urls.path) LIKE ? OR LOWER(sources.username) LIKE ?",
 			searchPattern, searchPattern,
 		)
 	}

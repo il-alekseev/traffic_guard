@@ -15,10 +15,10 @@ func (r *RepoPG) GetTopCategories(ctx context.Context, tr *trparser.TimeRange, f
 	var categories []dto.Category
 
 	query := r.db.GetDB().WithContext(ctx).Table("sessions").
-		Select("decisions.decision as name, COUNT(*) as access_count").
+		Select("categories.name as name, COUNT(*) as access_count").
 		Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
-		Joins("LEFT JOIN decisions ON domains.decision_id = decisions.id").
-		Where("decisions.decision IS NOT NULL AND decisions.decision != ''")
+		Joins("LEFT JOIN categories ON domains.category_id = categories.id").
+		Where("categories.name IS NOT NULL AND categories.name != 'Неизвестный класс'")
 
 	// Применяем временной диапазон
 	if tr != nil && !tr.From.IsZero() && !tr.To.IsZero() {
@@ -37,7 +37,7 @@ func (r *RepoPG) GetTopCategories(ctx context.Context, tr *trparser.TimeRange, f
 	}
 
 	err := query.
-		Group("decisions.decision").
+		Group("categories.name").
 		Order("access_count DESC").
 		Limit(count).
 		Find(&categories).Error

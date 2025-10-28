@@ -1,20 +1,21 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type Session struct {
 	ID          uint      `gorm:"primaryKey;autoIncrement" json:"id"`
 	DatetimeUTC time.Time `gorm:"type:timestamp;not null;index" json:"datetime_utc"`
 	DeviceID    uint      `gorm:"type:integer;not null;index" json:"device_id"`
 	Type        string    `gorm:"type:varchar(255);not null" json:"type"`
-	// TODO: брать из домена
-	//StatusID    uint      `gorm:"type:integer;not null;index" json:"status_id"`
-	Status   string `gorm:"type:text;not null" json:"status"`
-	URL      string `gorm:"type:text" json:"url"`
-	IP       string `gorm:"type:varchar(45);not null" json:"ip"`
-	DomainID uint   `gorm:"type:integer;not null;index" json:"domain_id"`
-	SrcID    uint   `gorm:"type:integer;not null;index" json:"src_id"`
-	Proto    string `gorm:"type:varchar(10);not null" json:"proto"`
+	Status      string    `gorm:"type:text;not null" json:"status"`
+	IP          string    `gorm:"type:varchar(45);not null" json:"ip"`
+	URLID       uint      `gorm:"type:integer;not null;index" json:"url_id"`
+	DomainID    uint      `gorm:"type:integer;not null;index" json:"domain_id"`
+	SrcID       uint      `gorm:"type:integer;not null;index" json:"src_id"`
 }
 
 // Device представляет таблицу device
@@ -27,9 +28,54 @@ type Device struct {
 type Source struct {
 	ID       uint   `gorm:"primaryKey" json:"id"`
 	IP       string `gorm:"type:varchar" json:"ip"`
-	Port     int    `gorm:"type:integer" json:"port"`
 	Country  string `gorm:"type:varchar" json:"country"`
 	Username string `gorm:"type:varchar" json:"username"`
+}
+
+// Domain представляет таблицу domain
+type Domain struct {
+	ID            uint      `gorm:"primaryKey" json:"id"`
+	IP            string    `gorm:"type:varchar" json:"ip"`
+	Port          int       `gorm:"type:integer" json:"port"`
+	Country       string    `gorm:"type:varchar" json:"country"`
+	Path          string    `gorm:"type:varchar" json:"path"`
+	CategoryID    int       `gorm:"type:integer;default:1" json:"category_id"`
+	CategorizedAt time.Time `gorm:"type:timestamp;" json:"categorized_at"`
+	ActionID      uint      `gorm:"column:action_id;default:0" json:"action_id"`
+	AnalysisCount uint      `gorm:"column:analysis_count;default:0" json:"analysis_count"`
+}
+
+// Action представляет таблицу action
+type Action struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	Action    string    `gorm:"type:varchar" json:"action"`
+	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
+	CreatedBy string    `gorm:"column:created_by" json:"created_by"`
+}
+
+type DomainControlLists struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	DomainID  uint      `gorm:"type:integer;not null;index" json:"domain_id"`
+	CreatedAt time.Time `gorm:"type:timestamp;not null;" json:"created_at"`
+	Type      string    `gorm:"type:varchar;not null;" json:"type"`
+}
+
+type URL struct {
+	ID               uint      `gorm:"primaryKey" json:"id"`
+	Path             string    `gorm:"type:varchar" json:"path"`
+	Proto            string    `gorm:"type:varchar(10);not null" json:"proto"`
+	DomainID         uint      `gorm:"type:integer;not null;index" json:"domain_id"`
+	PutKafkaDateTime time.Time `gorm:"column:put_kafka_datetime" json:"put_kafka_datetime"`
+	//RequestID        uuid.UUID `gorm:"type:uuid;uniqueIndex" json:"request_id"`
+	// TODO:  Временно! отладить, почему requestID повторяется!
+	RequestID uuid.UUID `gorm:"type:uuid;" json:"request_id"`
+}
+
+// Category представляет категорию в базе данных
+type Category struct {
+	ID   uint   `gorm:"primaryKey;autoIncrement" json:"id"`
+	Name string `gorm:"type:varchar(255);not null;uniqueIndex" json:"name"`
+	Type string `gorm:"type:varchar(20);not null;default:'neutral'" json:"type"`
 }
 
 type Notification struct {

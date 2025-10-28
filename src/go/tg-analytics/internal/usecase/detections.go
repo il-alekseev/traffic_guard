@@ -58,10 +58,10 @@ func (u *Usecase) GetDetectionStat(ctx context.Context, tr *trparser.TimeRange, 
 
 	u.l.InfoContext(ctx, "detection stat retrieved",
 		slog.String("method", method),
-		slog.Int("Detected", stat.Detected),
-		slog.Int("Accepted", stat.Accepted),
-		slog.Int("Denied", stat.Denied),
-		slog.Int("Unresolved", stat.Unresolved),
+		slog.Int64("Detected", stat.Detected),
+		slog.Int64("Allowed", stat.Allowed),
+		slog.Int64("Denied", stat.Denied),
+		slog.Int64("Unresolved", stat.Unresolved),
 	)
 	return stat, nil
 }

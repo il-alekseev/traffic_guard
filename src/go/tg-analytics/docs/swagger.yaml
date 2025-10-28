@@ -1,5 +1,28 @@
 basePath: /
 definitions:
+  dto.Detection:
+    properties:
+      action:
+        type: string
+      categorized_at:
+        type: string
+      category:
+        type: string
+      description:
+        type: string
+      domain:
+        type: string
+      host_name:
+        type: string
+      ip:
+        type: string
+      location:
+        type: string
+      port:
+        type: integer
+      request_count:
+        type: integer
+    type: object
   dto.DetectionStat:
     properties:
       accepted:
@@ -17,10 +40,25 @@ definitions:
         description: Описание ошибки
         type: string
     type: object
-  dto.ListResponse:
+  dto.GetDetectionsResponse:
     properties:
       data:
-        description: Список однотипных данных
+        description: Список выявлений
+        items:
+          $ref: '#/definitions/dto.Detection'
+        type: array
+      meta:
+        allOf:
+        - $ref: '#/definitions/dto.PaginationMeta'
+        description: Метаданные пагинации
+    type: object
+  dto.GetSessionsResponse:
+    properties:
+      data:
+        description: Список сессий
+        items:
+          $ref: '#/definitions/dto.Session'
+        type: array
       meta:
         allOf:
         - $ref: '#/definitions/dto.PaginationMeta'
@@ -40,6 +78,37 @@ definitions:
       total:
         description: Общее количество элементов
         type: integer
+    type: object
+  dto.Session:
+    properties:
+      category:
+        type: string
+      datetime_utc:
+        type: string
+      dst_country:
+        type: string
+      dst_ip:
+        type: string
+      dst_port:
+        type: integer
+      host_name:
+        type: string
+      id:
+        type: integer
+      proto:
+        type: string
+      src_country:
+        type: string
+      src_ip:
+        type: string
+      status:
+        type: string
+      type:
+        type: string
+      url:
+        type: string
+      username:
+        type: string
     type: object
   dto.SuccessResponse:
     properties:
@@ -327,7 +396,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       summary: Получить статистику запросов
       tags:
-      - dashboards
+      - not implemented
   /api/v1/dashboards/resources:
     get:
       description: Получение топ ресурсов с указанием количества обращений за указанный
@@ -422,7 +491,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Получить топ категорий сессий
+      summary: Получение списка самых запрашиваемых категорий
       tags:
       - dashboards
   /api/v1/dashboards/traffic:
@@ -472,8 +541,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Возвращает список наиболее частых детекций за указанный временной
-        период с пагинацией
+      description: Возвращает список выявлений за указанный временной период с пагинацией
+        и фильтрацией
       parameters:
       - default: now-10m
         description: 'Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)'
@@ -505,8 +574,7 @@ paths:
         - Прокси и анонимайзеры
         - Реестр запрещенных сайтов
         - Сайты для взрослых
-        - Сайты
-        - распространяющие вирусы
+        - Сайты распространяющие вирусы
         - Социальные сети
         - Торренты и Р2Р-сети
         - Файловые архивы
@@ -545,24 +613,23 @@ paths:
         "200":
           description: Успешный ответ
           schema:
-            $ref: '#/definitions/dto.ListResponse'
+            $ref: '#/definitions/dto.GetDetectionsResponse'
         "400":
           description: Неверный формат параметров
           schema:
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
         "500":
           description: Внутренняя ошибка сервера
           schema:
-            type: object
-      summary: Получить список топ выявлений
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Получение списка выявлений
       tags:
       - detections
   /api/v1/detections/stat:
     get:
       consumes:
       - application/json
-      description: Возвращает статистику детекций по категориям (обнаружено, принято,
-        отклонено, неразрешено) за указанный период
+      description: Возвращает статистику выявлений за указанный период с фильтрацией
       parameters:
       - default: now-10m
         description: 'Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)'
@@ -594,8 +661,7 @@ paths:
         - Прокси и анонимайзеры
         - Реестр запрещенных сайтов
         - Сайты для взрослых
-        - Сайты
-        - распространяющие вирусы
+        - Сайты распространяющие вирусы
         - Социальные сети
         - Торренты и Р2Р-сети
         - Файловые архивы
@@ -625,16 +691,12 @@ paths:
         "400":
           description: Неверный формат временного диапазона
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
         "500":
           description: Ошибка при получении статистики выявлений
           schema:
-            additionalProperties:
-              type: string
-            type: object
-      summary: Получение статистики по детекциям
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Получение статистики по выявлениям
       tags:
       - detections
   /api/v1/devices:
@@ -685,13 +747,14 @@ paths:
         type: string
       - description: Фильтр по категории
         enum:
+        - Неизвестный класс
         - Агрессия
         - расизм
         - терроризм
         - Ботнеты
         - Веб-почта
         - Досуг и развлечения
-        - Интернет-магазины
+        - Интернет магазины
         - Компьютерные игры
         - Криптомайнинг
         - Наркотики
@@ -699,24 +762,22 @@ paths:
         - Прокси и анонимайзеры
         - Реестр запрещенных сайтов
         - Сайты для взрослых
-        - Сайты
-        - распространяющие вирусы
+        - Сайты распространяющие вирусы
         - Социальные сети
         - Торренты и Р2Р-сети
         - Файловые архивы
         - Фильмы и видео онлайн
         - Фишинг
         - Чаты и мессенджеры
-        - Дополнительно
         - Криптоджекинг
         - Реклама
         - Онлайн-игры
         - Игровые платформы
         - Вредоносное ПО
         - Азартные игры
-        - Депресивный контент и суицид
-        - Алкоголь
-        - табак
+        - Депрессивный контент
+        - Алкоголь и табак
+        - Положительная категория
         in: query
         name: category
         type: string
@@ -729,7 +790,7 @@ paths:
         in: query
         name: type
         type: string
-      - description: Поиск по частичному совпадению
+      - description: Поиск по URL или имени пользователя
         in: query
         name: search
         type: string
@@ -746,7 +807,7 @@ paths:
         minimum: 1
         name: limit
         type: integer
-      - default: id
+      - default: datetime_utc
         description: Поле для сортировки
         enum:
         - id
@@ -757,7 +818,6 @@ paths:
         - proto
         - host_name
         - src_ip
-        - src_port
         - src_country
         - username
         - dst_ip
@@ -781,7 +841,7 @@ paths:
         "200":
           description: Успешный ответ
           schema:
-            $ref: '#/definitions/dto.ListResponse'
+            $ref: '#/definitions/dto.GetSessionsResponse'
         "400":
           description: Неверный формат параметров
           schema:
@@ -790,7 +850,7 @@ paths:
           description: Внутренняя ошибка сервера
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Получить список сессий
+      summary: Получение списка сессий
       tags:
       - sessions
   /api/v1/version:

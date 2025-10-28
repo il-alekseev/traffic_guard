@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 	"tg-an/internal/controllers/http/v1/dto"
-	"tg-an/internal/models"
+	models "tg-an/internal/models"
+	pkg "tg-an/pkg/models"
 	"tg-an/pkg/trparser"
 )
 
@@ -13,55 +14,51 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 	var detections []dto.Detection
 	var total int64
 
-	// Базовый запрос с джойнами
+	// TODO: пока поле "Описание" дублирует категорию
 	query := r.db.GetDB().WithContext(ctx).Table("sessions").
 		Select(`
 			domains.ip,
 			domains.port,
-			domains.country,
-			domains.path as url,
-			COUNT(*) as access_count,
+			domains.country as location,
+			domains.path as domain,
+			domains.categorized_at as categorized_at,
+			COUNT(*) as request_count,
 			devices.host_name,
-			decisions.decision as category,
-			domains.path as description,
-			decisions.decision,
-			MAX(sessions.datetime_utc) as last_access_datetime
+			categories.name as category,
+			categories.name as description,
+			actions.action as action
 		`).
 		Joins("LEFT JOIN devices ON sessions.device_id = devices.id").
 		Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
-		Joins("LEFT JOIN decisions ON domains.decision_id = decisions.id").
-		Where("domains.ip IS NOT NULL AND domains.ip != ''")
+		Joins("LEFT JOIN actions ON domains.action_id = actions.id").
+		Joins("LEFT JOIN categories ON domains.category_id = categories.id").
+		Where("categories.type = ?", pkg.CategoryTypeNegative.String())
 
 	// Применяем временной диапазон
-	if tr != nil && !tr.From.IsZero() && !tr.To.IsZero() {
+	if tr != nil && !tr.To.IsZero() {
 		query = query.Where("sessions.datetime_utc BETWEEN ? AND ?", tr.From, tr.To)
 	}
 
 	// Применяем фильтры
 	if f.HostName != "" {
-		query = query.Where("devices.host_name ILIKE ?", "%"+f.HostName+"%")
+		query = query.Where("devices.host_name = ?", f.HostName)
 	}
 	if f.TopCategory != "" {
-		query = query.Where("decisions.decision ILIKE ?", "%"+f.TopCategory+"%")
+		query = query.Where("categories.name = ?", f.TopCategory)
 	}
 
 	// Группируем по уникальным детекциям
 	query = query.Group(`
-		domains.ip, 
-		domains.port, 
-		domains.country, 
-		domains.path, 
-		devices.host_name, 
-		decisions.decision
+		domains.ip, domains.port, domains.country, domains.path, domains.categorized_at,
+		devices.host_name, categories.name, actions.action
 	`)
-
 	// Получаем общее количество записей (до пагинации)
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to count detections: %w", err)
 	}
 
-	// Сортируем по количеству доступов (по убыванию) и последнему доступу
-	query = query.Order("access_count DESC, last_access_datetime DESC")
+	// Сортируем по количеству доступов (по убыванию) и по времени определения категории
+	query = query.Order("request_count DESC, categorized_at DESC")
 
 	// Применяем пагинацию
 	if p.Limit > 0 {
@@ -82,70 +79,46 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 
 // GetDetectionStat возвращает статистику по детекциям
 func (r *RepoPG) GetDetectionStat(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter) (dto.DetectionStat, error) {
-	var stat dto.DetectionStat
-
+	var result dto.DetectionStat
 	// Базовый запрос
 	query := r.db.GetDB().WithContext(ctx).Table("sessions").
 		Joins("LEFT JOIN devices ON sessions.device_id = devices.id").
 		Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
-		Joins("LEFT JOIN decisions ON domains.decision_id = decisions.id").
-		Where("domains.ip IS NOT NULL AND domains.ip != ''")
+		Joins("LEFT JOIN actions ON domains.action_id = actions.id").
+		Joins("LEFT JOIN categories ON domains.category_id = categories.id").
+		Where("categories.type = ?", pkg.CategoryTypeNegative.String())
 
 	// Применяем временной диапазон
-	if tr != nil && !tr.From.IsZero() && !tr.To.IsZero() {
+	if tr != nil && !tr.To.IsZero() {
 		query = query.Where("sessions.datetime_utc BETWEEN ? AND ?", tr.From, tr.To)
 	}
 
 	// Применяем фильтры
 	if f.HostName != "" {
-		query = query.Where("devices.host_name ILIKE ?", "%"+f.HostName+"%")
+		query = query.Where("devices.host_name = ?", f.HostName)
 	}
 	if f.TopCategory != "" {
-		query = query.Where("decisions.decision ILIKE ?", "%"+f.TopCategory+"%")
+		query = query.Where("categories.name = ?", f.TopCategory)
 	}
 
-	// Подсчитываем статистику за один запрос
-	var result struct {
-		Total      int64
-		Accepted   int64
-		Denied     int64
-		Unresolved int64
+	// Подсчитываем все выявления (уникальные по domains.id)
+	detectedQuery := query.Select("COUNT(DISTINCT domains.id)")
+	if err := detectedQuery.Count(&result.Detected).Error; err != nil {
+		return result, fmt.Errorf("failed to get detected events: %w", err)
 	}
 
-	err := query.
-		Select(`
-			COUNT(*) as total,
-			SUM(CASE 
-				WHEN LOWER(decisions.decision) LIKE '%accept%' OR 
-					 LOWER(decisions.decision) LIKE '%allow%' THEN 1 
-				ELSE 0 
-			END) as accepted,
-			SUM(CASE 
-				WHEN LOWER(decisions.decision) LIKE '%deny%' OR 
-					 LOWER(decisions.decision) LIKE '%block%' OR 
-					 LOWER(decisions.decision) LIKE '%malware%' THEN 1 
-				ELSE 0 
-			END) as denied,
-			SUM(CASE 
-				WHEN LOWER(decisions.decision) LIKE '%unresolved%' OR 
-					 LOWER(decisions.decision) LIKE '%unknown%' OR
-					 decisions.decision IS NULL OR 
-					 decisions.decision = '' THEN 1 
-				ELSE 0 
-			END) as unresolved
-		`).
-		Scan(&result).Error
-
-	if err != nil {
-		return stat, fmt.Errorf("failed to get detection statistics: %w", err)
+	// Подсчитываем разрешенные выявления
+	allowedQuery := detectedQuery.Where("actions.action = ?", pkg.ActionTypeAllowed.String())
+	if err := allowedQuery.Count(&result.Allowed).Error; err != nil {
+		return result, fmt.Errorf("failed to get accepted events: %w", err)
 	}
 
-	stat = dto.DetectionStat{
-		Detected:   int(result.Total),
-		Accepted:   int(result.Accepted),
-		Denied:     int(result.Denied),
-		Unresolved: int(result.Unresolved),
+	// Подсчитываем запрещенные выявления
+	deniedQuery := detectedQuery.Where("actions.action = ?", pkg.ActionTypeDenied.String())
+	if err := deniedQuery.Count(&result.Denied).Error; err != nil {
+		return result, fmt.Errorf("failed to get denied events: %w", err)
 	}
-
-	return stat, nil
+	// Вычисляем неразрешенны
+	result.Unresolved = result.Detected - result.Allowed - result.Denied
+	return result, nil
 }

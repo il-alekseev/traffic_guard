@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"tg-an/internal/controllers/http/v1/dto"
+	"tg-an/internal/controllers/http/v1/validation"
 	"tg-an/internal/models"
 	"tg-an/internal/pkg/status"
 	"tg-an/pkg/trparser"
@@ -28,7 +29,7 @@ func (s *Server) Version(c *gin.Context) {
 	s.l.Debug("version")
 }
 
-// @Summary Получить список сессий
+// @Summary Получение списка сессий
 // @Description Возвращает список сессий с возможностью фильтрации, поиска, сортировки и пагинации
 // @Tags sessions
 // @Accept json
@@ -36,92 +37,79 @@ func (s *Server) Version(c *gin.Context) {
 // @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z). По умолчанию: now-10m" default(now-10m)
 // @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z). По умолчанию: now" default(now)
 // @Param hostname query string false "Фильтр по имени хоста"
-// @Param category query string false "Фильтр по категории" Enums(Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет-магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты, распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Дополнительно, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депресивный контент и суицид, Алкоголь, табак)
+// @Param category query string false "Фильтр по категории" Enums(Неизвестный класс, Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депрессивный контент, Алкоголь и табак, Положительная категория)
 // @Param type query string false "Фильтр по типу сессии" Enums(Заблокирован, Запрещен, Ожидает, Разрешен)
-// @Param search query string false "Поиск по частичному совпадению"
+// @Param search query string false "Поиск по URL или имени пользователя"
 // @Param page query int false "Номер страницы" default(1) minimum(1)
 // @Param limit query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
-// @Param order_by query string false "Поле для сортировки" default(id) Enums(id, datetime_utc, type, status, url, proto, host_name, src_ip, src_port, src_country, username, dst_ip, dst_port, dst_country, category)
+// @Param order_by query string false "Поле для сортировки" default(datetime_utc) Enums(id, datetime_utc, type, status, url, proto, host_name, src_ip, src_country, username, dst_ip, dst_port, dst_country, category)
 // @Param order_dir query string false "Направление сортировки (asc/desc)" default(desc) Enums(asc, desc)
-// @Success 200 {object} dto.ListResponse "Успешный ответ"
+// @Success 200 {object} dto.GetSessionsResponse "Успешный ответ"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/sessions [get]
 func (s *Server) GetSessions(c *gin.Context) {
-	// Парсим временные метки
-	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
-	to := c.DefaultQuery("to", "now")
-
+	// Получение данных запроса
+	var req validation.GetSessionsRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("Invalid query parameters: %v", err),
+		})
+		return
+	}
+	// Нормализация и валидация
+	if err := req.ValidateAndNormalize(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	// Парсим временной диапазон
 	parser := &trparser.TimeRangeParser{}
 	now := time.Now()
-	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", from, to), now)
+	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", req.From, req.To), now)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Неверный формат временного диапазона",
 		})
 		return
 	}
-
-	// Парсим по фильтрам
+	// Преобразуем в доменные модели
 	filter := models.SessionFilter{
-		HostName: c.DefaultQuery("hostname", ""),
-		Category: c.DefaultQuery("category", ""),
-		Type:     c.DefaultQuery("type", ""),
-	}
-
-	// Парсим параметры для поиска по части названия
-	search := c.DefaultQuery("search", "")
-
-	// Парсим параметры для пагинации
-	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат page",
-		})
-		return
-	}
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат limit",
-		})
-		return
+		HostName: req.HostName,
+		Category: req.Category,
+		Type:     req.Type,
 	}
 	pagination := models.Pagination{
-		Page:  page,
-		Limit: limit,
+		Page:  req.Page,
+		Limit: req.Limit,
 	}
-
-	// Парсим параметры для сортировки
-	// TODO: добавить валидацию по названию колонки
-	orderBy := c.DefaultQuery("order_by", "id")
-	orderDir := c.DefaultQuery("order_dir", "desc")
 	sorting := models.Sorting{
-		OrderBy:  orderBy,
-		OrderDir: orderDir,
+		OrderBy:  req.OrderBy,
+		OrderDir: req.OrderDir,
 	}
-
-	sessions, total, err := s.u.GetSessions(c, timeRange, filter, search, pagination, sorting)
+	// Получаем данные из usecase
+	sessions, total, err := s.u.GetSessions(c, timeRange, filter, req.Search, pagination, sorting)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "ошибка при получении сессий",
 		})
 		return
 	}
-
+	// Формируем ответ
 	response := dto.ListResponse{
 		Data: sessions,
 		Meta: dto.PaginationMeta{
-			Page:  page,
-			Limit: limit,
+			Page:  req.Page,
+			Limit: req.Limit,
 			Total: total,
-			Pages: int(math.Ceil(float64(total) / float64(limit))),
+			Pages: int(math.Ceil(float64(total) / float64(req.Limit))),
 		},
 	}
 	c.JSON(http.StatusOK, response)
 }
 
-// @Summary Получить топ категорий сессий
+// @Summary Получение списка самых запрашиваемых категорий
 // @Description Возвращает наиболее часто встречаемые категории в сессиях с возможностью фильтрации
 // @Tags dashboards
 // @Accept json
@@ -136,151 +124,172 @@ func (s *Server) GetSessions(c *gin.Context) {
 // @Failure 500 {object} dto.ErrorResponse
 // @Router /api/v1/dashboards/top-categories [get]
 func (s *Server) GetTopCategories(c *gin.Context) {
-	// Парсим временные метки
-	from := c.DefaultQuery("from", "now-10m")
-	to := c.DefaultQuery("to", "now")
-
+	// Валидация запроса
+	var req validation.GetTopCategoriesRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("Invalid query parameters: %v", err),
+		})
+		return
+	}
+	// Нормализация и валидация
+	if err := req.ValidateAndNormalize(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	// Парсим временной диапазон
 	parser := &trparser.TimeRangeParser{}
 	now := time.Now()
-	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", from, to), now)
+	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", req.From, req.To), now)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Неверный формат временного диапазона",
 		})
 		return
 	}
-
-	// Парсим фильтры
+	// Преобразуем в доменные модели
 	filter := models.CategoryFilter{
-		HostName: c.DefaultQuery("hostname", ""),
-		Type:     c.DefaultQuery("type", ""),
+		HostName: req.HostName,
+		Type:     req.Type,
 	}
-
-	// Парсим количество категорий
-	count, err := strconv.Atoi(c.DefaultQuery("count", "5"))
-	if err != nil || count <= 0 {
-		count = 5
-	}
-	if count > 50 {
-		count = 50 // ограничение для защиты от больших запросов
-	}
-
-	categories, err := s.u.GetTopCategories(c.Request.Context(), timeRange, filter, count)
+	// Получаем данные из usecase
+	categories, err := s.u.GetTopCategories(c.Request.Context(), timeRange, filter, req.Count)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Ошибка при получении топ категорий",
 		})
 		return
 	}
-
 	c.JSON(http.StatusOK, categories)
 }
 
-// @Summary Получить список топ выявлений
-// @Description Возвращает список наиболее частых детекций за указанный временной период с пагинацией
+// @Summary Получение списка выявлений
+// @Description Возвращает список выявлений за указанный временной период с пагинацией и фильтрацией
 // @Tags detections
 // @Accept json
 // @Produce json
 // @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)" default(now-10m)
 // @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T11:00:00Z)" default(now)
 // @Param hostname query string false "Фильтр по имени хоста"
-// @Param category query string false "Фильтр по категории" Enums(Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет-магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты, распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Дополнительно, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депресивный контент и суицид, Алкоголь, табак)
+// @Param category query string false "Фильтр по категории" Enums(Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет-магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Дополнительно, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депресивный контент и суицид, Алкоголь, табак)
 // @Param page query int false "Номер страницы" default(1) minimum(1)
 // @Param limit query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
-// @Success 200 {object} dto.ListResponse "Успешный ответ"
-// @Failure 400 {object} object "Неверный формат параметров"
-// @Failure 500 {object} object "Внутренняя ошибка сервера"
+// @Success 200 {object} dto.GetDetectionsResponse "Успешный ответ"
+// @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
+// @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/detections [get]
 func (s *Server) GetTopDetections(c *gin.Context) {
-	// Парсим временные метки
-	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
-	to := c.DefaultQuery("to", "now")
+	// Валидация запроса
+	var req validation.GetTopDetectionsRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("Invalid query parameters: %v", err),
+		})
+		return
+	}
 
+	// Нормализация и валидация
+	if err := req.ValidateAndNormalize(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	// Парсим временной диапазон
 	parser := &trparser.TimeRangeParser{}
 	now := time.Now()
-	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", from, to), now)
+	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", req.From, req.To), now)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Неверный формат временного диапазона",
 		})
 		return
 	}
-	// Парсим фильтры
+
+	// Преобразуем в доменные модели
 	filter := models.DetectionFilter{
-		HostName:    c.DefaultQuery("hostname", ""),
-		TopCategory: c.DefaultQuery("category", ""),
+		HostName:    req.HostName,
+		TopCategory: req.Category,
 	}
-	// Парсим параметры для пагинации
-	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат page",
-		})
-		return
-	}
-	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат limit",
-		})
-		return
-	}
+
 	pagination := models.Pagination{
-		Page:  page,
-		Limit: limit,
+		Page:  req.Page,
+		Limit: req.Limit,
 	}
+
+	// Получаем данные из usecase
 	detections, total, err := s.u.GetTopDetections(c, timeRange, filter, pagination)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "ошибка при получении сессий",
+			"error": "ошибка при получении списка выявлений",
 		})
 		return
 	}
 
-	response := dto.ListResponse{
+	// Формируем ответ
+	response := dto.GetDetectionsResponse{
 		Data: detections,
 		Meta: dto.PaginationMeta{
-			Page:  page,
-			Limit: limit,
+			Page:  req.Page,
+			Limit: req.Limit,
 			Total: total,
-			Pages: int(math.Ceil(float64(total) / float64(limit))),
+			Pages: int(math.Ceil(float64(total) / float64(req.Limit))),
 		},
 	}
 	c.JSON(http.StatusOK, response)
 }
 
-// @Summary Получение статистики по детекциям
-// @Description Возвращает статистику детекций по категориям (обнаружено, принято, отклонено, неразрешено) за указанный период
+// @Summary Получение статистики по выявлениям
+// @Description Возвращает статистику выявлений за указанный период с фильтрацией
 // @Tags detections
 // @Accept json
 // @Produce json
 // @Param from query string false "Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)" default(now-10m)
 // @Param to query string false "Конец временного диапазона (формат: now, 2024-01-01T00:00:00Z)" default(now)
 // @Param hostname query string false "Фильтр по имени хоста"
-// @Param category query string false "Фильтр по категории" Enums(Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет-магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты, распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Дополнительно, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депресивный контент и суицид, Алкоголь, табак)
+// @Param category query string false "Фильтр по категории" Enums(Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет-магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Дополнительно, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депресивный контент и суицид, Алкоголь, табак)
 // @Success 200 {object} dto.DetectionStat "Статистика детекций"
-// @Failure 400 {object} map[string]string "Неверный формат временного диапазона"
-// @Failure 500 {object} map[string]string "Ошибка при получении статистики выявлений"
+// @Failure 400 {object} dto.ErrorResponse "Неверный формат временного диапазона"
+// @Failure 500 {object} dto.ErrorResponse "Ошибка при получении статистики выявлений"
 // @Router /api/v1/detections/stat [get]
 func (s *Server) GetDetectionStat(c *gin.Context) {
-	// Парсим временные метки
-	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
-	to := c.DefaultQuery("to", "now")
+	var req validation.GetDetectionStatRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("Invalid query parameters: %v", err),
+		})
+		return
+	}
 
+	// Нормализация и валидация
+	if err := req.ValidateAndNormalize(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	// Парсим временной диапазон
 	parser := &trparser.TimeRangeParser{}
 	now := time.Now()
-	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", from, to), now)
+	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", req.From, req.To), now)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Неверный формат временного диапазона",
 		})
 		return
 	}
-	// Парсим фильтры
+
+	// Преобразуем в доменные модели
 	filter := models.DetectionFilter{
-		HostName:    c.DefaultQuery("hostname", ""),
-		TopCategory: c.DefaultQuery("category", ""),
+		HostName:    req.HostName,
+		TopCategory: req.Category,
 	}
+
+	// Получаем данные из usecase
 	stat, err := s.u.GetDetectionStat(c, timeRange, filter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -288,12 +297,13 @@ func (s *Server) GetDetectionStat(c *gin.Context) {
 		})
 		return
 	}
+
 	c.JSON(http.StatusOK, stat)
 }
 
 // @Summary Получить статистику запросов
 // @Description Возвращает статистику запросов за указанный период с фильтрацией по статусу, хосту и категории
-// @Tags dashboards
+// @Tags not implemented
 // @Accept json
 // @Produce json
 // @Param from query string false "Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)" default(now-10m)

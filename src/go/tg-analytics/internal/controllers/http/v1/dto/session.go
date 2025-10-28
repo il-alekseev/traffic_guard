@@ -11,7 +11,6 @@ type Session struct {
 	Proto       string    `json:"proto"`
 	HostName    string    `json:"host_name"`
 	SrcIP       string    `json:"src_ip"`
-	SrcPort     int       `json:"src_port"`
 	SrcCountry  string    `json:"src_country"`
 	Username    string    `json:"username"`
 	DstIP       string    `json:"dst_ip"`
@@ -26,26 +25,36 @@ type Category struct {
 }
 
 type Detection struct {
-	IP                 string    `json:"ip"`
-	Port               int       `json:"port"`
-	Country            string    `json:"country"`
-	Path               string    `json:"path"`
-	AccessCount        int       `json:"access_count"`
-	HostName           string    `json:"host_name"`
-	Category           string    `json:"category"`
-	Description        string    `json:"description"`
-	Decision           string    `json:"decision"`
-	LastAccessDatetime time.Time `json:"last_access_datetime"`
+	IP            string    `json:"ip"`
+	Port          int       `json:"port"`
+	Location      string    `json:"location"`
+	Domain        string    `json:"domain"`
+	RequestCount  int       `json:"request_count"`
+	HostName      string    `json:"host_name"`
+	Category      string    `json:"category"`
+	Description   string    `json:"description"`
+	Action        string    `json:"action"`
+	CategorizedAt time.Time `json:"categorized_at"`
 }
 
 type DetectionStat struct {
-	Detected   int `json:"detected"`
-	Accepted   int `json:"accepted"`
-	Denied     int `json:"denied"`
-	Unresolved int `json:"unresolved"`
+	Detected   int64 `json:"detected"`
+	Allowed    int64 `json:"accepted"`
+	Denied     int64 `json:"denied"`
+	Unresolved int64 `json:"unresolved"`
 }
 
 type RequestPoint struct {
 	Date  time.Time `json:"date"`
 	Value int       `json:"value"`
+}
+
+type GetSessionsResponse struct {
+	Data []Session      `json:"data"` // Список сессий
+	Meta PaginationMeta `json:"meta"` // Метаданные пагинации
+}
+
+type GetDetectionsResponse struct {
+	Data []Detection    `json:"data"` // Список выявлений
+	Meta PaginationMeta `json:"meta"` // Метаданные пагинации
 }

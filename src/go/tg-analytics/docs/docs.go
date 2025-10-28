@@ -203,7 +203,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dashboards"
+                    "not implemented"
                 ],
                 "summary": "Получить статистику запросов",
                 "parameters": [
@@ -376,7 +376,7 @@ const docTemplate = `{
                 "tags": [
                     "dashboards"
                 ],
-                "summary": "Получить топ категорий сессий",
+                "summary": "Получение списка самых запрашиваемых категорий",
                 "parameters": [
                     {
                         "type": "string",
@@ -506,7 +506,7 @@ const docTemplate = `{
         },
         "/api/v1/detections": {
             "get": {
-                "description": "Возвращает список наиболее частых детекций за указанный временной период с пагинацией",
+                "description": "Возвращает список выявлений за указанный временной период с пагинацией и фильтрацией",
                 "consumes": [
                     "application/json"
                 ],
@@ -516,7 +516,7 @@ const docTemplate = `{
                 "tags": [
                     "detections"
                 ],
-                "summary": "Получить список топ выявлений",
+                "summary": "Получение списка выявлений",
                 "parameters": [
                     {
                         "type": "string",
@@ -554,8 +554,7 @@ const docTemplate = `{
                             "Прокси и анонимайзеры",
                             "Реестр запрещенных сайтов",
                             "Сайты для взрослых",
-                            "Сайты",
-                            "распространяющие вирусы",
+                            "Сайты распространяющие вирусы",
                             "Социальные сети",
                             "Торренты и Р2Р-сети",
                             "Файловые архивы",
@@ -600,19 +599,19 @@ const docTemplate = `{
                     "200": {
                         "description": "Успешный ответ",
                         "schema": {
-                            "$ref": "#/definitions/dto.ListResponse"
+                            "$ref": "#/definitions/dto.GetDetectionsResponse"
                         }
                     },
                     "400": {
                         "description": "Неверный формат параметров",
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Внутренняя ошибка сервера",
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -620,7 +619,7 @@ const docTemplate = `{
         },
         "/api/v1/detections/stat": {
             "get": {
-                "description": "Возвращает статистику детекций по категориям (обнаружено, принято, отклонено, неразрешено) за указанный период",
+                "description": "Возвращает статистику выявлений за указанный период с фильтрацией",
                 "consumes": [
                     "application/json"
                 ],
@@ -630,7 +629,7 @@ const docTemplate = `{
                 "tags": [
                     "detections"
                 ],
-                "summary": "Получение статистики по детекциям",
+                "summary": "Получение статистики по выявлениям",
                 "parameters": [
                     {
                         "type": "string",
@@ -668,8 +667,7 @@ const docTemplate = `{
                             "Прокси и анонимайзеры",
                             "Реестр запрещенных сайтов",
                             "Сайты для взрослых",
-                            "Сайты",
-                            "распространяющие вирусы",
+                            "Сайты распространяющие вирусы",
                             "Социальные сети",
                             "Торренты и Р2Р-сети",
                             "Файловые архивы",
@@ -703,19 +701,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Неверный формат временного диапазона",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Ошибка при получении статистики выявлений",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -768,7 +760,7 @@ const docTemplate = `{
                 "tags": [
                     "sessions"
                 ],
-                "summary": "Получить список сессий",
+                "summary": "Получение списка сессий",
                 "parameters": [
                     {
                         "type": "string",
@@ -792,13 +784,14 @@ const docTemplate = `{
                     },
                     {
                         "enum": [
+                            "Неизвестный класс",
                             "Агрессия",
                             "расизм",
                             "терроризм",
                             "Ботнеты",
                             "Веб-почта",
                             "Досуг и развлечения",
-                            "Интернет-магазины",
+                            "Интернет магазины",
                             "Компьютерные игры",
                             "Криптомайнинг",
                             "Наркотики",
@@ -806,24 +799,22 @@ const docTemplate = `{
                             "Прокси и анонимайзеры",
                             "Реестр запрещенных сайтов",
                             "Сайты для взрослых",
-                            "Сайты",
-                            "распространяющие вирусы",
+                            "Сайты распространяющие вирусы",
                             "Социальные сети",
                             "Торренты и Р2Р-сети",
                             "Файловые архивы",
                             "Фильмы и видео онлайн",
                             "Фишинг",
                             "Чаты и мессенджеры",
-                            "Дополнительно",
                             "Криптоджекинг",
                             "Реклама",
                             "Онлайн-игры",
                             "Игровые платформы",
                             "Вредоносное ПО",
                             "Азартные игры",
-                            "Депресивный контент и суицид",
-                            "Алкоголь",
-                            "табак"
+                            "Депрессивный контент",
+                            "Алкоголь и табак",
+                            "Положительная категория"
                         ],
                         "type": "string",
                         "description": "Фильтр по категории",
@@ -844,7 +835,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Поиск по частичному совпадению",
+                        "description": "Поиск по URL или имени пользователя",
                         "name": "search",
                         "in": "query"
                     },
@@ -875,7 +866,6 @@ const docTemplate = `{
                             "proto",
                             "host_name",
                             "src_ip",
-                            "src_port",
                             "src_country",
                             "username",
                             "dst_ip",
@@ -884,7 +874,7 @@ const docTemplate = `{
                             "category"
                         ],
                         "type": "string",
-                        "default": "id",
+                        "default": "datetime_utc",
                         "description": "Поле для сортировки",
                         "name": "order_by",
                         "in": "query"
@@ -905,7 +895,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Успешный ответ",
                         "schema": {
-                            "$ref": "#/definitions/dto.ListResponse"
+                            "$ref": "#/definitions/dto.GetSessionsResponse"
                         }
                     },
                     "400": {
@@ -965,6 +955,41 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.Detection": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "categorized_at": {
+                    "type": "string"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "domain": {
+                    "type": "string"
+                },
+                "host_name": {
+                    "type": "string"
+                },
+                "ip": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "integer"
+                },
+                "request_count": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.DetectionStat": {
             "type": "object",
             "properties": {
@@ -991,11 +1016,35 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.ListResponse": {
+        "dto.GetDetectionsResponse": {
             "type": "object",
             "properties": {
                 "data": {
-                    "description": "Список однотипных данных"
+                    "description": "Список выявлений",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Detection"
+                    }
+                },
+                "meta": {
+                    "description": "Метаданные пагинации",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/dto.PaginationMeta"
+                        }
+                    ]
+                }
+            }
+        },
+        "dto.GetSessionsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Список сессий",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Session"
+                    }
                 },
                 "meta": {
                     "description": "Метаданные пагинации",
@@ -1025,6 +1074,53 @@ const docTemplate = `{
                 "total": {
                     "description": "Общее количество элементов",
                     "type": "integer"
+                }
+            }
+        },
+        "dto.Session": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "datetime_utc": {
+                    "type": "string"
+                },
+                "dst_country": {
+                    "type": "string"
+                },
+                "dst_ip": {
+                    "type": "string"
+                },
+                "dst_port": {
+                    "type": "integer"
+                },
+                "host_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "proto": {
+                    "type": "string"
+                },
+                "src_country": {
+                    "type": "string"
+                },
+                "src_ip": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         },
@@ -1153,6 +1249,8 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "API для аналитики",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
+	LeftDelim:        "{{",
+	RightDelim:       "}}",
 }
 
 func init() {
