@@ -6,7 +6,6 @@ import (
 	"api-gateway/pkg/analytics/detections"
 	"api-gateway/pkg/analytics/sessions"
 	"github.com/gin-gonic/gin"
-	"github.com/go-openapi/runtime"
 	"net/http"
 	"strconv"
 )
@@ -14,7 +13,7 @@ import (
 // getCategories -
 // @Summary Получение списка категорий контента
 // @Description Получение списка всех категорий контента
-// @Tags dashboard
+// @Tags common
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {object} []string
@@ -28,7 +27,7 @@ func (s *Server) getCategories(c *gin.Context) {
 	//	return
 	//}
 
-	resp, err := s.analyticsCL.Common.GetCategories(&common.GetCategoriesParams{}, func(operation *runtime.ClientOperation) {})
+	resp, err := s.analyticsCL.Common.GetAPIV1Categories(&common.GetAPIV1CategoriesParams{})
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -48,7 +47,8 @@ func (s *Server) getCategories(c *gin.Context) {
 // @Tags common
 // @Accept json
 // @Produce json
-// @Success 200 {array} string "Список имен устройств"
+// @Security BearerAuth
+// @Success 200 {object} []string "Список имен устройств"
 // @Failure 500 {object} models.DtoErrorResponse "Ошибка при получении имен устройств"
 // @Router /v1/analytics/devices [get]
 func (s *Server) getDevices(c *gin.Context) {
@@ -59,7 +59,7 @@ func (s *Server) getDevices(c *gin.Context) {
 	//	return
 	//}
 
-	resp, err := s.analyticsCL.Common.GetDevices(&common.GetDevicesParams{}, nil)
+	resp, err := s.analyticsCL.Common.GetAPIV1Devices(&common.GetAPIV1DevicesParams{})
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -79,13 +79,14 @@ func (s *Server) getDevices(c *gin.Context) {
 // @Tags dashboards
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param from query string false "Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)" default(now-10m)
 // @Param to query string false "Конец временного диапазона (формат: now, 2024-01-01T00:00:00Z)" default(now)
 // @Param status query string false "Статус запросов (allowed, blocked, prohibited, waiting)" default(prohibited)
 // @Param hostname query string false "Фильтр по имени хоста"
 // @Param category query string false "Фильтр по категории" Enums(Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет-магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты, распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Дополнительно, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депресивный контент и суицид, Алкоголь, табак)
 // @Param count query integer false "Количество интервалов" default(10)
-// @Success 200 {array} integer "Статистика запросов (массив чисел)"
+// @Success 200 {object} models.DtoDataPointsResponse "Статистика запросов (массив чисел)"
 // @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера"
 // @Router /v1/analytics/dashboards/requests [get]
@@ -114,21 +115,21 @@ func (s *Server) getDashboardsRequests(c *gin.Context) {
 		return
 	}
 
-	resp, err := s.analyticsCL.Dashboards.GetDashboardsRequests(&dashboards.GetDashboardsRequestsParams{
+	resp, err := s.analyticsCL.Dashboards.GetAPIV1DashboardsRequests(&dashboards.GetAPIV1DashboardsRequestsParams{
 		From:     &from,
 		To:       &to,
 		Status:   &status,
 		Hostname: &hostname,
 		Category: &category,
 		Count:    &count,
-	}, nil)
+	})
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
 			return
 		}
 
-		s.ErrorResponse(c, http.StatusBadRequest, "Dashboards.GetDashboardsRequests", err)
+		s.ErrorResponse(c, http.StatusBadRequest, "Dashboards.GetAPIV1DashboardsRequests", err)
 		return
 	}
 
@@ -141,6 +142,7 @@ func (s *Server) getDashboardsRequests(c *gin.Context) {
 // @Tags dashboards
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param from query string false "Начало временного диапазона" default(now-24h)
 // @Param to query string false "Конец временного диапазона" default(now)
 // @Param hostname query string false "Фильтр по имени хоста"
@@ -174,13 +176,13 @@ func (s *Server) getDashboardsTopCategories(c *gin.Context) {
 		return
 	}
 
-	resp, err := s.analyticsCL.Dashboards.GetDashboardsTopCategories(&dashboards.GetDashboardsTopCategoriesParams{
+	resp, err := s.analyticsCL.Dashboards.GetAPIV1DashboardsTopCategories(&dashboards.GetAPIV1DashboardsTopCategoriesParams{
 		From:     &from,
 		To:       &to,
 		Hostname: &hostname,
 		Type:     &typeStr,
 		Count:    &count,
-	}, nil)
+	})
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -200,6 +202,7 @@ func (s *Server) getDashboardsTopCategories(c *gin.Context) {
 // @Tags dashboards
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param from query string false "Начало временного диапазона в формате парсера времени (по умолчанию now-10m)" default(now-10m)
 // @Param to query string false "Конец временного диапазона в формате парсера времени (по умолчанию now)" default(now)
 // @Param count query integer false "Количество точек данных для возврата (по умолчанию 20)" minimum(1) default(20)
@@ -229,11 +232,11 @@ func (s *Server) getDashboardsTraffic(c *gin.Context) {
 		return
 	}
 
-	resp, err := s.analyticsCL.Dashboards.GetDashboardsTraffic(&dashboards.GetDashboardsTrafficParams{
+	resp, err := s.analyticsCL.Dashboards.GetAPIV1DashboardsTraffic(&dashboards.GetAPIV1DashboardsTrafficParams{
 		From:  &from,
 		To:    &to,
 		Count: &count,
-	}, nil)
+	})
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -253,6 +256,7 @@ func (s *Server) getDashboardsTraffic(c *gin.Context) {
 // @Tags detections
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)" default(now-10m)
 // @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T11:00:00Z)" default(now)
 // @Param hostname query string false "Фильтр по имени хоста"
@@ -297,14 +301,14 @@ func (s *Server) getDetections(c *gin.Context) {
 		return
 	}
 
-	resp, err := s.analyticsCL.Detections.GetDetections(&detections.GetDetectionsParams{
+	resp, err := s.analyticsCL.Detections.GetAPIV1Detections(&detections.GetAPIV1DetectionsParams{
 		From:     &from,
 		To:       &to,
 		Hostname: &hostname,
 		Category: &category,
 		Page:     &page,
 		Limit:    &limit,
-	}, nil)
+	})
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -324,6 +328,7 @@ func (s *Server) getDetections(c *gin.Context) {
 // @Tags detections
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param from query string false "Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)" default(now-10m)
 // @Param to query string false "Конец временного диапазона (формат: now, 2024-01-01T00:00:00Z)" default(now)
 // @Param hostname query string false "Фильтр по имени хоста"
@@ -346,12 +351,12 @@ func (s *Server) getDetectionsStat(c *gin.Context) {
 	hostname := c.Query("hostname")
 	category := c.Query("category")
 
-	resp, err := s.analyticsCL.Detections.GetDetectionsStat(&detections.GetDetectionsStatParams{
+	resp, err := s.analyticsCL.Detections.GetAPIV1DetectionsStat(&detections.GetAPIV1DetectionsStatParams{
 		From:     &from,
 		To:       &to,
 		Hostname: &hostname,
 		Category: &category,
-	}, nil)
+	})
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -371,6 +376,7 @@ func (s *Server) getDetectionsStat(c *gin.Context) {
 // @Tags sessions
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z). По умолчанию: now-10m" default(now-10m)
 // @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z). По умолчанию: now" default(now)
 // @Param hostname query string false "Фильтр по имени хоста"
@@ -423,7 +429,7 @@ func (s *Server) getSessions(c *gin.Context) {
 	orderBy := c.Query("order_by")
 	orderDir := c.Query("order_dir")
 
-	resp, err := s.analyticsCL.Sessions.GetSessions(&sessions.GetSessionsParams{
+	resp, err := s.analyticsCL.Sessions.GetAPIV1Sessions(&sessions.GetAPIV1SessionsParams{
 		From:     &from,
 		To:       &to,
 		Hostname: &hostname,
@@ -434,7 +440,7 @@ func (s *Server) getSessions(c *gin.Context) {
 		Limit:    &limit,
 		OrderBy:  &orderBy,
 		OrderDir: &orderDir,
-	}, nil)
+	})
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())

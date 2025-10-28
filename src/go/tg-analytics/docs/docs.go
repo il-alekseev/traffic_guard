@@ -63,6 +63,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Начало периода в timestamp",
                         "name": "start",
                         "in": "query",
@@ -70,6 +71,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Конец периода в timestamp",
                         "name": "end",
                         "in": "query",
@@ -114,6 +116,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Начало периода в timestamp",
                         "name": "start",
                         "in": "query",
@@ -121,6 +124,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Конец периода в timestamp",
                         "name": "end",
                         "in": "query",
@@ -162,6 +166,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Дата начала в timestamp",
                         "name": "start",
                         "in": "query",
@@ -286,10 +291,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Статистика запросов (массив чисел)",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
+                            "$ref": "#/definitions/dto.DataPointsResponse"
                         }
                     },
                     "400": {
@@ -320,6 +322,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Начало периода в timestamp",
                         "name": "start",
                         "in": "query",
@@ -327,6 +330,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Конец периода в timestamp",
                         "name": "end",
                         "in": "query",
@@ -965,6 +969,26 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.DataPointsResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "description": "Число точек с данными",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "Список однотипных данных",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "type": {
+                    "description": "Тип данных",
+                    "type": "string"
+                }
+            }
+        },
         "dto.DetectionStat": {
             "type": "object",
             "properties": {
@@ -1153,6 +1177,8 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "API для аналитики",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
+	//LeftDelim:        "{{",
+	//RightDelim:       "}}",
 }
 
 func init() {

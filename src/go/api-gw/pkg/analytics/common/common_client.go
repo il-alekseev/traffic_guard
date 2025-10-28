@@ -56,32 +56,32 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	GetCategories(params *GetCategoriesParams, opts ...ClientOption) (*GetCategoriesOK, error)
+	GetAPIV1Categories(params *GetAPIV1CategoriesParams, opts ...ClientOption) (*GetAPIV1CategoriesOK, error)
 
-	GetDevices(params *GetDevicesParams, opts ...ClientOption) (*GetDevicesOK, error)
+	GetAPIV1Devices(params *GetAPIV1DevicesParams, opts ...ClientOption) (*GetAPIV1DevicesOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
 
 /*
-GetCategories получитьs список категорий контента
+GetAPIV1Categories получитьs список категорий контента
 
 Возвращает список всех уникальных категорий контента из системы
 */
-func (a *Client) GetCategories(params *GetCategoriesParams, opts ...ClientOption) (*GetCategoriesOK, error) {
+func (a *Client) GetAPIV1Categories(params *GetAPIV1CategoriesParams, opts ...ClientOption) (*GetAPIV1CategoriesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewGetCategoriesParams()
+		params = NewGetAPIV1CategoriesParams()
 	}
 	op := &runtime.ClientOperation{
-		ID:                 "GetCategories",
+		ID:                 "GetAPIV1Categories",
 		Method:             "GET",
-		PathPattern:        "/categories",
+		PathPattern:        "/api/v1/categories",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &GetCategoriesReader{formats: a.formats},
+		Reader:             &GetAPIV1CategoriesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -93,35 +93,35 @@ func (a *Client) GetCategories(params *GetCategoriesParams, opts ...ClientOption
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*GetCategoriesOK)
+	success, ok := result.(*GetAPIV1CategoriesOK)
 	if ok {
 		return success, nil
 	}
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetCategories: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	msg := fmt.Sprintf("unexpected success response for GetAPIV1Categories: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 
 /*
-GetDevices получитьs список имен устройств
+GetAPIV1Devices получитьs список имен устройств
 
 Возвращает список всех уникальных имен устройств (хостов) из системы
 */
-func (a *Client) GetDevices(params *GetDevicesParams, opts ...ClientOption) (*GetDevicesOK, error) {
+func (a *Client) GetAPIV1Devices(params *GetAPIV1DevicesParams, opts ...ClientOption) (*GetAPIV1DevicesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewGetDevicesParams()
+		params = NewGetAPIV1DevicesParams()
 	}
 	op := &runtime.ClientOperation{
-		ID:                 "GetDevices",
+		ID:                 "GetAPIV1Devices",
 		Method:             "GET",
-		PathPattern:        "/devices",
+		PathPattern:        "/api/v1/devices",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &GetDevicesReader{formats: a.formats},
+		Reader:             &GetAPIV1DevicesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -133,13 +133,13 @@ func (a *Client) GetDevices(params *GetDevicesParams, opts ...ClientOption) (*Ge
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*GetDevicesOK)
+	success, ok := result.(*GetAPIV1DevicesOK)
 	if ok {
 		return success, nil
 	}
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetDevices: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	msg := fmt.Sprintf("unexpected success response for GetAPIV1Devices: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 

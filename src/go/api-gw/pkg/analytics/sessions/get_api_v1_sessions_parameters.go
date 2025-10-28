@@ -17,50 +17,50 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// NewGetSessionsParams creates a new GetSessionsParams object,
+// NewGetAPIV1SessionsParams creates a new GetAPIV1SessionsParams object,
 // with the default timeout for this client.
 //
 // Default values are not hydrated, since defaults are normally applied by the API server side.
 //
 // To enforce default values in parameter, use SetDefaults or WithDefaults.
-func NewGetSessionsParams() *GetSessionsParams {
-	return &GetSessionsParams{
+func NewGetAPIV1SessionsParams() *GetAPIV1SessionsParams {
+	return &GetAPIV1SessionsParams{
 		timeout: cr.DefaultTimeout,
 	}
 }
 
-// NewGetSessionsParamsWithTimeout creates a new GetSessionsParams object
+// NewGetAPIV1SessionsParamsWithTimeout creates a new GetAPIV1SessionsParams object
 // with the ability to set a timeout on a request.
-func NewGetSessionsParamsWithTimeout(timeout time.Duration) *GetSessionsParams {
-	return &GetSessionsParams{
+func NewGetAPIV1SessionsParamsWithTimeout(timeout time.Duration) *GetAPIV1SessionsParams {
+	return &GetAPIV1SessionsParams{
 		timeout: timeout,
 	}
 }
 
-// NewGetSessionsParamsWithContext creates a new GetSessionsParams object
+// NewGetAPIV1SessionsParamsWithContext creates a new GetAPIV1SessionsParams object
 // with the ability to set a context for a request.
-func NewGetSessionsParamsWithContext(ctx context.Context) *GetSessionsParams {
-	return &GetSessionsParams{
+func NewGetAPIV1SessionsParamsWithContext(ctx context.Context) *GetAPIV1SessionsParams {
+	return &GetAPIV1SessionsParams{
 		Context: ctx,
 	}
 }
 
-// NewGetSessionsParamsWithHTTPClient creates a new GetSessionsParams object
+// NewGetAPIV1SessionsParamsWithHTTPClient creates a new GetAPIV1SessionsParams object
 // with the ability to set a custom HTTPClient for a request.
-func NewGetSessionsParamsWithHTTPClient(client *http.Client) *GetSessionsParams {
-	return &GetSessionsParams{
+func NewGetAPIV1SessionsParamsWithHTTPClient(client *http.Client) *GetAPIV1SessionsParams {
+	return &GetAPIV1SessionsParams{
 		HTTPClient: client,
 	}
 }
 
 /*
-GetSessionsParams contains all the parameters to send to the API endpoint
+GetAPIV1SessionsParams contains all the parameters to send to the API endpoint
 
-	for the get sessions operation.
+	for the get API v1 sessions operation.
 
 	Typically these are written to a http.Request.
 */
-type GetSessionsParams struct {
+type GetAPIV1SessionsParams struct {
 
 	/* Category.
 
@@ -139,18 +139,18 @@ type GetSessionsParams struct {
 	HTTPClient *http.Client
 }
 
-// WithDefaults hydrates default values in the get sessions params (not the query body).
+// WithDefaults hydrates default values in the get API v1 sessions params (not the query body).
 //
 // All values with no default are reset to their zero value.
-func (o *GetSessionsParams) WithDefaults() *GetSessionsParams {
+func (o *GetAPIV1SessionsParams) WithDefaults() *GetAPIV1SessionsParams {
 	o.SetDefaults()
 	return o
 }
 
-// SetDefaults hydrates default values in the get sessions params (not the query body).
+// SetDefaults hydrates default values in the get API v1 sessions params (not the query body).
 //
 // All values with no default are reset to their zero value.
-func (o *GetSessionsParams) SetDefaults() {
+func (o *GetAPIV1SessionsParams) SetDefaults() {
 	var (
 		fromDefault = string("now-10m")
 
@@ -165,7 +165,7 @@ func (o *GetSessionsParams) SetDefaults() {
 		toDefault = string("now")
 	)
 
-	val := GetSessionsParams{
+	val := GetAPIV1SessionsParams{
 		From:     &fromDefault,
 		Limit:    &limitDefault,
 		OrderBy:  &orderByDefault,
@@ -180,151 +180,151 @@ func (o *GetSessionsParams) SetDefaults() {
 	*o = val
 }
 
-// WithTimeout adds the timeout to the get sessions params
-func (o *GetSessionsParams) WithTimeout(timeout time.Duration) *GetSessionsParams {
+// WithTimeout adds the timeout to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) WithTimeout(timeout time.Duration) *GetAPIV1SessionsParams {
 	o.SetTimeout(timeout)
 	return o
 }
 
-// SetTimeout adds the timeout to the get sessions params
-func (o *GetSessionsParams) SetTimeout(timeout time.Duration) {
+// SetTimeout adds the timeout to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) SetTimeout(timeout time.Duration) {
 	o.timeout = timeout
 }
 
-// WithContext adds the context to the get sessions params
-func (o *GetSessionsParams) WithContext(ctx context.Context) *GetSessionsParams {
+// WithContext adds the context to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) WithContext(ctx context.Context) *GetAPIV1SessionsParams {
 	o.SetContext(ctx)
 	return o
 }
 
-// SetContext adds the context to the get sessions params
-func (o *GetSessionsParams) SetContext(ctx context.Context) {
+// SetContext adds the context to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) SetContext(ctx context.Context) {
 	o.Context = ctx
 }
 
-// WithHTTPClient adds the HTTPClient to the get sessions params
-func (o *GetSessionsParams) WithHTTPClient(client *http.Client) *GetSessionsParams {
+// WithHTTPClient adds the HTTPClient to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) WithHTTPClient(client *http.Client) *GetAPIV1SessionsParams {
 	o.SetHTTPClient(client)
 	return o
 }
 
-// SetHTTPClient adds the HTTPClient to the get sessions params
-func (o *GetSessionsParams) SetHTTPClient(client *http.Client) {
+// SetHTTPClient adds the HTTPClient to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) SetHTTPClient(client *http.Client) {
 	o.HTTPClient = client
 }
 
-// WithCategory adds the category to the get sessions params
-func (o *GetSessionsParams) WithCategory(category *string) *GetSessionsParams {
+// WithCategory adds the category to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) WithCategory(category *string) *GetAPIV1SessionsParams {
 	o.SetCategory(category)
 	return o
 }
 
-// SetCategory adds the category to the get sessions params
-func (o *GetSessionsParams) SetCategory(category *string) {
+// SetCategory adds the category to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) SetCategory(category *string) {
 	o.Category = category
 }
 
-// WithFrom adds the from to the get sessions params
-func (o *GetSessionsParams) WithFrom(from *string) *GetSessionsParams {
+// WithFrom adds the from to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) WithFrom(from *string) *GetAPIV1SessionsParams {
 	o.SetFrom(from)
 	return o
 }
 
-// SetFrom adds the from to the get sessions params
-func (o *GetSessionsParams) SetFrom(from *string) {
+// SetFrom adds the from to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) SetFrom(from *string) {
 	o.From = from
 }
 
-// WithHostname adds the hostname to the get sessions params
-func (o *GetSessionsParams) WithHostname(hostname *string) *GetSessionsParams {
+// WithHostname adds the hostname to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) WithHostname(hostname *string) *GetAPIV1SessionsParams {
 	o.SetHostname(hostname)
 	return o
 }
 
-// SetHostname adds the hostname to the get sessions params
-func (o *GetSessionsParams) SetHostname(hostname *string) {
+// SetHostname adds the hostname to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) SetHostname(hostname *string) {
 	o.Hostname = hostname
 }
 
-// WithLimit adds the limit to the get sessions params
-func (o *GetSessionsParams) WithLimit(limit *int64) *GetSessionsParams {
+// WithLimit adds the limit to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) WithLimit(limit *int64) *GetAPIV1SessionsParams {
 	o.SetLimit(limit)
 	return o
 }
 
-// SetLimit adds the limit to the get sessions params
-func (o *GetSessionsParams) SetLimit(limit *int64) {
+// SetLimit adds the limit to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) SetLimit(limit *int64) {
 	o.Limit = limit
 }
 
-// WithOrderBy adds the orderBy to the get sessions params
-func (o *GetSessionsParams) WithOrderBy(orderBy *string) *GetSessionsParams {
+// WithOrderBy adds the orderBy to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) WithOrderBy(orderBy *string) *GetAPIV1SessionsParams {
 	o.SetOrderBy(orderBy)
 	return o
 }
 
-// SetOrderBy adds the orderBy to the get sessions params
-func (o *GetSessionsParams) SetOrderBy(orderBy *string) {
+// SetOrderBy adds the orderBy to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) SetOrderBy(orderBy *string) {
 	o.OrderBy = orderBy
 }
 
-// WithOrderDir adds the orderDir to the get sessions params
-func (o *GetSessionsParams) WithOrderDir(orderDir *string) *GetSessionsParams {
+// WithOrderDir adds the orderDir to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) WithOrderDir(orderDir *string) *GetAPIV1SessionsParams {
 	o.SetOrderDir(orderDir)
 	return o
 }
 
-// SetOrderDir adds the orderDir to the get sessions params
-func (o *GetSessionsParams) SetOrderDir(orderDir *string) {
+// SetOrderDir adds the orderDir to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) SetOrderDir(orderDir *string) {
 	o.OrderDir = orderDir
 }
 
-// WithPage adds the page to the get sessions params
-func (o *GetSessionsParams) WithPage(page *int64) *GetSessionsParams {
+// WithPage adds the page to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) WithPage(page *int64) *GetAPIV1SessionsParams {
 	o.SetPage(page)
 	return o
 }
 
-// SetPage adds the page to the get sessions params
-func (o *GetSessionsParams) SetPage(page *int64) {
+// SetPage adds the page to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) SetPage(page *int64) {
 	o.Page = page
 }
 
-// WithSearch adds the search to the get sessions params
-func (o *GetSessionsParams) WithSearch(search *string) *GetSessionsParams {
+// WithSearch adds the search to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) WithSearch(search *string) *GetAPIV1SessionsParams {
 	o.SetSearch(search)
 	return o
 }
 
-// SetSearch adds the search to the get sessions params
-func (o *GetSessionsParams) SetSearch(search *string) {
+// SetSearch adds the search to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) SetSearch(search *string) {
 	o.Search = search
 }
 
-// WithTo adds the to to the get sessions params
-func (o *GetSessionsParams) WithTo(to *string) *GetSessionsParams {
+// WithTo adds the to to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) WithTo(to *string) *GetAPIV1SessionsParams {
 	o.SetTo(to)
 	return o
 }
 
-// SetTo adds the to to the get sessions params
-func (o *GetSessionsParams) SetTo(to *string) {
+// SetTo adds the to to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) SetTo(to *string) {
 	o.To = to
 }
 
-// WithType adds the typeVar to the get sessions params
-func (o *GetSessionsParams) WithType(typeVar *string) *GetSessionsParams {
+// WithType adds the typeVar to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) WithType(typeVar *string) *GetAPIV1SessionsParams {
 	o.SetType(typeVar)
 	return o
 }
 
-// SetType adds the type to the get sessions params
-func (o *GetSessionsParams) SetType(typeVar *string) {
+// SetType adds the type to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) SetType(typeVar *string) {
 	o.Type = typeVar
 }
 
 // WriteToRequest writes these params to a swagger request
-func (o *GetSessionsParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Registry) error {
+func (o *GetAPIV1SessionsParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Registry) error {
 
 	if err := r.SetTimeout(o.timeout); err != nil {
 		return err

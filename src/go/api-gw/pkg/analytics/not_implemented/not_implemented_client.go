@@ -56,36 +56,36 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	GetV1DashboardsAnomalies(params *GetV1DashboardsAnomaliesParams, opts ...ClientOption) (*GetV1DashboardsAnomaliesOK, error)
+	GetAPIV1DashboardsAnomalies(params *GetAPIV1DashboardsAnomaliesParams, opts ...ClientOption) (*GetAPIV1DashboardsAnomaliesOK, error)
 
-	GetV1DashboardsDevices(params *GetV1DashboardsDevicesParams, opts ...ClientOption) (*GetV1DashboardsDevicesOK, error)
+	GetAPIV1DashboardsDevices(params *GetAPIV1DashboardsDevicesParams, opts ...ClientOption) (*GetAPIV1DashboardsDevicesOK, error)
 
-	GetV1DashboardsProhActivity(params *GetV1DashboardsProhActivityParams, opts ...ClientOption) (*GetV1DashboardsProhActivityOK, error)
+	GetAPIV1DashboardsProhActivity(params *GetAPIV1DashboardsProhActivityParams, opts ...ClientOption) (*GetAPIV1DashboardsProhActivityOK, error)
 
-	GetV1DashboardsResources(params *GetV1DashboardsResourcesParams, opts ...ClientOption) (*GetV1DashboardsResourcesOK, error)
+	GetAPIV1DashboardsResources(params *GetAPIV1DashboardsResourcesParams, opts ...ClientOption) (*GetAPIV1DashboardsResourcesOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
 
 /*
-GetV1DashboardsAnomalies получениеs информации об аномалиях
+GetAPIV1DashboardsAnomalies получениеs информации об аномалиях
 
 Получение списка обнаруженных аномалий в сетевом трафике за указанный период
 */
-func (a *Client) GetV1DashboardsAnomalies(params *GetV1DashboardsAnomaliesParams, opts ...ClientOption) (*GetV1DashboardsAnomaliesOK, error) {
+func (a *Client) GetAPIV1DashboardsAnomalies(params *GetAPIV1DashboardsAnomaliesParams, opts ...ClientOption) (*GetAPIV1DashboardsAnomaliesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewGetV1DashboardsAnomaliesParams()
+		params = NewGetAPIV1DashboardsAnomaliesParams()
 	}
 	op := &runtime.ClientOperation{
-		ID:                 "GetV1DashboardsAnomalies",
+		ID:                 "GetAPIV1DashboardsAnomalies",
 		Method:             "GET",
-		PathPattern:        "/v1/dashboards/anomalies",
+		PathPattern:        "/api/v1/dashboards/anomalies",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &GetV1DashboardsAnomaliesReader{formats: a.formats},
+		Reader:             &GetAPIV1DashboardsAnomaliesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -97,35 +97,35 @@ func (a *Client) GetV1DashboardsAnomalies(params *GetV1DashboardsAnomaliesParams
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*GetV1DashboardsAnomaliesOK)
+	success, ok := result.(*GetAPIV1DashboardsAnomaliesOK)
 	if ok {
 		return success, nil
 	}
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetV1DashboardsAnomalies: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	msg := fmt.Sprintf("unexpected success response for GetAPIV1DashboardsAnomalies: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 
 /*
-GetV1DashboardsDevices получениеs статистики по устройствам
+GetAPIV1DashboardsDevices получениеs статистики по устройствам
 
 Получение агрегированной статистики по сетевым узлам за указанный период
 */
-func (a *Client) GetV1DashboardsDevices(params *GetV1DashboardsDevicesParams, opts ...ClientOption) (*GetV1DashboardsDevicesOK, error) {
+func (a *Client) GetAPIV1DashboardsDevices(params *GetAPIV1DashboardsDevicesParams, opts ...ClientOption) (*GetAPIV1DashboardsDevicesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewGetV1DashboardsDevicesParams()
+		params = NewGetAPIV1DashboardsDevicesParams()
 	}
 	op := &runtime.ClientOperation{
-		ID:                 "GetV1DashboardsDevices",
+		ID:                 "GetAPIV1DashboardsDevices",
 		Method:             "GET",
-		PathPattern:        "/v1/dashboards/devices",
+		PathPattern:        "/api/v1/dashboards/devices",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &GetV1DashboardsDevicesReader{formats: a.formats},
+		Reader:             &GetAPIV1DashboardsDevicesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -137,35 +137,35 @@ func (a *Client) GetV1DashboardsDevices(params *GetV1DashboardsDevicesParams, op
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*GetV1DashboardsDevicesOK)
+	success, ok := result.(*GetAPIV1DashboardsDevicesOK)
 	if ok {
 		return success, nil
 	}
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetV1DashboardsDevices: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	msg := fmt.Sprintf("unexpected success response for GetAPIV1DashboardsDevices: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 
 /*
-GetV1DashboardsProhActivity получениеs графика запрещенной активности
+GetAPIV1DashboardsProhActivity получениеs графика запрещенной активности
 
 Получение расписания запрещенной активности начиная с указанной даты
 */
-func (a *Client) GetV1DashboardsProhActivity(params *GetV1DashboardsProhActivityParams, opts ...ClientOption) (*GetV1DashboardsProhActivityOK, error) {
+func (a *Client) GetAPIV1DashboardsProhActivity(params *GetAPIV1DashboardsProhActivityParams, opts ...ClientOption) (*GetAPIV1DashboardsProhActivityOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewGetV1DashboardsProhActivityParams()
+		params = NewGetAPIV1DashboardsProhActivityParams()
 	}
 	op := &runtime.ClientOperation{
-		ID:                 "GetV1DashboardsProhActivity",
+		ID:                 "GetAPIV1DashboardsProhActivity",
 		Method:             "GET",
-		PathPattern:        "/v1/dashboards/proh_activity",
+		PathPattern:        "/api/v1/dashboards/proh_activity",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &GetV1DashboardsProhActivityReader{formats: a.formats},
+		Reader:             &GetAPIV1DashboardsProhActivityReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -177,35 +177,35 @@ func (a *Client) GetV1DashboardsProhActivity(params *GetV1DashboardsProhActivity
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*GetV1DashboardsProhActivityOK)
+	success, ok := result.(*GetAPIV1DashboardsProhActivityOK)
 	if ok {
 		return success, nil
 	}
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetV1DashboardsProhActivity: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	msg := fmt.Sprintf("unexpected success response for GetAPIV1DashboardsProhActivity: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 
 /*
-GetV1DashboardsResources получениеs списка популярных ресурсов
+GetAPIV1DashboardsResources получениеs списка популярных ресурсов
 
 Получение топ ресурсов с указанием количества обращений за указанный период
 */
-func (a *Client) GetV1DashboardsResources(params *GetV1DashboardsResourcesParams, opts ...ClientOption) (*GetV1DashboardsResourcesOK, error) {
+func (a *Client) GetAPIV1DashboardsResources(params *GetAPIV1DashboardsResourcesParams, opts ...ClientOption) (*GetAPIV1DashboardsResourcesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewGetV1DashboardsResourcesParams()
+		params = NewGetAPIV1DashboardsResourcesParams()
 	}
 	op := &runtime.ClientOperation{
-		ID:                 "GetV1DashboardsResources",
+		ID:                 "GetAPIV1DashboardsResources",
 		Method:             "GET",
-		PathPattern:        "/v1/dashboards/resources",
+		PathPattern:        "/api/v1/dashboards/resources",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &GetV1DashboardsResourcesReader{formats: a.formats},
+		Reader:             &GetAPIV1DashboardsResourcesReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -217,13 +217,13 @@ func (a *Client) GetV1DashboardsResources(params *GetV1DashboardsResourcesParams
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*GetV1DashboardsResourcesOK)
+	success, ok := result.(*GetAPIV1DashboardsResourcesOK)
 	if ok {
 		return success, nil
 	}
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetV1DashboardsResources: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	msg := fmt.Sprintf("unexpected success response for GetAPIV1DashboardsResources: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 

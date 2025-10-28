@@ -27,7 +27,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "dashboard"
+                    "common"
                 ],
                 "summary": "Получение списка категорий контента",
                 "responses": {
@@ -51,6 +51,11 @@ const docTemplate = `{
         },
         "/v1/analytics/dashboards/requests": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Возвращает статистику запросов за указанный период с фильтрацией по статусу, хосту и категории",
                 "consumes": [
                     "application/json"
@@ -165,6 +170,11 @@ const docTemplate = `{
         },
         "/v1/analytics/dashboards/top-categories": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Возвращает наиболее часто встречаемые категории в сессиях с возможностью фильтрации",
                 "consumes": [
                     "application/json"
@@ -249,6 +259,11 @@ const docTemplate = `{
         },
         "/v1/analytics/dashboards/traffic": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Возвращает статистику трафика за указанный временной диапазон с заданным количеством точек данных в Кб",
                 "consumes": [
                     "application/json"
@@ -308,6 +323,11 @@ const docTemplate = `{
         },
         "/v1/analytics/detections": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Возвращает список наиболее частых детекций за указанный временной период с пагинацией",
                 "consumes": [
                     "application/json"
@@ -422,6 +442,11 @@ const docTemplate = `{
         },
         "/v1/analytics/detections/stat": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Возвращает статистику детекций по категориям (обнаружено, принято, отклонено, неразрешено) за указанный период",
                 "consumes": [
                     "application/json"
@@ -519,6 +544,11 @@ const docTemplate = `{
         },
         "/v1/analytics/devices": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Возвращает список всех уникальных имен устройств (хостов) из системы",
                 "consumes": [
                     "application/json"
@@ -551,6 +581,11 @@ const docTemplate = `{
         },
         "/v1/analytics/sessions": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Возвращает список сессий с возможностью фильтрации, поиска, сортировки и пагинации",
                 "consumes": [
                     "application/json"

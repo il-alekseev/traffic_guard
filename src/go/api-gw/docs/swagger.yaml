@@ -548,7 +548,7 @@ paths:
       - BearerAuth: []
       summary: Получение списка категорий контента
       tags:
-      - dashboard
+      - common
   /v1/analytics/dashboards/requests:
     get:
       consumes:
@@ -634,6 +634,8 @@ paths:
           description: Внутренняя ошибка сервера
           schema:
             $ref: '#/definitions/models.DtoErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Получить статистику запросов
       tags:
       - dashboards
@@ -693,6 +695,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.DtoErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Получить топ категорий сессий
       tags:
       - dashboards
@@ -736,6 +740,8 @@ paths:
           description: Внутренняя ошибка сервера при получении статистики
           schema:
             $ref: '#/definitions/models.DtoErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Получить статистику трафика
       tags:
       - dashboards
@@ -825,6 +831,8 @@ paths:
           description: Внутренняя ошибка сервера
           schema:
             $ref: '#/definitions/models.DtoErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Получить список топ выявлений
       tags:
       - detections
@@ -901,6 +909,8 @@ paths:
           description: Ошибка при получении статистики выявлений
           schema:
             $ref: '#/definitions/models.DtoErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Получение статистики по детекциям
       tags:
       - detections
@@ -922,6 +932,8 @@ paths:
           description: Ошибка при получении имен устройств
           schema:
             $ref: '#/definitions/models.DtoErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Получить список имен устройств
       tags:
       - common
@@ -1055,6 +1067,8 @@ paths:
           description: Внутренняя ошибка сервера
           schema:
             $ref: '#/definitions/models.DtoErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Получить список сессий
       tags:
       - sessions

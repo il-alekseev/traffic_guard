@@ -24,10 +24,10 @@ var Default = NewHTTPClient(nil)
 const (
 	// DefaultHost is the default Host
 	// found in Meta (info) section of spec file
-	DefaultHost string = "192.168.130.112"
+	DefaultHost string = "localhost"
 	// DefaultBasePath is the default BasePath
 	// found in Meta (info) section of spec file
-	DefaultBasePath string = "/api/v1"
+	DefaultBasePath string = "/"
 )
 
 // DefaultSchemes are the default schemes found in Meta (info) section of spec file

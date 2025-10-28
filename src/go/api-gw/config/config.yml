@@ -30,7 +30,7 @@ blog_serv:
 
 analytics:
   proto: "http"
-  host: "192.168.130.112"
+  host: "127.0.0.1"
   port: "7000"
 
 keycloak:

@@ -1,5 +1,19 @@
 basePath: /
 definitions:
+  dto.DataPointsResponse:
+    properties:
+      count:
+        description: Число точек с данными
+        type: integer
+      data:
+        description: Список однотипных данных
+        items:
+          type: integer
+        type: array
+      type:
+        description: Тип данных
+        type: string
+    type: object
   dto.DetectionStat:
     properties:
       accepted:
@@ -148,11 +162,13 @@ paths:
         период
       parameters:
       - description: Начало периода в timestamp
+        format: int64
         in: query
         name: start
         required: true
         type: integer
       - description: Конец периода в timestamp
+        format: int64
         in: query
         name: end
         required: true
@@ -183,11 +199,13 @@ paths:
         период
       parameters:
       - description: Начало периода в timestamp
+        format: int64
         in: query
         name: start
         required: true
         type: integer
       - description: Конец периода в timestamp
+        format: int64
         in: query
         name: end
         required: true
@@ -216,6 +234,7 @@ paths:
         даты
       parameters:
       - description: Дата начала в timestamp
+        format: int64
         in: query
         name: start
         required: true
@@ -314,9 +333,7 @@ paths:
         "200":
           description: Статистика запросов (массив чисел)
           schema:
-            items:
-              type: integer
-            type: array
+            $ref: '#/definitions/dto.DataPointsResponse'
         "400":
           description: Неверный формат параметров
           schema:
@@ -334,11 +351,13 @@ paths:
         период
       parameters:
       - description: Начало периода в timestamp
+        format: int64
         in: query
         name: start
         required: true
         type: integer
       - description: Конец периода в timestamp
+        format: int64
         in: query
         name: end
         required: true

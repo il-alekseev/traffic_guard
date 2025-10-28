@@ -56,30 +56,30 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	GetSessions(params *GetSessionsParams, opts ...ClientOption) (*GetSessionsOK, error)
+	GetAPIV1Sessions(params *GetAPIV1SessionsParams, opts ...ClientOption) (*GetAPIV1SessionsOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
 
 /*
-GetSessions получитьs список сессий
+GetAPIV1Sessions получитьs список сессий
 
 Возвращает список сессий с возможностью фильтрации, поиска, сортировки и пагинации
 */
-func (a *Client) GetSessions(params *GetSessionsParams, opts ...ClientOption) (*GetSessionsOK, error) {
+func (a *Client) GetAPIV1Sessions(params *GetAPIV1SessionsParams, opts ...ClientOption) (*GetAPIV1SessionsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewGetSessionsParams()
+		params = NewGetAPIV1SessionsParams()
 	}
 	op := &runtime.ClientOperation{
-		ID:                 "GetSessions",
+		ID:                 "GetAPIV1Sessions",
 		Method:             "GET",
-		PathPattern:        "/sessions",
+		PathPattern:        "/api/v1/sessions",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &GetSessionsReader{formats: a.formats},
+		Reader:             &GetAPIV1SessionsReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -91,13 +91,13 @@ func (a *Client) GetSessions(params *GetSessionsParams, opts ...ClientOption) (*
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*GetSessionsOK)
+	success, ok := result.(*GetAPIV1SessionsOK)
 	if ok {
 		return success, nil
 	}
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetSessions: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	msg := fmt.Sprintf("unexpected success response for GetAPIV1Sessions: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 

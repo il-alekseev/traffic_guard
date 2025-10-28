@@ -17,50 +17,50 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// NewGetDetectionsParams creates a new GetDetectionsParams object,
+// NewGetAPIV1DetectionsParams creates a new GetAPIV1DetectionsParams object,
 // with the default timeout for this client.
 //
 // Default values are not hydrated, since defaults are normally applied by the API server side.
 //
 // To enforce default values in parameter, use SetDefaults or WithDefaults.
-func NewGetDetectionsParams() *GetDetectionsParams {
-	return &GetDetectionsParams{
+func NewGetAPIV1DetectionsParams() *GetAPIV1DetectionsParams {
+	return &GetAPIV1DetectionsParams{
 		timeout: cr.DefaultTimeout,
 	}
 }
 
-// NewGetDetectionsParamsWithTimeout creates a new GetDetectionsParams object
+// NewGetAPIV1DetectionsParamsWithTimeout creates a new GetAPIV1DetectionsParams object
 // with the ability to set a timeout on a request.
-func NewGetDetectionsParamsWithTimeout(timeout time.Duration) *GetDetectionsParams {
-	return &GetDetectionsParams{
+func NewGetAPIV1DetectionsParamsWithTimeout(timeout time.Duration) *GetAPIV1DetectionsParams {
+	return &GetAPIV1DetectionsParams{
 		timeout: timeout,
 	}
 }
 
-// NewGetDetectionsParamsWithContext creates a new GetDetectionsParams object
+// NewGetAPIV1DetectionsParamsWithContext creates a new GetAPIV1DetectionsParams object
 // with the ability to set a context for a request.
-func NewGetDetectionsParamsWithContext(ctx context.Context) *GetDetectionsParams {
-	return &GetDetectionsParams{
+func NewGetAPIV1DetectionsParamsWithContext(ctx context.Context) *GetAPIV1DetectionsParams {
+	return &GetAPIV1DetectionsParams{
 		Context: ctx,
 	}
 }
 
-// NewGetDetectionsParamsWithHTTPClient creates a new GetDetectionsParams object
+// NewGetAPIV1DetectionsParamsWithHTTPClient creates a new GetAPIV1DetectionsParams object
 // with the ability to set a custom HTTPClient for a request.
-func NewGetDetectionsParamsWithHTTPClient(client *http.Client) *GetDetectionsParams {
-	return &GetDetectionsParams{
+func NewGetAPIV1DetectionsParamsWithHTTPClient(client *http.Client) *GetAPIV1DetectionsParams {
+	return &GetAPIV1DetectionsParams{
 		HTTPClient: client,
 	}
 }
 
 /*
-GetDetectionsParams contains all the parameters to send to the API endpoint
+GetAPIV1DetectionsParams contains all the parameters to send to the API endpoint
 
-	for the get detections operation.
+	for the get API v1 detections operation.
 
 	Typically these are written to a http.Request.
 */
-type GetDetectionsParams struct {
+type GetAPIV1DetectionsParams struct {
 
 	/* Category.
 
@@ -111,18 +111,18 @@ type GetDetectionsParams struct {
 	HTTPClient *http.Client
 }
 
-// WithDefaults hydrates default values in the get detections params (not the query body).
+// WithDefaults hydrates default values in the get API v1 detections params (not the query body).
 //
 // All values with no default are reset to their zero value.
-func (o *GetDetectionsParams) WithDefaults() *GetDetectionsParams {
+func (o *GetAPIV1DetectionsParams) WithDefaults() *GetAPIV1DetectionsParams {
 	o.SetDefaults()
 	return o
 }
 
-// SetDefaults hydrates default values in the get detections params (not the query body).
+// SetDefaults hydrates default values in the get API v1 detections params (not the query body).
 //
 // All values with no default are reset to their zero value.
-func (o *GetDetectionsParams) SetDefaults() {
+func (o *GetAPIV1DetectionsParams) SetDefaults() {
 	var (
 		fromDefault = string("now-10m")
 
@@ -133,7 +133,7 @@ func (o *GetDetectionsParams) SetDefaults() {
 		toDefault = string("now")
 	)
 
-	val := GetDetectionsParams{
+	val := GetAPIV1DetectionsParams{
 		From:  &fromDefault,
 		Limit: &limitDefault,
 		Page:  &pageDefault,
@@ -146,107 +146,107 @@ func (o *GetDetectionsParams) SetDefaults() {
 	*o = val
 }
 
-// WithTimeout adds the timeout to the get detections params
-func (o *GetDetectionsParams) WithTimeout(timeout time.Duration) *GetDetectionsParams {
+// WithTimeout adds the timeout to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) WithTimeout(timeout time.Duration) *GetAPIV1DetectionsParams {
 	o.SetTimeout(timeout)
 	return o
 }
 
-// SetTimeout adds the timeout to the get detections params
-func (o *GetDetectionsParams) SetTimeout(timeout time.Duration) {
+// SetTimeout adds the timeout to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) SetTimeout(timeout time.Duration) {
 	o.timeout = timeout
 }
 
-// WithContext adds the context to the get detections params
-func (o *GetDetectionsParams) WithContext(ctx context.Context) *GetDetectionsParams {
+// WithContext adds the context to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) WithContext(ctx context.Context) *GetAPIV1DetectionsParams {
 	o.SetContext(ctx)
 	return o
 }
 
-// SetContext adds the context to the get detections params
-func (o *GetDetectionsParams) SetContext(ctx context.Context) {
+// SetContext adds the context to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) SetContext(ctx context.Context) {
 	o.Context = ctx
 }
 
-// WithHTTPClient adds the HTTPClient to the get detections params
-func (o *GetDetectionsParams) WithHTTPClient(client *http.Client) *GetDetectionsParams {
+// WithHTTPClient adds the HTTPClient to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) WithHTTPClient(client *http.Client) *GetAPIV1DetectionsParams {
 	o.SetHTTPClient(client)
 	return o
 }
 
-// SetHTTPClient adds the HTTPClient to the get detections params
-func (o *GetDetectionsParams) SetHTTPClient(client *http.Client) {
+// SetHTTPClient adds the HTTPClient to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) SetHTTPClient(client *http.Client) {
 	o.HTTPClient = client
 }
 
-// WithCategory adds the category to the get detections params
-func (o *GetDetectionsParams) WithCategory(category *string) *GetDetectionsParams {
+// WithCategory adds the category to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) WithCategory(category *string) *GetAPIV1DetectionsParams {
 	o.SetCategory(category)
 	return o
 }
 
-// SetCategory adds the category to the get detections params
-func (o *GetDetectionsParams) SetCategory(category *string) {
+// SetCategory adds the category to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) SetCategory(category *string) {
 	o.Category = category
 }
 
-// WithFrom adds the from to the get detections params
-func (o *GetDetectionsParams) WithFrom(from *string) *GetDetectionsParams {
+// WithFrom adds the from to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) WithFrom(from *string) *GetAPIV1DetectionsParams {
 	o.SetFrom(from)
 	return o
 }
 
-// SetFrom adds the from to the get detections params
-func (o *GetDetectionsParams) SetFrom(from *string) {
+// SetFrom adds the from to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) SetFrom(from *string) {
 	o.From = from
 }
 
-// WithHostname adds the hostname to the get detections params
-func (o *GetDetectionsParams) WithHostname(hostname *string) *GetDetectionsParams {
+// WithHostname adds the hostname to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) WithHostname(hostname *string) *GetAPIV1DetectionsParams {
 	o.SetHostname(hostname)
 	return o
 }
 
-// SetHostname adds the hostname to the get detections params
-func (o *GetDetectionsParams) SetHostname(hostname *string) {
+// SetHostname adds the hostname to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) SetHostname(hostname *string) {
 	o.Hostname = hostname
 }
 
-// WithLimit adds the limit to the get detections params
-func (o *GetDetectionsParams) WithLimit(limit *int64) *GetDetectionsParams {
+// WithLimit adds the limit to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) WithLimit(limit *int64) *GetAPIV1DetectionsParams {
 	o.SetLimit(limit)
 	return o
 }
 
-// SetLimit adds the limit to the get detections params
-func (o *GetDetectionsParams) SetLimit(limit *int64) {
+// SetLimit adds the limit to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) SetLimit(limit *int64) {
 	o.Limit = limit
 }
 
-// WithPage adds the page to the get detections params
-func (o *GetDetectionsParams) WithPage(page *int64) *GetDetectionsParams {
+// WithPage adds the page to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) WithPage(page *int64) *GetAPIV1DetectionsParams {
 	o.SetPage(page)
 	return o
 }
 
-// SetPage adds the page to the get detections params
-func (o *GetDetectionsParams) SetPage(page *int64) {
+// SetPage adds the page to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) SetPage(page *int64) {
 	o.Page = page
 }
 
-// WithTo adds the to to the get detections params
-func (o *GetDetectionsParams) WithTo(to *string) *GetDetectionsParams {
+// WithTo adds the to to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) WithTo(to *string) *GetAPIV1DetectionsParams {
 	o.SetTo(to)
 	return o
 }
 
-// SetTo adds the to to the get detections params
-func (o *GetDetectionsParams) SetTo(to *string) {
+// SetTo adds the to to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) SetTo(to *string) {
 	o.To = to
 }
 
 // WriteToRequest writes these params to a swagger request
-func (o *GetDetectionsParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Registry) error {
+func (o *GetAPIV1DetectionsParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Registry) error {
 
 	if err := r.SetTimeout(o.timeout); err != nil {
 		return err

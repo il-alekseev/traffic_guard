@@ -56,32 +56,32 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	GetDetections(params *GetDetectionsParams, opts ...ClientOption) (*GetDetectionsOK, error)
+	GetAPIV1Detections(params *GetAPIV1DetectionsParams, opts ...ClientOption) (*GetAPIV1DetectionsOK, error)
 
-	GetDetectionsStat(params *GetDetectionsStatParams, opts ...ClientOption) (*GetDetectionsStatOK, error)
+	GetAPIV1DetectionsStat(params *GetAPIV1DetectionsStatParams, opts ...ClientOption) (*GetAPIV1DetectionsStatOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
 
 /*
-GetDetections получитьs список топ выявлений
+GetAPIV1Detections получитьs список топ выявлений
 
 Возвращает список наиболее частых детекций за указанный временной период с пагинацией
 */
-func (a *Client) GetDetections(params *GetDetectionsParams, opts ...ClientOption) (*GetDetectionsOK, error) {
+func (a *Client) GetAPIV1Detections(params *GetAPIV1DetectionsParams, opts ...ClientOption) (*GetAPIV1DetectionsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewGetDetectionsParams()
+		params = NewGetAPIV1DetectionsParams()
 	}
 	op := &runtime.ClientOperation{
-		ID:                 "GetDetections",
+		ID:                 "GetAPIV1Detections",
 		Method:             "GET",
-		PathPattern:        "/detections",
+		PathPattern:        "/api/v1/detections",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &GetDetectionsReader{formats: a.formats},
+		Reader:             &GetAPIV1DetectionsReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -93,35 +93,35 @@ func (a *Client) GetDetections(params *GetDetectionsParams, opts ...ClientOption
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*GetDetectionsOK)
+	success, ok := result.(*GetAPIV1DetectionsOK)
 	if ok {
 		return success, nil
 	}
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetDetections: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	msg := fmt.Sprintf("unexpected success response for GetAPIV1Detections: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 
 /*
-GetDetectionsStat получениеs статистики по детекциям
+GetAPIV1DetectionsStat получениеs статистики по детекциям
 
 Возвращает статистику детекций по категориям (обнаружено, принято, отклонено, неразрешено) за указанный период
 */
-func (a *Client) GetDetectionsStat(params *GetDetectionsStatParams, opts ...ClientOption) (*GetDetectionsStatOK, error) {
+func (a *Client) GetAPIV1DetectionsStat(params *GetAPIV1DetectionsStatParams, opts ...ClientOption) (*GetAPIV1DetectionsStatOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewGetDetectionsStatParams()
+		params = NewGetAPIV1DetectionsStatParams()
 	}
 	op := &runtime.ClientOperation{
-		ID:                 "GetDetectionsStat",
+		ID:                 "GetAPIV1DetectionsStat",
 		Method:             "GET",
-		PathPattern:        "/detections/stat",
+		PathPattern:        "/api/v1/detections/stat",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &GetDetectionsStatReader{formats: a.formats},
+		Reader:             &GetAPIV1DetectionsStatReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -133,13 +133,13 @@ func (a *Client) GetDetectionsStat(params *GetDetectionsStatParams, opts ...Clie
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*GetDetectionsStatOK)
+	success, ok := result.(*GetAPIV1DetectionsStatOK)
 	if ok {
 		return success, nil
 	}
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetDetectionsStat: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	msg := fmt.Sprintf("unexpected success response for GetAPIV1DetectionsStat: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 
