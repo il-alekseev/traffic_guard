@@ -86,6 +86,7 @@ func (s *Server) configureRouter() {
 		//dashboards
 		analytics.GET("/dashboards/top-categories", s.getDashboardsTopCategories)
 		analytics.GET("/dashboards/traffic", s.getDashboardsTraffic)
+		analytics.GET("/dashboards/top-unresolved_detections", s.getDashboardsTopUnresolvedDetections)
 
 		//detections
 		analytics.GET("/detections", s.getDetections)
@@ -99,10 +100,9 @@ func (s *Server) configureRouter() {
 		// analytics.GET("/version", s.getVersion)
 
 		//not implemented
-		analytics.GET("/v1/dashboards/anomalies", s.getV1DashboardsAnomalies)
-		analytics.GET("/v1/dashboards/devices", s.getV1DashboardsDevices)
-		analytics.GET("/v1/dashboards/proh_activity", s.getV1DashboardsProhActivity)
+		analytics.GET("/dashboards/anomalies", s.getV1DashboardsAnomalies)
+		analytics.GET("/dashboards/devices", s.getV1DashboardsDevices)
+		analytics.GET("/dashboards/proh_activity", s.getV1DashboardsProhActivity)
 		analytics.GET("/dashboards/requests", s.getDashboardsRequests)
-		//analytics.GET("/v1/dashboards/resources", s.getV1DashboardsResources)
 	}
 }

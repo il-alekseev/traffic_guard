@@ -78,6 +78,12 @@ type GetAPIV1DashboardsTrafficParams struct {
 	*/
 	From *string
 
+	/* Hostname.
+
+	   Фильтр по имени хоста
+	*/
+	Hostname *string
+
 	/* To.
 
 	   Конец временного диапазона в формате парсера времени (по умолчанию now)
@@ -178,6 +184,17 @@ func (o *GetAPIV1DashboardsTrafficParams) SetFrom(from *string) {
 	o.From = from
 }
 
+// WithHostname adds the hostname to the get API v1 dashboards traffic params
+func (o *GetAPIV1DashboardsTrafficParams) WithHostname(hostname *string) *GetAPIV1DashboardsTrafficParams {
+	o.SetHostname(hostname)
+	return o
+}
+
+// SetHostname adds the hostname to the get API v1 dashboards traffic params
+func (o *GetAPIV1DashboardsTrafficParams) SetHostname(hostname *string) {
+	o.Hostname = hostname
+}
+
 // WithTo adds the to to the get API v1 dashboards traffic params
 func (o *GetAPIV1DashboardsTrafficParams) WithTo(to *string) *GetAPIV1DashboardsTrafficParams {
 	o.SetTo(to)
@@ -226,6 +243,23 @@ func (o *GetAPIV1DashboardsTrafficParams) WriteToRequest(r runtime.ClientRequest
 		if qFrom != "" {
 
 			if err := r.SetQueryParam("from", qFrom); err != nil {
+				return err
+			}
+		}
+	}
+
+	if o.Hostname != nil {
+
+		// query param hostname
+		var qrHostname string
+
+		if o.Hostname != nil {
+			qrHostname = *o.Hostname
+		}
+		qHostname := qrHostname
+		if qHostname != "" {
+
+			if err := r.SetQueryParam("hostname", qHostname); err != nil {
 				return err
 			}
 		}

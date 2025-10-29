@@ -7,20 +7,20 @@ logger:
   log_level: 'debug'
 
 postgres:
-  #pool_max: 2
-  #host: "192.168.130.112"
-  #user: "etl_user"
-  #pass: "etl_password"
-  #dbname: "etl"
-  #port: "5433"
-  #sslmode: "disable"
   pool_max: 2
-  host: "localhost"
-  user: "etl"
-  pass: "etlpassword"
+  host: "192.168.130.112"
+  user: "etl_user"
+  pass: "etl_password"
   dbname: "etl"
-  port: "5432"
+  port: "5433"
   sslmode: "disable"
+  #pool_max: 2
+  #host: "localhost"
+  #user: "etl"
+  #pass: "etlpassword"
+  #dbname: "etl"
+  #port: "5432"
+  #sslmode: "disable"
 
 http:
   host: '127.0.0.1'

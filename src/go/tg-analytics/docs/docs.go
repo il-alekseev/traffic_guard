@@ -63,6 +63,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Начало периода в timestamp",
                         "name": "start",
                         "in": "query",
@@ -70,6 +71,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Конец периода в timestamp",
                         "name": "end",
                         "in": "query",
@@ -80,10 +82,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Список обнаруженных аномалий",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Anomaly"
-                            }
+                            "$ref": "#/definitions/models.Anomaly"
                         }
                     },
                     "400": {
@@ -114,6 +113,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Начало периода в timestamp",
                         "name": "start",
                         "in": "query",
@@ -121,6 +121,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Конец периода в timestamp",
                         "name": "end",
                         "in": "query",
@@ -131,7 +132,10 @@ const docTemplate = `{
                     "200": {
                         "description": "Статистика по устройствам",
                         "schema": {
-                            "$ref": "#/definitions/models.DeviceStat"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DeviceStat"
+                            }
                         }
                     },
                     "400": {
@@ -162,6 +166,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
+                        "format": "int64",
                         "description": "Дата начала в timestamp",
                         "name": "start",
                         "in": "query",

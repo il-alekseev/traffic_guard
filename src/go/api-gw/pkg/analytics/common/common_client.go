@@ -64,7 +64,7 @@ type ClientService interface {
 }
 
 /*
-GetAPIV1Categories получитьs список категорий контента
+GetAPIV1Categories получениеs списка категорий контента
 
 Возвращает список всех уникальных категорий контента из системы
 */
@@ -104,7 +104,7 @@ func (a *Client) GetAPIV1Categories(params *GetAPIV1CategoriesParams, opts ...Cl
 }
 
 /*
-GetAPIV1Devices получитьs список имен устройств
+GetAPIV1Devices полуечениеs списка имен устройств
 
 Возвращает список всех уникальных имен устройств (хостов) из системы
 */

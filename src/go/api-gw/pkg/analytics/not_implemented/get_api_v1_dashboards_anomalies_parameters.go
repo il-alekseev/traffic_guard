@@ -65,12 +65,16 @@ type GetAPIV1DashboardsAnomaliesParams struct {
 	/* End.
 
 	   Конец периода в timestamp
+
+	   Format: int64
 	*/
 	End int64
 
 	/* Start.
 
 	   Начало периода в timestamp
+
+	   Format: int64
 	*/
 	Start int64
 

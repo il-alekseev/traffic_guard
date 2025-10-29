@@ -58,7 +58,7 @@ GetAPIV1DashboardsAnomaliesOK describes a response with status code 200, with de
 Список обнаруженных аномалий
 */
 type GetAPIV1DashboardsAnomaliesOK struct {
-	Payload []*models.ModelsAnomaly
+	Payload *models.ModelsAnomaly
 }
 
 // IsSuccess returns true when this get Api v1 dashboards anomalies o k response has a 2xx status code
@@ -101,14 +101,16 @@ func (o *GetAPIV1DashboardsAnomaliesOK) String() string {
 	return fmt.Sprintf("[GET /api/v1/dashboards/anomalies][%d] getApiV1DashboardsAnomaliesOK %s", 200, payload)
 }
 
-func (o *GetAPIV1DashboardsAnomaliesOK) GetPayload() []*models.ModelsAnomaly {
+func (o *GetAPIV1DashboardsAnomaliesOK) GetPayload() *models.ModelsAnomaly {
 	return o.Payload
 }
 
 func (o *GetAPIV1DashboardsAnomaliesOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
+	o.Payload = new(models.ModelsAnomaly)
+
 	// response payload
-	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
