@@ -5,7 +5,7 @@ COPY . /app/
 WORKDIR /app
 
 # build
-RUN go mod tidy && go build -o an cmd/an/main.go
+RUN go mod tidy && go build -o an cmd/analytics/main.go
 
 FROM alpine
 

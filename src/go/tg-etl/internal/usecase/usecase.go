@@ -23,7 +23,7 @@ type UseCase struct {
 func New(cfg *config.Config, q QueryUsecase, kc kafka.Client, l slog.Logger) (*UseCase, error) {
 	uc := UseCase{
 		q:         q,
-		batchSize: uint(cfg.MaxCount),
+		batchSize: uint(cfg.BatchSize),
 		lastLog:   nil,
 		kc:        kc,
 		l:         l,

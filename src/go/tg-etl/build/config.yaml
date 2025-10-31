@@ -1,16 +1,45 @@
 app:
   name: 'tg-etl'
   version: '1.0.1'
+  dev_version: ''
 
+http:
+  host: '0.0.0.0'
+  port: '7001'
+
+swagger:
+  host: '0.0.0.0:7001'
+  
 logger:
   log_level: 'debug'
 
-postgres:
+ksu_postgres:
   pool_max: 2
-  host: "postgres"
-  user: "etl"
-  pass: "etlpassword"
-  dbname: "etl"
+  host: "192.168.130.112"
+  user: "ksu_user"
+  pass: "ksu_password"
+  dbname: "ksu"
   port: "5432"
   sslmode: "disable"
 
+etl_postgres:
+  pool_max: 2
+  host: "192.168.130.112"
+  user: "etl_user"
+  pass: "etl_password"
+  dbname: "etl"
+  port: "5433"
+  sslmode: "disable"
+
+etl_controller:
+  cache_ttl: 10
+  refresh: 10
+  batchsize: 100
+  ml_attemps: 20
+  
+kafka:
+  host: "192.168.130.112"  
+  port: "9092"       
+  url_topic: "url-processing-requests"
+  metadata_topic: "url-metadata-results"
+  ml_topic: "ml-analysis-results"

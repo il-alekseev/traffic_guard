@@ -23,7 +23,7 @@ func New(cfg *config.Config, ksuDB KSURepoPGInterface, etlDB ETLRepoPGInterface,
 		MLAttemps: cfg.MLAttemps,
 		ksuDB:     ksuDB,
 		etlDB:     etlDB,
-		c:         *m_cache.New(time.Duration(cfg.TTL) * time.Minute),
+		c:         *m_cache.New(time.Duration(cfg.CacheTTL) * time.Minute),
 		lastLog:   nil,
 		l:         l,
 	}

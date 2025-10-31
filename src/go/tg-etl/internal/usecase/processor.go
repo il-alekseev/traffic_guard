@@ -22,6 +22,7 @@ func (uc *UseCase) ProcessNewLogs(ctx context.Context) error {
 		return fmt.Errorf("failed to get new logs: %w", err)
 	}
 	if len(logs) == 0 {
+		uc.l.InfoContext(ctx, "new logs for process not found")
 		return nil
 	}
 	// Обрабатываем каждую запись
@@ -125,7 +126,7 @@ func (uc *UseCase) getSource(ctx context.Context, log models.IdsLog) (*models.So
 	source := models.Source{
 		IP:       log.SrcIP,
 		Country:  log.SrcCountry,
-		Username: log.Username, // TODO: пока username не извлекаетс системой
+		Username: log.Username, // TODO: пока username не извлекается системой
 	}
 
 	if err := uc.q.CreateSource(ctx, source); err != nil {

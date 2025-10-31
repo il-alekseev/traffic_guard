@@ -23,26 +23,26 @@ ksu_postgres:
   sslmode: "disable"
 
 etl_postgres:
-  pool_max: 2
-  host: "localhost"
-  user: "etl"
-  pass: "etlpassword"
-  dbname: "etl"
-  port: "5432"
-  sslmode: "disable"
-  
   #pool_max: 2
-  #host: "192.168.130.112"
-  #user: "etl_user"
-  #pass: "etl_password"
+  #host: "localhost"
+  #user: "etl"
+  #pass: "etlpassword"
   #dbname: "etl"
-  #port: "5433"
+  #port: "5432"
   #sslmode: "disable"
+  
+  pool_max: 2
+  host: "192.168.130.112"
+  user: "etl_user"
+  pass: "etl_password"
+  dbname: "etl"
+  port: "5433"
+  sslmode: "disable"
 
 etl_controller:
-  refresh: 1
+  refresh: 10
   ttl: 10
-  max_count: 200
+  max_count: 100
   ml_attemps: 20
   
 kafka:
