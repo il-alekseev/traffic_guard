@@ -297,6 +297,21 @@ definitions:
         - $ref: '#/definitions/models.ModelsTrafficStat'
         description: data
     type: object
+  models.DtoUnresolvedDetection:
+    properties:
+      domain:
+        description: domain
+        type: string
+      requests_after:
+        description: requests after
+        type: integer
+      requests_all:
+        description: requests all
+        type: integer
+      requests_before:
+        description: requests before
+        type: integer
+    type: object
   models.DtoUpdateContextRequest:
     properties:
       description:
@@ -740,9 +755,7 @@ paths:
         "200":
           description: Список обнаруженных аномалий
           schema:
-            items:
-              $ref: '#/definitions/models.ModelsAnomaly'
-            type: array
+            $ref: '#/definitions/models.ModelsAnomaly'
         "400":
           description: Неверный формат параметров
           schema:
@@ -973,6 +986,55 @@ paths:
       summary: Получить топ категорий сессий
       tags:
       - dashboards
+  /v1/analytics/dashboards/top-unresolved_detections:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список наиболее частых нерешенных выявлений за указанный
+        временной период с возможностью фильтрации
+      parameters:
+      - default: now-10m
+        description: 'Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)'
+        in: query
+        name: from
+        type: string
+      - default: now
+        description: 'Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)'
+        in: query
+        name: to
+        type: string
+      - description: Фильтр по имени хоста
+        in: query
+        name: hostname
+        type: string
+      - default: 5
+        description: Количество возвращаемых записей
+        in: query
+        minimum: 1
+        name: count
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.DtoUnresolvedDetection'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение списка топ нерешенных выявлений
+      tags:
+      - dashboards
   /v1/analytics/dashboards/traffic:
     get:
       consumes:
@@ -991,6 +1053,10 @@ paths:
           now)
         in: query
         name: to
+        type: string
+      - description: Фильтр по имени хоста
+        in: query
+        name: hostname
         type: string
       - default: 20
         description: Количество точек данных для возврата (по умолчанию 20)
@@ -1015,15 +1081,15 @@ paths:
             $ref: '#/definitions/models.DtoErrorResponse'
       security:
       - BearerAuth: []
-      summary: Получить статистику трафика
+      summary: Получение статистики трафика
       tags:
       - dashboards
   /v1/analytics/detections:
     get:
       consumes:
       - application/json
-      description: Возвращает список наиболее частых детекций за указанный временной
-        период с пагинацией
+      description: Возвращает список выявлений за указанный временной период с пагинацией
+        и фильтрацией
       parameters:
       - default: now-10m
         description: 'Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)'
@@ -1055,8 +1121,7 @@ paths:
         - Прокси и анонимайзеры
         - Реестр запрещенных сайтов
         - Сайты для взрослых
-        - Сайты
-        - распространяющие вирусы
+        - Сайты распространяющие вирусы
         - Социальные сети
         - Торренты и Р2Р-сети
         - Файловые архивы
@@ -1075,6 +1140,14 @@ paths:
         - табак
         in: query
         name: category
+        type: string
+      - description: Действие пользователя
+        enum:
+        - Разрешено
+        - Заблокировано
+        - Не решено
+        in: query
+        name: action
         type: string
       - default: 1
         description: Номер страницы
@@ -1106,7 +1179,7 @@ paths:
             $ref: '#/definitions/models.DtoErrorResponse'
       security:
       - BearerAuth: []
-      summary: Получить список топ выявлений
+      summary: Получение списка выявлений
       tags:
       - detections
   /v1/analytics/detections/stat:

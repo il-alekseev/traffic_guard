@@ -62,6 +62,12 @@ GetAPIV1DetectionsParams contains all the parameters to send to the API endpoint
 */
 type GetAPIV1DetectionsParams struct {
 
+	/* Action.
+
+	   Действие пользователя
+	*/
+	Action *string
+
 	/* Category.
 
 	   Фильтр по категории
@@ -179,6 +185,17 @@ func (o *GetAPIV1DetectionsParams) SetHTTPClient(client *http.Client) {
 	o.HTTPClient = client
 }
 
+// WithAction adds the action to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) WithAction(action *string) *GetAPIV1DetectionsParams {
+	o.SetAction(action)
+	return o
+}
+
+// SetAction adds the action to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) SetAction(action *string) {
+	o.Action = action
+}
+
 // WithCategory adds the category to the get API v1 detections params
 func (o *GetAPIV1DetectionsParams) WithCategory(category *string) *GetAPIV1DetectionsParams {
 	o.SetCategory(category)
@@ -252,6 +269,23 @@ func (o *GetAPIV1DetectionsParams) WriteToRequest(r runtime.ClientRequest, reg s
 		return err
 	}
 	var res []error
+
+	if o.Action != nil {
+
+		// query param action
+		var qrAction string
+
+		if o.Action != nil {
+			qrAction = *o.Action
+		}
+		qAction := qrAction
+		if qAction != "" {
+
+			if err := r.SetQueryParam("action", qAction); err != nil {
+				return err
+			}
+		}
+	}
 
 	if o.Category != nil {
 

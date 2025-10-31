@@ -524,7 +524,7 @@ func (s *Server) GetTopUnresolvedDetections(c *gin.Context) {
 // @Produce application/json
 // @Param start query int64 true "Начало периода в timestamp"
 // @Param end query int64 true "Конец периода в timestamp"
-// @Success 200 {object} models.DeviceStat "Статистика по устройствам"
+// @Success 200 {array} models.DeviceStat "Статистика по устройствам"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/dashboards/devices [get]
@@ -602,7 +602,7 @@ func (s *Server) GetProhActivity(c *gin.Context) {
 // @Produce application/json
 // @Param start query int64 true "Начало периода в timestamp"
 // @Param end query int64 true "Конец периода в timestamp"
-// @Success 200 {array} models.Anomaly "Список обнаруженных аномалий"
+// @Success 200 {object} models.Anomaly "Список обнаруженных аномалий"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/dashboards/anomalies [get]

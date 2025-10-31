@@ -242,11 +242,13 @@ paths:
         период
       parameters:
       - description: Начало периода в timestamp
+        format: int64
         in: query
         name: start
         required: true
         type: integer
       - description: Конец периода в timestamp
+        format: int64
         in: query
         name: end
         required: true
@@ -257,9 +259,7 @@ paths:
         "200":
           description: Список обнаруженных аномалий
           schema:
-            items:
-              $ref: '#/definitions/models.Anomaly'
-            type: array
+            $ref: '#/definitions/models.Anomaly'
         "400":
           description: Неверный формат параметров
           schema:
@@ -277,11 +277,13 @@ paths:
         период
       parameters:
       - description: Начало периода в timestamp
+        format: int64
         in: query
         name: start
         required: true
         type: integer
       - description: Конец периода в timestamp
+        format: int64
         in: query
         name: end
         required: true
@@ -292,7 +294,9 @@ paths:
         "200":
           description: Статистика по устройствам
           schema:
-            $ref: '#/definitions/models.DeviceStat'
+            items:
+              $ref: '#/definitions/models.DeviceStat'
+            type: array
         "400":
           description: Неверный формат параметров
           schema:
@@ -310,6 +314,7 @@ paths:
         даты
       parameters:
       - description: Дата начала в timestamp
+        format: int64
         in: query
         name: start
         required: true

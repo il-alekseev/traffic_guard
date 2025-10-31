@@ -86,10 +86,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Список обнаруженных аномалий",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.ModelsAnomaly"
-                            }
+                            "$ref": "#/definitions/models.ModelsAnomaly"
                         }
                     },
                     "400": {
@@ -414,6 +411,79 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/analytics/dashboards/top-unresolved_detections": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список наиболее частых нерешенных выявлений за указанный временной период с возможностью фильтрации",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "Получение списка топ нерешенных выявлений",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "now-10m",
+                        "description": "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени хоста",
+                        "name": "hostname",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 5,
+                        "description": "Количество возвращаемых записей",
+                        "name": "count",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DtoUnresolvedDetection"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/analytics/dashboards/traffic": {
             "get": {
                 "security": [
@@ -431,7 +501,7 @@ const docTemplate = `{
                 "tags": [
                     "dashboards"
                 ],
-                "summary": "Получить статистику трафика",
+                "summary": "Получение статистики трафика",
                 "parameters": [
                     {
                         "type": "string",
@@ -445,6 +515,12 @@ const docTemplate = `{
                         "default": "now",
                         "description": "Конец временного диапазона в формате парсера времени (по умолчанию now)",
                         "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени хоста",
+                        "name": "hostname",
                         "in": "query"
                     },
                     {
@@ -485,7 +561,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Возвращает список наиболее частых детекций за указанный временной период с пагинацией",
+                "description": "Возвращает список выявлений за указанный временной период с пагинацией и фильтрацией",
                 "consumes": [
                     "application/json"
                 ],
@@ -495,7 +571,7 @@ const docTemplate = `{
                 "tags": [
                     "detections"
                 ],
-                "summary": "Получить список топ выявлений",
+                "summary": "Получение списка выявлений",
                 "parameters": [
                     {
                         "type": "string",
@@ -533,8 +609,7 @@ const docTemplate = `{
                             "Прокси и анонимайзеры",
                             "Реестр запрещенных сайтов",
                             "Сайты для взрослых",
-                            "Сайты",
-                            "распространяющие вирусы",
+                            "Сайты распространяющие вирусы",
                             "Социальные сети",
                             "Торренты и Р2Р-сети",
                             "Файловые архивы",
@@ -555,6 +630,17 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Фильтр по категории",
                         "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "Разрешено",
+                            "Заблокировано",
+                            "Не решено"
+                        ],
+                        "type": "string",
+                        "description": "Действие пользователя",
+                        "name": "action",
                         "in": "query"
                     },
                     {
@@ -2890,6 +2976,27 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ModelsTrafficStat"
                         }
                     ]
+                }
+            }
+        },
+        "models.DtoUnresolvedDetection": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "description": "domain",
+                    "type": "string"
+                },
+                "requests_after": {
+                    "description": "requests after",
+                    "type": "integer"
+                },
+                "requests_all": {
+                    "description": "requests all",
+                    "type": "integer"
+                },
+                "requests_before": {
+                    "description": "requests before",
+                    "type": "integer"
                 }
             }
         },
