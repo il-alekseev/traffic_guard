@@ -27,6 +27,7 @@ type QueryUsecase interface {
 	CategoryUseCase
 	ListUseCase
 	URLUseCase
+	LastLogUseCase
 }
 
 // SourceUseCase определяет методы для работы с источниками
@@ -66,7 +67,7 @@ type SessionUseCase interface {
 
 // IdsUseCase определяет методы для работы с IDS логами
 type IdsUseCase interface {
-	GetLogs(ctx context.Context, start *models.IdsLog, count uint) ([]models.IdsLog, error)
+	GetLogs(ctx context.Context, start *models.LastLog, count uint) ([]models.IdsLog, error)
 }
 
 // CategoryUseCase определяет методы для работы с категориями
@@ -84,9 +85,15 @@ type ListUseCase interface {
 	GetListByDomainID(ctx context.Context, id uint) (*string, error)
 }
 
-// URL методы (если нужен отдельный интерфейс)
+// URL методы
 type URLUseCase interface {
 	CreateURL(ctx context.Context, url models.URL) error
 	GetURLByPath(ctx context.Context, path string) (*models.URL, error)
 	GetURLByPathDomain(ctx context.Context, path string, id uint) (*models.URL, error)
+}
+
+// Работа с последним обработанным логом
+type LastLogUseCase interface {
+	GetLastLog(ctx context.Context) (*models.LastLog, error)
+	CreateOrUpdateLastLog(ctx context.Context, log models.LastLog) error
 }

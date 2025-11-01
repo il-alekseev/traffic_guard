@@ -9,22 +9,22 @@ type Status string
 
 // Определяем перечисление с константами статусов
 const (
-	Allowed   Status = "allowed"   // Разрешен
-	Blocked   Status = "blocked"   // Заблокирован
-	Forbidden Status = "forbidden" // Запрещен
-	Pending   Status = "pending"   // Ожидает
+	StatusAllowed Status = "allowed" // Разрешен
+	StatusBlocked Status = "blocked" // Запрещен
+	StatusAnomaly Status = "anomaly" // Аномалия
+	StatusPending Status = "pending" // Ожидает
 )
 
 // String возвращает строковое представление Status
 func (s Status) String() string {
 	switch s {
-	case Allowed:
+	case StatusAllowed:
 		return "Разрешен"
-	case Blocked:
-		return "Заблокирован"
-	case Forbidden:
+	case StatusBlocked:
 		return "Запрещен"
-	case Pending:
+	case StatusAnomaly:
+		return "Аномалия"
+	case StatusPending:
 		return "Ожидает"
 	default:
 		return string(s)
@@ -34,7 +34,7 @@ func (s Status) String() string {
 // IsValid проверяет, является ли значение валидным Status
 func (s Status) IsValid() bool {
 	switch s {
-	case Allowed, Blocked, Forbidden, Pending:
+	case StatusAllowed, StatusBlocked, StatusAnomaly, StatusPending:
 		return true
 	default:
 		return false
@@ -43,36 +43,21 @@ func (s Status) IsValid() bool {
 
 // Values возвращает все возможные значения Status
 func (s Status) Values() []Status {
-	return []Status{Allowed, Blocked, Forbidden, Pending}
+	return []Status{StatusAllowed, StatusBlocked, StatusAnomaly, StatusPending}
 }
 
 // ParseStatus преобразует строку в Status
 func ParseStatus(str string) (Status, error) {
 	switch strings.ToLower(str) {
-	case "allowed":
-		return Allowed, nil
-	case "blocked":
-		return Blocked, nil
-	case "forbidden":
-		return Forbidden, nil
-	case "pending":
-		return Pending, nil
+	case "Разрешен", "allowed":
+		return StatusAllowed, nil
+	case "Запрещен", "blocked":
+		return StatusBlocked, nil
+	case "Аномалия", "anomaly":
+		return StatusAnomaly, nil
+	case "Ожидает", "pending":
+		return StatusPending, nil
 	default:
 		return "", fmt.Errorf("invalid Status: %s", str)
 	}
-}
-
-// IsActive проверяет, активен ли статус (разрешен)
-func (s Status) IsActive() bool {
-	return s == Allowed
-}
-
-// IsInactive проверяет, неактивен ли статус (заблокирован или запрещен)
-func (s Status) IsInactive() bool {
-	return s == Blocked || s == Forbidden
-}
-
-// IsPending проверяет, находится ли статус в ожидании
-func (s Status) IsPending() bool {
-	return s == Pending
 }

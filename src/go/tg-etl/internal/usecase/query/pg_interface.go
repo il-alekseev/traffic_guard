@@ -44,8 +44,11 @@ type ETLRepoPGInterface interface {
 	GetURLByPathDomain(ctx context.Context, path string, id uint) (*models.URL, error)
 	GetURLByRequestID(ctx context.Context, requestID uuid.UUID) (*models.URL, error)
 	CreateURL(ctx context.Context, url models.URL) error
+
+	GetLastLog(ctx context.Context) (*models.LastLog, error)
+	CreateOrUpdateLastLog(ctx context.Context, log models.LastLog) error
 }
 
 type KSURepoPGInterface interface {
-	GetLogs(ctx context.Context, start *models.IdsLog, maxCount uint) ([]models.IdsLog, error)
+	GetLogs(ctx context.Context, start *models.LastLog, maxCount uint) ([]models.IdsLog, error)
 }

@@ -30,7 +30,7 @@ func NewMLAnalysisHandler(mlAttemps uint, queryUsecase usecase.QueryUsecase, log
 
 // HandleMLAnalysis обрабатывает результат ML анализа
 func (h *MLAnalysisHandler) HandleMLAnalysis(ctx context.Context, result models.MLAnalysisResult) {
-	//h.l.InfoContext(ctx, "Processing ML analysis result",
+	//h.l.DebugContext(ctx, "Processing ML analysis result",
 	//	slog.String("request_id", result.RequestID),
 	//	slog.String("RecognisedClass", result.RecognisedClass),
 	//)
@@ -58,7 +58,7 @@ func (h *MLAnalysisHandler) HandleMLAnalysis(ctx context.Context, result models.
 		return
 	}
 	if domain == nil {
-		h.l.DebugContext(ctx, "domain not found")
+		h.l.WarnContext(ctx, "domain not found", wsl.String("request_id", requestID.String()))
 		return
 	}
 	// Обрабатываем случай, когда нашлась и категория, и домен
@@ -69,7 +69,7 @@ func (h *MLAnalysisHandler) HandleMLAnalysis(ctx context.Context, result models.
 		return
 	}
 	if list != nil {
-		h.l.DebugContext(ctx, "domain already in list",
+		h.l.DebugContext(ctx, "ML handler: domain already in list",
 			wsl.String("list", *list), wsl.String("domain", domain.Path))
 		return
 	}
@@ -86,6 +86,10 @@ func (h *MLAnalysisHandler) HandleMLAnalysis(ctx context.Context, result models.
 		if err := h.q.AddDomainToList(ctx, *domain, models.Blacklist); err != nil {
 			h.l.ErrorContext(ctx, "AddDomainToList", wsl.Err(err))
 		}
+		h.l.DebugContext(ctx, "got domain category",
+			wsl.String("domain", domain.Path),
+			wsl.String("category", category.Name),
+		)
 		// Обновляем категорию домена
 		domain.CategoryID = int(category.ID)
 		domain.CategorizedAt = time.Now()
@@ -94,10 +98,13 @@ func (h *MLAnalysisHandler) HandleMLAnalysis(ctx context.Context, result models.
 		// проверяем, не достигло ли число успешых проверок на положительный контент константе
 		domain.AnalysisCount++
 		// Если достигло, то вносим домен в белый список
-		if domain.AnalysisCount == 20 {
+		if domain.AnalysisCount == h.mlAttemps {
 			if err := h.q.AddDomainToList(ctx, *domain, models.Whitelist); err != nil {
 				h.l.ErrorContext(ctx, "AddDomainToList", wsl.Err(err))
 			}
+			h.l.DebugContext(ctx, "domain is positive",
+				wsl.String("domain", domain.Path),
+			)
 		}
 	}
 	if err := h.q.UpdateDomain(ctx, *domain); err != nil {

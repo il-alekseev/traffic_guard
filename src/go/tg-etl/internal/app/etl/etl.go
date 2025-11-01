@@ -82,9 +82,12 @@ func Run(cfg *config.Config) {
 
 	logger := *cslogger.NewColorLogger()
 
-	logger.InfoContext(ctx, "ETL service", wsl.Info("Creating DB connections"))
-
-	logger.InfoContext(ctx, "ETL service", wsl.Info("Creating KSU DB connetction"))
+	logger.InfoContext(ctx, "ETL service",
+		wsl.Info("Creating ksu db connection"),
+		wsl.String("host", cfg.KSU.Host),
+		wsl.String("db", cfg.KSU.DBName),
+		wsl.String("user", cfg.KSU.User),
+	)
 	dsnKSU := getDSN(cfg.KSU.Host, cfg.KSU.User, cfg.KSU.Pass,
 		cfg.KSU.DBName, cfg.KSU.Port, cfg.KSU.SSLMode)
 	dbKSU, err := createKSUConnection(ctx, dsnKSU, cfg.KSU.PoolMax, logger, models.IdsLog{})
@@ -93,7 +96,12 @@ func Run(cfg *config.Config) {
 		return
 	}
 
-	logger.InfoContext(ctx, "ETL service", wsl.Info("Creating ETL DB connetction"))
+	logger.InfoContext(ctx, "ETL service",
+		wsl.Info("Creating etl db connection"),
+		wsl.String("host", cfg.ETL.Host),
+		wsl.String("db", cfg.ETL.DBName),
+		wsl.String("user", cfg.ETL.User),
+	)
 	dsnETL := getDSN(cfg.ETL.Host, cfg.ETL.User, cfg.ETL.Pass,
 		cfg.ETL.DBName, cfg.ETL.Port, cfg.ETL.SSLMode)
 	dbETL, err := createETLConnection(ctx, dsnETL, cfg.ETL.PoolMax, logger,
@@ -108,6 +116,7 @@ func Run(cfg *config.Config) {
 		//models.CategoryDomain{},
 		models.DomainControlLists{},
 		models.URL{},
+		models.LastLog{},
 	)
 	if err != nil {
 		logger.ErrorContext(ctx, "ETL service", wsl.String("create ETL db connection error", err.Error()))

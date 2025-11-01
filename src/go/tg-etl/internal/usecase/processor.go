@@ -25,6 +25,7 @@ func (uc *UseCase) ProcessNewLogs(ctx context.Context) error {
 		uc.l.InfoContext(ctx, "new logs for process not found")
 		return nil
 	}
+	var lastIDSLog *models.IdsLog
 	// Обрабатываем каждую запись
 	for _, log := range logs {
 		if err := uc.processLog(ctx, log); err != nil {
@@ -34,15 +35,25 @@ func (uc *UseCase) ProcessNewLogs(ctx context.Context) error {
 			continue
 		}
 		// Обновляем lastLog
-		if uc.lastLog == nil {
-			uc.lastLog = &log
-		} else if log.ID > uc.lastLog.ID && log.Timestamp.After(uc.lastLog.Timestamp) {
-			uc.lastLog = &log
+		if lastIDSLog == nil {
+			lastIDSLog = &log
+		} else if log.ID > lastIDSLog.ID && log.Timestamp.After(lastIDSLog.Timestamp) {
+			lastIDSLog = &log
 		}
 	}
 	id := 0
-	if uc.lastLog != nil {
-		id = int(uc.lastLog.ID)
+
+	if lastIDSLog != nil {
+		id = int(lastIDSLog.ID)
+		// Сохраняем в базу последний обработанны лог
+		log := models.LastLog{
+			ID:        uint(lastIDSLog.ID),
+			Timestamp: lastIDSLog.Timestamp,
+		}
+		if err := uc.q.CreateOrUpdateLastLog(ctx, log); err != nil {
+			uc.l.ErrorContext(ctx, "error with create or update last log", wsl.Err(err))
+		}
+		uc.lastLog = &log
 	}
 	uc.l.InfoContext(ctx, "successfully processed IDS logs",
 		wsl.Int("processed_count", len(logs)),
@@ -236,6 +247,7 @@ func (uc *UseCase) createURLForDomain(ctx context.Context, log models.IdsLog, do
 		if err := uc.kc.SendAnalysisRequest(ctx, req); err != nil {
 			return nil, nil, fmt.Errorf("failed to send URL request to Kafka: %w", err)
 		}
+		uc.l.Debug("url content analysis sent", wsl.String("url", newURL.Path), wsl.String("request_id", newURL.RequestID.String()))
 	}
 
 	if err := uc.q.CreateURL(ctx, newURL); err != nil {
@@ -263,6 +275,9 @@ func (uc *UseCase) createNewDomainAndURL(ctx context.Context, log models.IdsLog,
 	if err := uc.q.CreateDomain(ctx, newDomain); err != nil {
 		return nil, nil, fmt.Errorf("failed to create new domain: %w", err)
 	}
+	uc.l.DebugContext(ctx, "domain created",
+		wsl.String("path", newDomain.Path),
+	)
 	// Получаем домен из базы, чтобы найти его ID
 	domain, err := uc.q.GetDomainByPath(ctx, newDomain.Path)
 	if err != nil {
@@ -275,8 +290,7 @@ func (uc *UseCase) createNewDomainAndURL(ctx context.Context, log models.IdsLog,
 		DomainID:  domain.ID,
 		RequestID: uuid.New(),
 	}
-
-	// Отправляем в Kafka
+	// Создаем запрос для Kafka
 	ts := time.Now()
 	req := models.AnalysisRequest{
 		RequestID: newURL.RequestID,
@@ -289,13 +303,8 @@ func (uc *UseCase) createNewDomainAndURL(ctx context.Context, log models.IdsLog,
 		},
 		Timestamp: ts,
 	}
-
-	if err := uc.kc.SendAnalysisRequest(ctx, req); err != nil {
-		return nil, nil, fmt.Errorf("failed to send URL request to Kafka: %w", err)
-	}
-
+	newURL.PutKafkaDateTime = ts
 	// Сохраняем в БД
-
 	if err := uc.q.CreateURL(ctx, newURL); err != nil {
 		return nil, nil, fmt.Errorf("failed to create new URL: %w", err)
 	}
@@ -304,7 +313,11 @@ func (uc *UseCase) createNewDomainAndURL(ctx context.Context, log models.IdsLog,
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get URL: %w", err)
 	}
-
+	// Отправляем в Kafka
+	if err := uc.kc.SendAnalysisRequest(ctx, req); err != nil {
+		return nil, nil, fmt.Errorf("failed to send URL request to Kafka: %w", err)
+	}
+	uc.l.Debug("url content analysis sent", wsl.String("url", url.Path), wsl.String("request_id", url.RequestID.String()))
 	return domain, url, nil
 }
 
@@ -347,7 +360,9 @@ func (uc *UseCase) createDomainWithAnalysis(ctx context.Context, log models.IdsL
 	if err := uc.q.CreateDomain(ctx, newDomain); err != nil {
 		return nil, nil, fmt.Errorf("failed to create new domain: %w", err)
 	}
-
+	uc.l.DebugContext(ctx, "domain created",
+		wsl.String("path", newDomain.Path),
+	)
 	// Создаем URL для анализа
 	createdDomain, err := uc.q.GetDomainByAddr(ctx, newDomain.IP, newDomain.Port)
 	if err != nil {
@@ -358,8 +373,7 @@ func (uc *UseCase) createDomainWithAnalysis(ctx context.Context, log models.IdsL
 		DomainID:  createdDomain.ID,
 		RequestID: uuid.New(),
 	}
-
-	// Отправляем в Kafka
+	// Создаем запрос в Kafka
 	ts := time.Now()
 	req := models.AnalysisRequest{
 		RequestID: newURL.RequestID,
@@ -371,11 +385,8 @@ func (uc *UseCase) createDomainWithAnalysis(ctx context.Context, log models.IdsL
 		},
 		Timestamp: ts,
 	}
-
-	if err := uc.kc.SendAnalysisRequest(ctx, req); err != nil {
-		return nil, nil, fmt.Errorf("failed to send analysis request to Kafka: %w", err)
-	}
-
+	// Сохраняем URL в БД
+	newURL.PutKafkaDateTime = ts
 	if err := uc.q.CreateURL(ctx, newURL); err != nil {
 		return nil, nil, fmt.Errorf("failed to create URL: %w", err)
 	}
@@ -386,7 +397,11 @@ func (uc *UseCase) createDomainWithAnalysis(ctx context.Context, log models.IdsL
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get URL: %w", err)
 	}
-
+	// Отправляем в Kafka
+	if err := uc.kc.SendAnalysisRequest(ctx, req); err != nil {
+		return nil, nil, fmt.Errorf("failed to send analysis request to Kafka: %w", err)
+	}
+	uc.l.Debug("content analysis sent", wsl.String("destType", string(destType)), wsl.String("url", url.Path), wsl.String("request_id", url.RequestID.String()))
 	return createdDomain, url, nil
 }
 
@@ -410,7 +425,7 @@ func (uc *UseCase) createSession(ctx context.Context, log models.IdsLog, source 
 		return fmt.Errorf("failed to process status")
 	}
 
-	sessionType, err := uc.processSessionType(ctx, log, domain)
+	sessionType, err := uc.processSessionType(domain)
 	if err != nil {
 		return fmt.Errorf("failed to process session type")
 	}
@@ -439,44 +454,36 @@ func (uc *UseCase) processStatus(ctx context.Context, log models.IdsLog, domain 
 	// log.Action = allowed && in blacklist && actionID == 0 -> Ожидает
 	// log.Action = blocked -> Заблокирован
 	if log.Action == "blocked" {
-		return models.Blocked, nil
+		return models.StatusBlocked, nil
 	} else {
 		// Проверяем, находится ли домен в черном списке
 		list, err := uc.q.GetListByDomainID(ctx, domain.ID)
 		if err != nil {
-			return models.Allowed, fmt.Errorf("failed to get list for domain: %w", err)
+			return models.StatusAllowed, fmt.Errorf("failed to get list for domain: %w", err)
 		}
 		if list == nil {
-			return models.Allowed, nil
+			return models.StatusAllowed, nil
 		} else {
 			if domain.ActionID == 0 {
-				return models.Pending, nil
+				return models.StatusPending, nil
 			} else {
-				return models.Forbidden, nil
+				return models.StatusAnomaly, nil
 			}
 		}
 	}
 }
 
-// TODO: обсудить логику, скорее всего будет меняться
-func (uc *UseCase) processSessionType(ctx context.Context, log models.IdsLog, domain *models.Domain) (models.SessionType, error) {
-	if log.Action == "blocked" {
-		return models.Blocking, nil
-	} else {
-		// Проверяем, находится ли домен в черном списке
-		list, err := uc.q.GetListByDomainID(ctx, domain.ID)
-		if err != nil {
-			return models.Allowing, fmt.Errorf("failed to get list for domain: %w", err)
-		}
-		if list == nil {
-			return models.Allowing, nil
-		} else {
-			if domain.ActionID == 0 {
-				return models.Waiting, nil
-			} else {
-				// TODO: Здесь нужно добавить обработку Anomaly, Fierwal, VPN в зависимости от того , где мы запрещаем
-				return models.Anomaly, nil
-			}
-		}
+// TODO: получение типа сессии VPN
+func (uc *UseCase) processSessionType(domain *models.Domain) (models.SessionType, error) {
+	// Получаем категорию домена
+	domainCategory, err := models.ParseContentCategoryByID(uint(domain.CategoryID))
+	if err != nil {
+		return models.SessionTypeAllowed, err
 	}
+	// SessionType = blocked - только тогда, когда у домена отрицательная категория и по нему принято решение заблокировать его
+	if domainCategory.Type == models.CategoryTypeNegative && domain.ActionID != 0 {
+		return models.SessionTypeBlocked, nil
+	}
+	// В остальных случаях - будет allowed
+	return models.SessionTypeAllowed, nil
 }

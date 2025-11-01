@@ -10,7 +10,7 @@ import (
 func main() {
 	cfgPath := "./config/config.yaml" // Путь к конфигу в контейнере (по умолчанию)
 
-	runType := flag.String("type", "config.yaml", "Type of running service")
+	runType := flag.String("type", "local", "Type of running service")
 	// Парсинг флагов
 	flag.Parse()
 	if *runType == "local" {
@@ -31,6 +31,6 @@ func main() {
 		slog.Error(err.Error())
 		return
 	}
-	cfg.App.DevVersion = "0.1.1-dev.12"
+	cfg.App.DevVersion = "0.1.1-dev.13"
 	etl.Run(cfg)
 }

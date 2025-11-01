@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"net"
 	"sync"
 	"tg-etl/config"
 	"tg-etl/internal/models"
+	"tg-etl/pkg/slogger/wsl"
 	"time"
 
 	"github.com/segmentio/kafka-go"
@@ -40,6 +42,40 @@ func New(ctx context.Context, cfg config.Kafka, logger *slog.Logger) (*KafkaClie
 		return nil, fmt.Errorf("ML topic is required")
 	}
 
+	// Проверяем, что сервер Kafka доступен
+	err := checkKafkaConnection(ctx, brokers[0])
+	if err != nil {
+		logger.ErrorContext(ctx, "new kafka client", wsl.Err(err))
+		return nil, err
+	}
+
+	// Простой кастомный Dialer для чтения, который использует IP напрямую
+	// В противном случае, клиент пытается найти сервер Kafka по DNS
+	// (Особенности работы библиотеки kafka-go)
+	dialer := &kafka.Dialer{
+		Timeout:   30 * time.Second,
+		DualStack: true,
+		DialFunc: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			var d net.Dialer
+			conn, err := d.DialContext(ctx, network, brokerAddr)
+			if err != nil {
+				return nil, fmt.Errorf("failed to connect to %s (requested %s): %w", brokerAddr, addr, err)
+			}
+			return conn, nil
+		},
+	}
+
+	// Producer с кастомным Transport для записи, который использует IP напрямую
+	// В противном случае, клиент пытается найти сервер Kafka по DNS
+	// (Особенности работы библиотеки kafka-go)
+	transport := &kafka.Transport{
+		Dial: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			// Игнорируем переданный addr и используем наш IP напрямую
+			var d net.Dialer
+			return d.DialContext(ctx, network, brokerAddr)
+		},
+	}
+
 	// Producer для отправки запросов в URL topic
 	producer := &kafka.Writer{
 		Addr:         kafka.TCP(brokers...),
@@ -48,6 +84,7 @@ func New(ctx context.Context, cfg config.Kafka, logger *slog.Logger) (*KafkaClie
 		BatchTimeout: 10 * time.Millisecond,
 		RequiredAcks: kafka.RequireOne,
 		//Logger:       kafka.LoggerFunc(logger.Info),
+		Transport: transport,
 		ErrorLogger: kafka.LoggerFunc(func(s string, i ...interface{}) {
 			logger.ErrorContext(ctx, "Kafka writer error", "msg", s, "args", i)
 		}),
@@ -67,6 +104,7 @@ func New(ctx context.Context, cfg config.Kafka, logger *slog.Logger) (*KafkaClie
 			GroupID:        "tg-etl-consumer-group",
 			StartOffset:    kafka.FirstOffset,
 			CommitInterval: 1 * time.Second,
+			Dialer:         dialer,
 		})
 		consumers = append(consumers, consumer)
 	}
@@ -83,8 +121,18 @@ func New(ctx context.Context, cfg config.Kafka, logger *slog.Logger) (*KafkaClie
 		"url_topic", cfg.URLTopic,
 		"metadata_topic", cfg.MetadataTopic,
 		"ml_topic", cfg.MLTopic)
-
 	return client, nil
+}
+
+func checkKafkaConnection(ctx context.Context, broker string) error {
+	conn, err := kafka.DialContext(ctx, "tcp", broker)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	_, err = conn.ApiVersions()
+	return err
 }
 
 // SendAnalysisRequest отправляет запрос на анализ в URL topic

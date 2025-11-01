@@ -21,7 +21,7 @@ func NewKSURepoPG(db pgorm.Interface, l slog.Logger) *KSURepoPG {
 	}
 }
 
-func (r KSURepoPG) GetLogs(ctx context.Context, start *models.IdsLog, maxCount uint) ([]models.IdsLog, error) {
+func (r KSURepoPG) GetLogs(ctx context.Context, start *models.LastLog, maxCount uint) ([]models.IdsLog, error) {
 	var logs []models.IdsLog
 	query := r.db.GetDB().WithContext(ctx).Model(&models.IdsLog{})
 	// Нас интересуют только логи, касающиеся протокола HTTP(S)

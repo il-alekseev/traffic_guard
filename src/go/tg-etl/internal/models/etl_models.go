@@ -85,3 +85,8 @@ type URL struct {
 	// TODO:  Временно! отладить, почему requestID повторяется!
 	RequestID uuid.UUID `gorm:"type:uuid;" json:"request_id"`
 }
+
+type LastLog struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	Timestamp time.Time `gorm:"type:timestamptz;not null" json:"timestamp"`
+}

@@ -14,23 +14,17 @@ type UseCase struct {
 	q QueryUsecase
 	// TODO: добавить функционал очистки кешей по TTL
 	batchSize      uint
-	lastLog        *models.IdsLog
+	lastLog        *models.LastLog
 	kc             kafka.Client
 	processingLock sync.Mutex
 	l              slog.Logger
 }
 
 func New(cfg *config.Config, q QueryUsecase, kc kafka.Client, l slog.Logger) (*UseCase, error) {
-	uc := UseCase{
-		q:         q,
-		batchSize: uint(cfg.BatchSize),
-		lastLog:   nil,
-		kc:        kc,
-		l:         l,
-	}
+	ctx := context.Background()
 	// Заполняем вспомогательные таблицы для ETL
 	// Проверяем, пуста ли таблица с категориями, если пуста, то добавляем категории
-	categories, err := q.GetCategories(context.Background())
+	categories, err := q.GetCategories(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get categories: %v", err)
 	}
@@ -39,6 +33,18 @@ func New(cfg *config.Config, q QueryUsecase, kc kafka.Client, l slog.Logger) (*U
 		if err != nil {
 			return nil, fmt.Errorf("failed to create categories: %v", err)
 		}
+	}
+	// Загружаем запись о последнем обработанном логе (в случае, если сервис останавливался)
+	lastLog, err := q.GetLastLog(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get last log: %v", err)
+	}
+	uc := UseCase{
+		q:         q,
+		batchSize: uint(cfg.BatchSize),
+		lastLog:   lastLog,
+		kc:        kc,
+		l:         l,
 	}
 	return &uc, nil
 }

@@ -21,23 +21,38 @@ func ParseRawURL(input string) (URLInfo, error) {
 	if err != nil {
 		return info, fmt.Errorf("failed to extract URL: %w", err)
 	}
-	info.URL = fullURL
+
+	// Очищаем URL от недопустимых символов
+	cleanedURL := cleanURL(fullURL)
+	info.URL = cleanedURL
 
 	// Извлекаем протокол
-	proto, err := extractProto(fullURL)
+	proto, err := extractProto(cleanedURL)
 	if err != nil {
 		return info, fmt.Errorf("failed to extract protocol: %w", err)
 	}
 	info.Proto = proto
 
 	// Извлекаем домен
-	domain, err := extractDomain(fullURL)
+	domain, err := extractDomain(cleanedURL)
 	if err != nil {
 		return info, fmt.Errorf("failed to extract domain: %w", err)
 	}
 	info.Domain = domain
 
 	return info, nil
+}
+
+// cleanURL удаляет недопустимые символы из URL
+func cleanURL(rawURL string) string {
+	// Удаляем управляющие символы (ASCII 0-31 и 127)
+	var result strings.Builder
+	for _, r := range rawURL {
+		if r > 31 && r != 127 && r != ' ' {
+			result.WriteRune(r)
+		}
+	}
+	return result.String()
 }
 
 // extractURL извлекает полный URL из строки

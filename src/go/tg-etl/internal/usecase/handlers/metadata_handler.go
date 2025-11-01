@@ -24,7 +24,7 @@ func NewMetadataHandler(queryUsecase usecase.QueryUsecase, l *slog.Logger) *Meta
 }
 
 func (h *MetadataHandler) HandleURLMetadata(ctx context.Context, result models.URLMetadataResult) {
-	//h.l.InfoContext(ctx, "Processing URL metadata result",
+	//h.l.DebugContext(ctx, "Processing URL metadata result",
 	//	slog.String("request_id", result.RequestID),
 	//	slog.String("url", result.URL))
 	// Обновляем поля домена полученной информацией
