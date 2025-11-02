@@ -41,6 +41,7 @@ type Server struct {
 	key         string // для проверки подписи токенов
 }
 
+// New - инициализация http сервера
 func New(
 	ctx context.Context,
 	cfg *config.Config,
@@ -72,11 +73,13 @@ func New(
 	return &apigw, nil
 }
 
+// Run - запуск http сервера
 func (s *Server) Run() error {
 	slog.Info("Server started", "addr", s.httpServer.Addr)
 	return s.httpServer.ListenAndServe()
 }
 
+// Stop - остановка http сервера
 func (s *Server) Stop(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -84,6 +87,7 @@ func (s *Server) Stop(ctx context.Context) error {
 	return s.httpServer.Shutdown(ctx)
 }
 
+// ErrorResponse - обработка ошибок, логирование и вывод
 func (s *Server) ErrorResponse(c *gin.Context, code int, msg string, err error) {
 	errMsg := ""
 	if err != nil {

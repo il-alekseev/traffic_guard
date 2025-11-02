@@ -12,6 +12,7 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
+// CheckAuthHeader - Проверка наличия токена авторизации
 func CheckAuthHeader() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authToken := c.GetHeader("Authorization")
@@ -37,6 +38,7 @@ func CheckAuthHeader() gin.HandlerFunc {
 	}
 }
 
+// SetUserMetaData - установка мета информации пользователя в context
 func SetUserMetaData() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Получаем токен из заголовка Authorization
