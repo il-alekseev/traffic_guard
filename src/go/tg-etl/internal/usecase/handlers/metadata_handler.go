@@ -31,7 +31,7 @@ func (h *MetadataHandler) HandleURLMetadata(ctx context.Context, result models.U
 	// TODO: Продумать кейсы с различными данными (domain, ip, url)
 	domain := models.Domain{
 		IP:      result.Domain.IP,
-		Country: result.Domain.Geo.Country,
+		Country: result.Domain.Geo.CountryCode,
 		Path:    result.Domain.Name,
 	}
 	if err := h.q.UpdateDomain(ctx, domain); err != nil {
