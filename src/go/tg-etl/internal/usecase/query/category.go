@@ -66,6 +66,9 @@ func (uc *QueryUseCase) GetCategoryByName(ctx context.Context, name string) (*mo
 		uc.l.ErrorContext(ctx, "get category by name from db", wsl.Err(err))
 		return nil, err
 	}
+	if c == nil {
+		return nil, fmt.Errorf("incorrect category na,e: %s", name)
+	}
 
 	// Парсим категорию из строки
 	cat, err := models.ParseContentCategory(c.Name)
