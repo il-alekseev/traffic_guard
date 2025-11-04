@@ -10,7 +10,7 @@ import (
 func main() {
 	cfgPath := "./config/config.yaml" // Путь к конфигу в контейнере (по умолчанию)
 
-	runType := flag.String("type", "build", "Type of running service")
+	runType := flag.String("type", "", "Type of running service")
 	// Парсинг флагов
 	flag.Parse()
 	if *runType == "local" {
@@ -19,13 +19,6 @@ func main() {
 	} else if *runType == "remote" {
 		// Используется удаленная БД для аналитики
 		cfgPath = "./deploy/remote/config.yaml"
-	} else if *runType == "build" {
-		cfgPath = "./config/config.yaml"
-	} else {
-		slog.Error("Invalid run type argument value",
-			"value", *runType,
-			"allowed", "local, remote")
-		return
 	}
 
 	cfg, err := config.NewConfig(cfgPath)
@@ -33,6 +26,6 @@ func main() {
 		slog.Error(err.Error())
 		return
 	}
-	cfg.App.DevVersion = "0.1.1-dev.15"
+	cfg.App.DevVersion = "0.1.1-dev.16"
 	etl.Run(cfg)
 }
