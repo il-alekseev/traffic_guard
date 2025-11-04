@@ -207,3 +207,69 @@ func (r *GetDeviceStatRequest) ValidateAndNormalize() error {
 	r.Normalize()
 	return r.Validate()
 }
+
+// GetAnomaliesRequest представляет запрос для получения состояния устройств
+type GetAnomaliesRequest struct {
+	From string `form:"from" binding:"omitempty"`
+	To   string `form:"to" binding:"omitempty"`
+}
+
+// Normalize нормализует значения запроса
+func (r *GetAnomaliesRequest) Normalize() {
+	// Тримим строковые поля
+	r.From = strings.TrimSpace(r.From)
+	r.To = strings.TrimSpace(r.To)
+
+	// Устанавливаем значения по умолчанию
+	if r.From == "" {
+		r.From = "now-10m"
+	}
+	if r.To == "" {
+		r.To = "now"
+	}
+}
+
+// Validate выполняет валидацию всех полей запроса
+func (r *GetAnomaliesRequest) Validate() error {
+	// Валидация временного диапазона
+	if err := validateTimeRange(r.From, r.To); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ValidateAndNormalize выполняет нормализацию и валидацию
+func (r *GetAnomaliesRequest) ValidateAndNormalize() error {
+	r.Normalize()
+	return r.Validate()
+}
+
+// GetAnomaliesRequest представляет запрос для получения состояния устройств
+type ActRequest struct {
+	Action string `form:"action"`
+	Path   string `form:"path"`
+}
+
+// Normalize нормализует значения запроса
+func (r *ActRequest) Normalize() {
+	// Тримим строковые поля
+	r.Action = strings.TrimSpace(r.Action)
+	r.Path = strings.TrimSpace(r.Path)
+}
+
+// Validate выполняет валидацию всех полей запроса
+func (r *ActRequest) Validate() error {
+	// Валидация типа действия
+	allowedTypes := []string{"alllow", "deny"}
+	if r.Action != "" && !contains(allowedTypes, r.Action) {
+		return fmt.Errorf("invalid action")
+	}
+	return nil
+}
+
+// ValidateAndNormalize выполняет нормализацию и валидацию
+func (r *ActRequest) ValidateAndNormalize() error {
+	r.Normalize()
+	return r.Validate()
+}

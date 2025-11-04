@@ -147,3 +147,50 @@ func (u *Usecase) GetDeviceStat(ctx context.Context, tr *trparser.TimeRange, cou
 	)
 	return deviceStat, nil
 }
+
+func (u *Usecase) GetAnomalies(ctx context.Context, tr *trparser.TimeRange) (dto.GetAnomaliesResponse, error) {
+	method := "GetAnomalies"
+	u.l.InfoContext(ctx,
+		method,
+		slog.Any("time_range", tr),
+	)
+
+	anomalies, err := u.db.GetAnomalies(ctx, tr)
+	if err != nil {
+		err = fmt.Errorf("%s: failed to get anomalies: %w", method, err)
+		u.l.ErrorContext(ctx, "Database operation failed",
+			wsl.String("method", method),
+			wsl.String("error", err.Error()),
+		)
+		return anomalies, err
+	}
+
+	u.l.InfoContext(ctx, "Anomalies retrieved",
+		slog.String("method", method),
+	)
+	return anomalies, nil
+}
+
+func (u *Usecase) Act(ctx context.Context, action, path string) error {
+	method := "Act"
+	u.l.InfoContext(ctx,
+		method,
+		wsl.String("action", action),
+		slog.Any("path", path),
+	)
+
+	err := u.db.Act(ctx, action, path)
+	if err != nil {
+		err = fmt.Errorf("%s: failed act with domain: %w", method, err)
+		u.l.ErrorContext(ctx, "Database operation failed",
+			wsl.String("method", method),
+			wsl.String("error", err.Error()),
+		)
+		return err
+	}
+
+	u.l.InfoContext(ctx, "Act success",
+		slog.String("method", method),
+	)
+	return nil
+}

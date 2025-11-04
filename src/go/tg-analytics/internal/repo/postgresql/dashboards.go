@@ -7,8 +7,11 @@ import (
 	"tg-an/internal/models"
 	"tg-an/internal/pkg/status"
 	pkg "tg-an/pkg/models"
+	"tg-an/pkg/slogger/wsl"
 	"tg-an/pkg/trparser"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // GetTopCategories возвращает топ категорий по количеству доступов
@@ -234,4 +237,107 @@ func (r *RepoPG) GetDeviceStat(ctx context.Context, tr *trparser.TimeRange, coun
 	}
 
 	return result, nil
+}
+
+func (r *RepoPG) GetAnomalies(ctx context.Context, tr *trparser.TimeRange) (dto.GetAnomaliesResponse, error) {
+	var result = dto.GetAnomaliesResponse{
+		Data: make(map[string][]string),
+	}
+	// Получем список хостов
+	hostnames, err := r.GetDevices(ctx)
+	if err != nil {
+		return result, fmt.Errorf("failed to get devices: %w", err)
+	}
+	result.HostNamesCount = uint(len(hostnames))
+	for _, h := range hostnames {
+		result.Data[h] = []string{}
+	}
+
+	// Получаем число заблокированных ресурсов (доменов)
+	var blockedDomainsCount int64
+	if err := r.db.GetDB().WithContext(ctx).Table("sessions").
+		Distinct("domains.id").
+		Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
+		Where("sessions.status = ?", status.StatusBlocked.String()).
+		Where("sessions.datetime_utc BETWEEN ? AND ?", tr.From, tr.To).
+		Count(&blockedDomainsCount).Error; err != nil {
+		return result, fmt.Errorf("failed to get blocked domains count: %w", err)
+	}
+
+	result.BlockedResoursesCount = uint(blockedDomainsCount)
+
+	// Получаем списки ресурсов, которые разрешены сетевым узлом, несмотря на блокировку в КСУ
+	for _, hostname := range hostnames {
+		var anomalies []string
+
+		// Получаем заблокированные домены для конкретного хоста
+		var blockedDomains []string
+		err := r.db.GetDB().WithContext(ctx).Table("sessions").
+			Distinct("domains.path").
+			Select("domains.path").
+			Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
+			Joins("LEFT JOIN devices ON sessions.device_id = devices.id").
+			Where("sessions.status = ?", status.StatusAnomaly.String()).
+			Where("devices.host_name = ?", hostname).
+			Where("sessions.datetime_utc BETWEEN ? AND ?", tr.From, tr.To).
+			Pluck("domains.path", &blockedDomains).Error
+
+		if err != nil {
+			r.l.WarnContext(ctx, "warning with get domains", wsl.Err(err))
+			continue
+		}
+
+		// Формируем список аномалий для этого хоста
+		for _, domain := range blockedDomains {
+			anomalies = append(anomalies, fmt.Sprintf("Заблокирован доступ к %s", domain))
+		}
+
+		result.Data[hostname] = anomalies
+	}
+
+	return result, nil
+}
+
+func (r *RepoPG) Act(ctx context.Context, action, path string) error {
+	return r.db.GetDB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Находим домен по пути
+		var domain models.Domain
+		err := tx.Where("path = ?", path).First(&domain).Error
+		if err != nil {
+			return fmt.Errorf("failed to find domain with path %s: %w", path, err)
+		}
+		// Проверяем, есть ли уже действия для домена
+		if domain.ActionID != 0 {
+			return fmt.Errorf("domain already acted")
+		}
+		// Получаем общее количество записей action
+		var count int64
+		if err := tx.Model(&models.Action{}).Count(&count).Error; err != nil {
+			return fmt.Errorf("failed to count actions: %w", err)
+		}
+		// Cоздаем действие
+		var actionRecord = models.Action{
+			ID:        uint(count + 1),
+			Action:    action,
+			CreatedAt: time.Now(),
+			// TODO: добавить пользователя
+			CreatedBy: "user",
+		}
+		if err := tx.Create(&actionRecord).Error; err != nil {
+			return fmt.Errorf("failed to create action: %w", err)
+		}
+		// Обновляем домен
+		result := tx.Model(&models.Domain{}).
+			Where("id = ?", domain.ID).
+			Update("action_id", actionRecord.ID)
+
+		if result.Error != nil {
+			return fmt.Errorf("failed to update domain action: %w", result.Error)
+		}
+
+		if result.RowsAffected == 0 {
+			return fmt.Errorf("no domain was updated")
+		}
+		return nil
+	})
 }

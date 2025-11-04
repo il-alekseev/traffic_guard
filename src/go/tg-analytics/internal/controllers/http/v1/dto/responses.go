@@ -43,3 +43,9 @@ type DeviceStatResponse struct {
 	Data  map[string]models.DeviceRequestStat `json:"data"`
 	Count uint                                `json:"count"`
 }
+
+type GetAnomaliesResponse struct {
+	BlockedResoursesCount uint                `json:"blocked_resourses_count"`
+	HostNamesCount        uint                `json:"host_names_count"`
+	Data                  map[string][]string `json:"data"`
+}

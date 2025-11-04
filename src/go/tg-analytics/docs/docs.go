@@ -52,35 +52,35 @@ const docTemplate = `{
         },
         "/api/v1/dashboards/anomalies": {
             "get": {
-                "description": "Получение списка обнаруженных аномалий в сетевом трафике за указанный период",
+                "description": "Получение статистики об аномалиях за указанный период",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "not implemented"
+                    "dashboards"
                 ],
                 "summary": "Получение информации об аномалиях",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Начало периода в timestamp",
-                        "name": "start",
-                        "in": "query",
-                        "required": true
+                        "type": "string",
+                        "default": "now-10m",
+                        "description": "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)",
+                        "name": "from",
+                        "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "description": "Конец периода в timestamp",
-                        "name": "end",
-                        "in": "query",
-                        "required": true
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)",
+                        "name": "to",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Список обнаруженных аномалий",
+                        "description": "Статистика обнаруженных аномалий",
                         "schema": {
-                            "$ref": "#/definitions/models.Anomaly"
+                            "$ref": "#/definitions/dto.GetAnomaliesResponse"
                         }
                     },
                     "400": {
@@ -105,7 +105,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "not implemented"
+                    "dashboards"
                 ],
                 "summary": "Получение статистики по устройствам",
                 "parameters": [
@@ -295,10 +295,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "type": "array",
-                                "items": {
-                                    "$ref": "#/definitions/dto.Category"
-                                }
+                                "$ref": "#/definitions/dto.Category"
                             }
                         }
                     },
@@ -443,6 +440,62 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Внутренняя ошибка сервера при получении статистики",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/dashbords/act": {
+            "get": {
+                "description": "Устанавливает действие (разрешить/заблокировать) для указанного домена",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "actions"
+                ],
+                "summary": "Выполнение действия над доменом",
+                "parameters": [
+                    {
+                        "enum": [
+                            "allow",
+                            "deny"
+                        ],
+                        "type": "string",
+                        "default": "allow",
+                        "description": "Тип действия",
+                        "name": "action",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Путь домена",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Действие успешно применено к домену",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверные параметры запроса",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -1003,6 +1056,26 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.GetAnomaliesResponse": {
+            "type": "object",
+            "properties": {
+                "blocked_resourses_count": {
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "host_names_count": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.GetDetectionsResponse": {
             "type": "object",
             "properties": {
@@ -1164,34 +1237,6 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "requests_before": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.Anomaly": {
-            "type": "object",
-            "properties": {
-                "blocked_resources_count": {
-                    "type": "integer"
-                },
-                "firewalls_count": {
-                    "type": "integer"
-                },
-                "stat": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.AnomalyResourse"
-                    }
-                }
-            }
-        },
-        "models.AnomalyResourse": {
-            "type": "object",
-            "properties": {
-                "resourse_name": {
-                    "type": "string"
-                },
-                "unblocked_requests": {
                     "type": "integer"
                 }
             }

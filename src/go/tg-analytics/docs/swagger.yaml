@@ -60,6 +60,19 @@ definitions:
         description: Описание ошибки
         type: string
     type: object
+  dto.GetAnomaliesResponse:
+    properties:
+      blocked_resourses_count:
+        type: integer
+      data:
+        additionalProperties:
+          items:
+            type: string
+          type: array
+        type: object
+      host_names_count:
+        type: integer
+    type: object
   dto.GetDetectionsResponse:
     properties:
       data:
@@ -166,24 +179,6 @@ definitions:
       requests_before:
         type: integer
     type: object
-  models.Anomaly:
-    properties:
-      blocked_resources_count:
-        type: integer
-      firewalls_count:
-        type: integer
-      stat:
-        items:
-          $ref: '#/definitions/models.AnomalyResourse'
-        type: array
-    type: object
-  models.AnomalyResourse:
-    properties:
-      resourse_name:
-        type: string
-      unblocked_requests:
-        type: integer
-    type: object
   models.DeviceRequestStat:
     properties:
       blocked:
@@ -254,26 +249,25 @@ paths:
       - common
   /api/v1/dashboards/anomalies:
     get:
-      description: Получение списка обнаруженных аномалий в сетевом трафике за указанный
-        период
+      description: Получение статистики об аномалиях за указанный период
       parameters:
-      - description: Начало периода в timestamp
+      - default: now-10m
+        description: 'Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)'
         in: query
-        name: start
-        required: true
-        type: integer
-      - description: Конец периода в timestamp
+        name: from
+        type: string
+      - default: now
+        description: 'Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)'
         in: query
-        name: end
-        required: true
-        type: integer
+        name: to
+        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: Список обнаруженных аномалий
+          description: Статистика обнаруженных аномалий
           schema:
-            $ref: '#/definitions/models.Anomaly'
+            $ref: '#/definitions/dto.GetAnomaliesResponse'
         "400":
           description: Неверный формат параметров
           schema:
@@ -284,7 +278,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       summary: Получение информации об аномалиях
       tags:
-      - not implemented
+      - dashboards
   /api/v1/dashboards/devices:
     get:
       description: Получение агрегированной статистики по сетевым узлам за указанный
@@ -325,7 +319,7 @@ paths:
             $ref: '#/definitions/dto.ErrorResponse'
       summary: Получение статистики по устройствам
       tags:
-      - not implemented
+      - dashboards
   /api/v1/dashboards/requests:
     get:
       consumes:
@@ -423,9 +417,7 @@ paths:
           description: OK
           schema:
             items:
-              items:
-                $ref: '#/definitions/dto.Category'
-              type: array
+              $ref: '#/definitions/dto.Category'
             type: array
         "400":
           description: Bad Request
@@ -532,6 +524,45 @@ paths:
       summary: Получение статистики трафика
       tags:
       - dashboards
+  /api/v1/dashbords/act:
+    get:
+      consumes:
+      - application/json
+      description: Устанавливает действие (разрешить/заблокировать) для указанного
+        домена
+      parameters:
+      - default: allow
+        description: Тип действия
+        enum:
+        - allow
+        - deny
+        in: query
+        name: action
+        required: true
+        type: string
+      - description: Путь домена
+        in: query
+        name: path
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Действие успешно применено к домену
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: Неверные параметры запроса
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Выполнение действия над доменом
+      tags:
+      - actions
   /api/v1/detections:
     get:
       consumes:

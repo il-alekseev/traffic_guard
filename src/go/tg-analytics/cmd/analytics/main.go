@@ -25,6 +25,6 @@ func main() {
 	if err != nil {
 		slog.Error(err.Error())
 	}
-	cfg.App.DevVersion = "0.1.1-dev.20"
+	cfg.App.DevVersion = "0.1.1-dev.21"
 	an.Run(cfg)
 }

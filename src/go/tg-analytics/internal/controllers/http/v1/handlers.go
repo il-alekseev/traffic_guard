@@ -117,7 +117,7 @@ func (s *Server) GetSessions(c *gin.Context) {
 // @Param hostname query string false "Фильтр по имени хоста"
 // @Param type query string false "Фильтр по типу сессии" Enums(Разрешен, Заблокирован, VPN)
 // @Param count query int false "Количество возвращаемых категорий" default(5) minimum(1) maximum(50)
-// @Success 200 {array} []dto.Category
+// @Success 200 {object} []dto.Category
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
 // @Router /api/v1/dashboards/top-categories [get]
@@ -507,7 +507,7 @@ func (s *Server) GetTopUnresolvedDetections(c *gin.Context) {
 
 // @Summary Получение статистики по устройствам
 // @Description Получение агрегированной статистики по сетевым узлам за указанный период
-// @Tags not implemented
+// @Tags dashboards
 // @Produce application/json
 // @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)" default(now-10m)
 // @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)" default(now)
@@ -554,15 +554,88 @@ func (s *Server) GetDeviceStat(c *gin.Context) {
 }
 
 // @Summary Получение информации об аномалиях
-// @Description Получение списка обнаруженных аномалий в сетевом трафике за указанный период
-// @Tags not implemented
+// @Description Получение статистики об аномалиях за указанный период
+// @Tags dashboards
 // @Produce application/json
-// @Param start query int64 true "Начало периода в timestamp"
-// @Param end query int64 true "Конец периода в timestamp"
-// @Success 200 {object} models.Anomaly "Список обнаруженных аномалий"
+// @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)" default(now-10m)
+// @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)" default(now)
+// @Success 200 {object} dto.GetAnomaliesResponse "Статистика обнаруженных аномалий"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/dashboards/anomalies [get]
 func (s *Server) GetAnomalies(c *gin.Context) {
+	// Валидация запроса
+	var req validation.GetAnomaliesRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("Invalid query parameters: %v", err),
+		})
+		return
+	}
+	// Нормализация и валидация
+	if err := req.ValidateAndNormalize(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	// Парсим временной диапазон
+	parser := &trparser.TimeRangeParser{}
+	now := time.Now()
+	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", req.From, req.To), now)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Неверный формат временного диапазона",
+		})
+		return
+	}
+	// Получаем данные из usecase
+	response, err := s.u.GetAnomalies(c, timeRange)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Ошибка при получении статистики сетевых узлов",
+		})
+		return
+	}
+	c.JSON(http.StatusOK, response)
+}
 
+// @Summary Выполнение действия над доменом
+// @Description Устанавливает действие (разрешить/заблокировать) для указанного домена
+// @Tags actions
+// @Accept json
+// @Produce json
+// @Param action query string true "Тип действия" Enums(allow, deny) default(allow)
+// @Param path query string true "Путь домена"
+// @Success 200 {object} dto.SuccessResponse "Действие успешно применено к домену"
+// @Failure 400 {object} dto.ErrorResponse "Неверные параметры запроса"
+// @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
+// @Router /api/v1/dashbords/act [get]
+func (s *Server) Act(c *gin.Context) {
+	// Валидация запроса
+	var req validation.ActRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("Invalid query parameters: %v", err),
+		})
+		return
+	}
+	// Нормализация и валидация
+	if err := req.ValidateAndNormalize(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	err := s.u.Act(c, req.Path, req.Action)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Ошибка при установке значения действия к домену",
+		})
+		return
+	}
+	resp := dto.SuccessResponse{
+		Message: fmt.Sprintf("Success %s to domain %s", req.Action, req.Path),
+	}
+	c.JSON(http.StatusOK, resp)
 }

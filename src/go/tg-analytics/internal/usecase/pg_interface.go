@@ -18,9 +18,12 @@ type RepoPGInterface interface {
 	GetRequestStat(ctx context.Context, tr *trparser.TimeRange, hostname, requestType string, count uint) (models.RequestStat, error)
 	GetTopUnresolvedDetections(ctx context.Context, tr *trparser.TimeRange, hostName string, count int) ([]dto.UnresolvedDetection, error)
 	GetDeviceStat(ctx context.Context, tr *trparser.TimeRange, count uint) (dto.DeviceStatResponse, error)
+	GetAnomalies(ctx context.Context, tr *trparser.TimeRange) (dto.GetAnomaliesResponse, error)
 	// Detections
 	GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, action string, p models.Pagination) ([]dto.Detection, int64, error)
 	GetDetectionStat(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter) (dto.DetectionStat, error)
+	// Actions
+	Act(ctx context.Context, action, path string) error
 }
 
 type RepoMetricsPGInterface interface {
