@@ -61,7 +61,7 @@ func (r *RepoPG) GetRequestsStat(ctx context.Context, tr *trparser.TimeRange, f 
 	// Подготавливаем параметры для фильтров
 	hostNameFilter := f.HostName != ""
 	categoryFilter := f.TopCategory != ""
-	statusFilter := s != status.Status(0) // Проверяем, что статус не нулевой
+	statusFilter := s != "" // Проверяем, что статус не нулевой
 
 	// Базовый SQL запрос
 	sqlQuery := `
@@ -102,13 +102,13 @@ func (r *RepoPG) GetRequestsStat(ctx context.Context, tr *trparser.TimeRange, f 
 
 		// Используем строковое представление статуса для сравнения
 		switch s {
-		case status.Allowed:
+		case status.StatusAllowed:
 			sqlQuery += "decisions.decision IN ('allow', 'accept', 'Разрешено'))"
-		case status.Blocked:
+		case status.StatusBlocked:
 			sqlQuery += "decisions.decision IN ('block', 'deny', 'blocked', 'Заблокировано'))"
-		case status.Prohibited:
+		case status.StatusAnomaly:
 			sqlQuery += "decisions.decision IN ('prohibited', 'deny', 'block', 'malware', 'phishing', 'Запрещено'))"
-		case status.Waiting:
+		case status.StatusPending:
 			sqlQuery += "decisions.decision IS NULL OR decisions.decision = '' OR decisions.decision NOT IN ('allow', 'accept', 'block', 'deny', 'prohibited', 'malware', 'phishing'))"
 		default:
 			sqlQuery += "true)"

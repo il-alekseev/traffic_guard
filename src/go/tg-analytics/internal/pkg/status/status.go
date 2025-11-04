@@ -2,72 +2,62 @@ package status
 
 import (
 	"fmt"
+	"strings"
 )
 
-type Status int
+type Status string
 
+// Определяем перечисление с константами статусов
 const (
-	Allowed Status = iota + 1
-	Blocked
-	Prohibited
-	Waiting
+	StatusAllowed Status = "allowed" // Разрешен
+	StatusBlocked Status = "blocked" // Запрещен
+	StatusAnomaly Status = "anomaly" // Аномалия
+	StatusPending Status = "pending" // Ожидает
 )
 
-// String реализует интерфейс fmt.Stringer
+// String возвращает строковое представление Status
 func (s Status) String() string {
 	switch s {
-	case Allowed:
-		return "Разрешено"
-	case Blocked:
-		return "Заблокировано"
-	case Prohibited:
-		return "Запрещено"
-	case Waiting:
+	case StatusAllowed:
+		return "Разрешен"
+	case StatusBlocked:
+		return "Запрещен"
+	case StatusAnomaly:
+		return "Аномалия"
+	case StatusPending:
 		return "Ожидает"
 	default:
-		return fmt.Sprintf("Неизвестно(%d)", s)
+		return string(s)
 	}
 }
 
-// Валидация значения
+// IsValid проверяет, является ли значение валидным Status
 func (s Status) IsValid() bool {
 	switch s {
-	case Allowed, Blocked, Prohibited, Waiting:
+	case StatusAllowed, StatusBlocked, StatusAnomaly, StatusPending:
 		return true
 	default:
 		return false
 	}
 }
 
-// ParseStatus преобразует строку в значение Status
-// Возвращает ошибку, если строка не соответствует допустимым значениям
-func ParseStatus(input string) (Status, error) {
-	switch input {
-	case "allowed":
-		return Allowed, nil
-	case "blocked":
-		return Blocked, nil
-	case "prohibited":
-		return Prohibited, nil
-	case "waiting":
-		return Waiting, nil
-	default:
-		return 0, fmt.Errorf("недопустимое значение статуса: %q (ожидается: allowed, blocked, prohibited, waiting)", input)
-	}
+// Values возвращает все возможные значения Status
+func (s Status) Values() []Status {
+	return []Status{StatusAllowed, StatusBlocked, StatusAnomaly, StatusPending}
 }
 
-// String реализует интерфейс fmt.Stringer
-func (s Status) ToJSONString() string {
-	switch s {
-	case Allowed:
-		return "allowed"
-	case Blocked:
-		return "blocked"
-	case Prohibited:
-		return "prohibited"
-	case Waiting:
-		return "waiting"
+// ParseStatus преобразует строку в Status
+func ParseStatus(str string) (Status, error) {
+	switch strings.ToLower(str) {
+	case "Разрешен", "allowed":
+		return StatusAllowed, nil
+	case "Запрещен", "blocked":
+		return StatusBlocked, nil
+	case "Аномалия", "anomaly":
+		return StatusAnomaly, nil
+	case "Ожидает", "pending":
+		return StatusPending, nil
 	default:
-		return fmt.Sprintf("Неизвестно(%d)", s)
+		return "", fmt.Errorf("invalid Status: %s", str)
 	}
 }

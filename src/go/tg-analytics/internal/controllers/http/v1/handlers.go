@@ -360,7 +360,7 @@ func (s *Server) GetRequestsStat(c *gin.Context) {
 		return
 	}
 	resp := dto.DataPointsResponse{
-		Type:  fmt.Sprintf("requests_%s", status.ToJSONString()),
+		Type:  fmt.Sprintf("requests_%s", status.String()),
 		Data:  stat,
 		Count: uint(count),
 	}
