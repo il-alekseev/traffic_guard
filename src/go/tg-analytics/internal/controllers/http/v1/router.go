@@ -36,7 +36,7 @@ func (s *Server) configureRouter() {
 			dashboards.GET("/proh_activity", s.GetProhActivity)
 			dashboards.GET("/devices", s.GetDevicesStat)
 			dashboards.GET("/traffic", s.GetTrafficStat)
-			dashboards.GET("/requests", s.GetRequestsStat)
+			dashboards.GET("/requests", s.GetRequestStat)
 		}
 		// Вкладка Выявления
 		detections := v1.Group("/detections")

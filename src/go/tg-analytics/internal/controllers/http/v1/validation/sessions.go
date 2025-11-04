@@ -92,13 +92,3 @@ func (r *GetSessionsRequest) ValidateAndNormalize() error {
 	r.Normalize()
 	return r.Validate()
 }
-
-// contains проверяет наличие строки в слайсе
-func contains(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
-}

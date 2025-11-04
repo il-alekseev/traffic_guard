@@ -23,3 +23,8 @@ type TrafficStat struct {
 	Input  []uint
 	Output []uint
 }
+
+type RequestStat struct {
+	Time []time.Time
+	Data []uint
+}

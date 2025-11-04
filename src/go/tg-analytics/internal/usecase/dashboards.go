@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"tg-an/internal/controllers/http/v1/dto"
 	"tg-an/internal/models"
-	"tg-an/internal/pkg/status"
 	"tg-an/pkg/slogger/wsl"
 	"tg-an/pkg/trparser"
 )
@@ -44,24 +43,26 @@ func (u *Usecase) GetTopCategories(ctx context.Context, tr *trparser.TimeRange, 
 }
 
 // GetRequestsStat возвращает статистику запросов за указанный период
-func (u *Usecase) GetRequestsStat(ctx context.Context, tr *trparser.TimeRange, f models.DashboardFilter, s status.Status, count uint) ([]uint, error) {
+func (u *Usecase) GetRequestStat(ctx context.Context,
+	tr *trparser.TimeRange,
+	hostname, requestType string, count uint) (models.RequestStat, error) {
 	method := "GetRequestsStat"
 	u.l.InfoContext(ctx,
 		method,
 		slog.Any("time_range", tr),
-		slog.Any("filter", f),
-		slog.String("status", s.String()),
+		slog.Any("hostname", hostname),
+		slog.String("requestType", requestType),
 		slog.Uint64("count", uint64(count)),
 	)
 
-	stat, err := u.db.GetRequestsStat(ctx, tr, f, s, count)
+	stat, err := u.db.GetRequestStat(ctx, tr, hostname, requestType, count)
 	if err != nil {
 		err = fmt.Errorf("%s: failed to get requests statistics: %w", method, err)
 		u.l.ErrorContext(ctx, "Database operation failed",
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
-		return nil, err
+		return models.RequestStat{}, err
 	}
 
 	u.l.InfoContext(ctx, "Requests statistics retrieved",

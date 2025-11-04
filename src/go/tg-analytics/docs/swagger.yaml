@@ -1,17 +1,10 @@
 basePath: /
 definitions:
-  dto.DataPointsResponse:
+  dto.Category:
     properties:
-      count:
-        description: Число точек с данными
+      access_count:
         type: integer
-      data:
-        description: Список однотипных данных
-        items:
-          type: integer
-        type: array
-      type:
-        description: Тип данных
+      name:
         type: string
     type: object
   dto.Detection:
@@ -93,6 +86,19 @@ definitions:
         description: Общее количество элементов
         type: integer
     type: object
+  dto.RequestStatResponse:
+    properties:
+      count:
+        description: Число точек с данными
+        type: integer
+      data:
+        allOf:
+        - $ref: '#/definitions/models.RequestStat'
+        description: Список однотипных данных
+      type:
+        description: Тип данных
+        type: string
+    type: object
   dto.Session:
     properties:
       category:
@@ -165,13 +171,6 @@ definitions:
       unblocked_requests:
         type: integer
     type: object
-  models.CategoryCount:
-    properties:
-      category:
-        type: string
-      count:
-        type: integer
-    type: object
   models.DeviceStat:
     properties:
       name:
@@ -181,6 +180,17 @@ definitions:
       statistics:
         items:
           $ref: '#/definitions/models.ResourcePoint'
+        type: array
+    type: object
+  models.RequestStat:
+    properties:
+      data:
+        items:
+          type: integer
+        type: array
+      time:
+        items:
+          type: string
         type: array
     type: object
   models.ResourcePoint:
@@ -338,8 +348,8 @@ paths:
     get:
       consumes:
       - application/json
-      description: Возвращает статистику запросов за указанный период с фильтрацией
-        по статусу, хосту и категории
+      description: Получение статистики запросов за указанный период с фильтрацией
+        по хосту и типу запросов
       parameters:
       - default: now-10m
         description: 'Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)'
@@ -351,50 +361,19 @@ paths:
         in: query
         name: to
         type: string
-      - description: Статус запросов (Разрешен, Запрещен, Аномалия, Ожидает)
+      - default: pending
+        description: Тип запроса
+        enum:
+        - allowed
+        - blocked
+        - before_block
+        - pending
         in: query
-        name: status
+        name: request_type
         type: string
       - description: Фильтр по имени хоста
         in: query
         name: hostname
-        type: string
-      - description: Фильтр по категории
-        enum:
-        - Агрессия
-        - расизм
-        - терроризм
-        - Ботнеты
-        - Веб-почта
-        - Досуг и развлечения
-        - Интернет-магазины
-        - Компьютерные игры
-        - Криптомайнинг
-        - Наркотики
-        - Порнография и секс
-        - Прокси и анонимайзеры
-        - Реестр запрещенных сайтов
-        - Сайты для взрослых
-        - Сайты
-        - распространяющие вирусы
-        - Социальные сети
-        - Торренты и Р2Р-сети
-        - Файловые архивы
-        - Фильмы и видео онлайн
-        - Фишинг
-        - Чаты и мессенджеры
-        - Дополнительно
-        - Криптоджекинг
-        - Реклама
-        - Онлайн-игры
-        - Игровые платформы
-        - Вредоносное ПО
-        - Азартные игры
-        - Депресивный контент и суицид
-        - Алкоголь
-        - табак
-        in: query
-        name: category
         type: string
       - default: 10
         description: Количество интервалов
@@ -407,7 +386,7 @@ paths:
         "200":
           description: Статистика запросов (массив чисел)
           schema:
-            $ref: '#/definitions/dto.DataPointsResponse'
+            $ref: '#/definitions/dto.RequestStatResponse'
         "400":
           description: Неверный формат параметров
           schema:
@@ -416,9 +395,9 @@ paths:
           description: Внутренняя ошибка сервера
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
-      summary: Получить статистику запросов
+      summary: Получение статистики запросов
       tags:
-      - not implemented
+      - dashboards
   /api/v1/dashboards/top-categories:
     get:
       consumes:
@@ -462,7 +441,9 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.CategoryCount'
+              items:
+                $ref: '#/definitions/dto.Category'
+              type: array
             type: array
         "400":
           description: Bad Request

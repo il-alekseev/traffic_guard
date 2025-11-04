@@ -22,3 +22,13 @@ func validateTimeRange(from, to string) error {
 
 	return nil
 }
+
+// contains проверяет наличие строки в слайсе
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
+}
