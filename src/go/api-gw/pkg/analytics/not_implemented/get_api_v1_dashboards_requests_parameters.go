@@ -92,9 +92,7 @@ type GetAPIV1DashboardsRequestsParams struct {
 
 	/* Status.
 
-	   Статус запросов (allowed, blocked, prohibited, waiting)
-
-	   Default: "prohibited"
+	   Статус запросов (Разрешен, Запрещен, Аномалия, Ожидает)
 	*/
 	Status *string
 
@@ -128,16 +126,13 @@ func (o *GetAPIV1DashboardsRequestsParams) SetDefaults() {
 
 		fromDefault = string("now-10m")
 
-		statusDefault = string("prohibited")
-
 		toDefault = string("now")
 	)
 
 	val := GetAPIV1DashboardsRequestsParams{
-		Count:  &countDefault,
-		From:   &fromDefault,
-		Status: &statusDefault,
-		To:     &toDefault,
+		Count: &countDefault,
+		From:  &fromDefault,
+		To:    &toDefault,
 	}
 
 	val.timeout = o.timeout

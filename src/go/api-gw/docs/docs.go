@@ -244,8 +244,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "default": "prohibited",
-                        "description": "Статус запросов (allowed, blocked, prohibited, waiting)",
+                        "description": "Статус запросов (Разрешен, Запрещен, Аномалия, Ожидает)",
                         "name": "status",
                         "in": "query"
                     },
@@ -366,10 +365,9 @@ const docTemplate = `{
                     },
                     {
                         "enum": [
-                            "Заблокирован",
-                            "Запрещен",
-                            "Ожидает",
-                            "Разрешен"
+                            "\"Разрешен\"",
+                            "\"Заблокирован\"",
+                            "\"VPN\""
                         ],
                         "type": "string",
                         "description": "Фильтр по типу сессии",
@@ -903,10 +901,9 @@ const docTemplate = `{
                     },
                     {
                         "enum": [
-                            "Заблокирован",
-                            "Запрещен",
-                            "Ожидает",
-                            "Разрешен"
+                            "\"Разрешен\"",
+                            "\"Запрещен\"",
+                            "\"VPN\""
                         ],
                         "type": "string",
                         "description": "Фильтр по типу сессии",
