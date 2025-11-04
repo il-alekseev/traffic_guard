@@ -49,6 +49,67 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/analytics/dashboards/act": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Устанавливает действие (разрешить/заблокировать) для указанного домена",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "actions"
+                ],
+                "summary": "Выполнение действия над доменом",
+                "parameters": [
+                    {
+                        "enum": [
+                            "allow",
+                            "deny"
+                        ],
+                        "type": "string",
+                        "default": "allow",
+                        "description": "Тип действия",
+                        "name": "action",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Путь домена",
+                        "name": "path",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Действие успешно применено к домену",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoSuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверные параметры запроса",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/analytics/dashboards/anomalies": {
             "get": {
                 "security": [
@@ -61,32 +122,30 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "not implemented"
+                    "dashboards"
                 ],
                 "summary": "Получение информации об аномалиях",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "Начало периода в timestamp",
-                        "name": "start",
-                        "in": "query",
-                        "required": true
+                        "type": "string",
+                        "default": "now-10m",
+                        "description": "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)",
+                        "name": "from",
+                        "in": "query"
                     },
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "Конец периода в timestamp",
-                        "name": "end",
-                        "in": "query",
-                        "required": true
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)",
+                        "name": "to",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "Список обнаруженных аномалий",
                         "schema": {
-                            "$ref": "#/definitions/models.ModelsAnomaly"
+                            "$ref": "#/definitions/models.DtoGetAnomaliesResponse"
                         }
                     },
                     "400": {
@@ -116,82 +175,38 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "not implemented"
+                    "dashboards"
                 ],
                 "summary": "Получение статистики по устройствам",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "Начало периода в timestamp",
-                        "name": "start",
-                        "in": "query",
-                        "required": true
+                        "type": "string",
+                        "default": "now-10m",
+                        "description": "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)",
+                        "name": "from",
+                        "in": "query"
                     },
                     {
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
                         "type": "integer",
-                        "format": "int64",
-                        "description": "Конец периода в timestamp",
-                        "name": "end",
-                        "in": "query",
-                        "required": true
+                        "default": 20,
+                        "description": "Количество точек измерений",
+                        "name": "count",
+                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "Статистика по устройствам",
                         "schema": {
-                            "$ref": "#/definitions/models.ModelsDeviceStat"
-                        }
-                    },
-                    "400": {
-                        "description": "Неверный формат параметров",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/analytics/dashboards/proh_activity": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Получение расписания запрещенной активности начиная с указанной даты",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "not implemented"
-                ],
-                "summary": "Получение графика запрещенной активности",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "format": "int64",
-                        "description": "Дата начала в timestamp",
-                        "name": "start",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "График запрещенной активности",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "integer"
-                            }
+                            "$ref": "#/definitions/models.DtoDeviceStatResponse"
                         }
                     },
                     "400": {
@@ -216,7 +231,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Возвращает статистику запросов за указанный период с фильтрацией по статусу, хосту и категории",
+                "description": "Получение статистики запросов за указанный период с фильтрацией по хосту и типу запросов",
                 "consumes": [
                     "application/json"
                 ],
@@ -224,9 +239,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "not implemented"
+                    "dashboards"
                 ],
-                "summary": "Получить статистику запросов",
+                "summary": "Получение статистики запросов",
                 "parameters": [
                     {
                         "type": "string",
@@ -243,55 +258,22 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "allowed",
+                            "blocked",
+                            "before_block",
+                            "pending"
+                        ],
                         "type": "string",
-                        "description": "Статус запросов (Разрешен, Запрещен, Аномалия, Ожидает)",
-                        "name": "status",
+                        "default": "pending",
+                        "description": "Тип запроса",
+                        "name": "request_type",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "description": "Фильтр по имени хоста",
                         "name": "hostname",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "Агрессия",
-                            "расизм",
-                            "терроризм",
-                            "Ботнеты",
-                            "Веб-почта",
-                            "Досуг и развлечения",
-                            "Интернет-магазины",
-                            "Компьютерные игры",
-                            "Криптомайнинг",
-                            "Наркотики",
-                            "Порнография и секс",
-                            "Прокси и анонимайзеры",
-                            "Реестр запрещенных сайтов",
-                            "Сайты для взрослых",
-                            "Сайты",
-                            "распространяющие вирусы",
-                            "Социальные сети",
-                            "Торренты и Р2Р-сети",
-                            "Файловые архивы",
-                            "Фильмы и видео онлайн",
-                            "Фишинг",
-                            "Чаты и мессенджеры",
-                            "Дополнительно",
-                            "Криптоджекинг",
-                            "Реклама",
-                            "Онлайн-игры",
-                            "Игровые платформы",
-                            "Вредоносное ПО",
-                            "Азартные игры",
-                            "Депресивный контент и суицид",
-                            "Алкоголь",
-                            "табак"
-                        ],
-                        "type": "string",
-                        "description": "Фильтр по категории",
-                        "name": "category",
                         "in": "query"
                     },
                     {
@@ -306,7 +288,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Статистика запросов (массив чисел)",
                         "schema": {
-                            "$ref": "#/definitions/models.DtoDataPointsResponse"
+                            "$ref": "#/definitions/models.DtoRequestStatResponse"
                         }
                     },
                     "400": {
@@ -390,7 +372,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.ModelsCategoryCount"
+                                "$ref": "#/definitions/models.DtoCategory"
                             }
                         }
                     },
@@ -736,8 +718,7 @@ const docTemplate = `{
                             "Прокси и анонимайзеры",
                             "Реестр запрещенных сайтов",
                             "Сайты для взрослых",
-                            "Сайты",
-                            "распространяющие вирусы",
+                            "Сайты распространяющие вирусы",
                             "Социальные сети",
                             "Торренты и Р2Р-сети",
                             "Файловые архивы",
@@ -861,13 +842,14 @@ const docTemplate = `{
                     },
                     {
                         "enum": [
+                            "Неизвестный класс",
                             "Агрессия",
                             "расизм",
                             "терроризм",
                             "Ботнеты",
                             "Веб-почта",
                             "Досуг и развлечения",
-                            "Интернет-магазины",
+                            "Интернет магазины",
                             "Компьютерные игры",
                             "Криптомайнинг",
                             "Наркотики",
@@ -875,24 +857,22 @@ const docTemplate = `{
                             "Прокси и анонимайзеры",
                             "Реестр запрещенных сайтов",
                             "Сайты для взрослых",
-                            "Сайты",
-                            "распространяющие вирусы",
+                            "Сайты распространяющие вирусы",
                             "Социальные сети",
                             "Торренты и Р2Р-сети",
                             "Файловые архивы",
                             "Фильмы и видео онлайн",
                             "Фишинг",
                             "Чаты и мессенджеры",
-                            "Дополнительно",
                             "Криптоджекинг",
                             "Реклама",
                             "Онлайн-игры",
                             "Игровые платформы",
                             "Вредоносное ПО",
                             "Азартные игры",
-                            "Депресивный контент и суицид",
-                            "Алкоголь",
-                            "табак"
+                            "Депрессивный контент",
+                            "Алкоголь и табак",
+                            "Положительная категория"
                         ],
                         "type": "string",
                         "description": "Фильтр по категории",
@@ -901,9 +881,9 @@ const docTemplate = `{
                     },
                     {
                         "enum": [
-                            "\"Разрешен\"",
-                            "\"Запрещен\"",
-                            "\"VPN\""
+                            "Разрешен",
+                            "Запрещен",
+                            "VPN"
                         ],
                         "type": "string",
                         "description": "Фильтр по типу сессии",
@@ -912,7 +892,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Поиск по частичному совпадению",
+                        "description": "Поиск по URL или имени пользователя",
                         "name": "search",
                         "in": "query"
                     },
@@ -943,7 +923,6 @@ const docTemplate = `{
                             "proto",
                             "host_name",
                             "src_ip",
-                            "src_port",
                             "src_country",
                             "username",
                             "dst_ip",
@@ -952,7 +931,7 @@ const docTemplate = `{
                             "category"
                         ],
                         "type": "string",
-                        "default": "id",
+                        "default": "datetime_utc",
                         "description": "Поле для сортировки",
                         "name": "order_by",
                         "in": "query"
@@ -2559,6 +2538,19 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.DtoCategory": {
+            "type": "object",
+            "properties": {
+                "access_count": {
+                    "description": "access count",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "name",
+                    "type": "string"
+                }
+            }
+        },
         "models.DtoContextListResponse": {
             "type": "object",
             "properties": {
@@ -2672,26 +2664,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.DtoDataPointsResponse": {
-            "type": "object",
-            "properties": {
-                "count": {
-                    "description": "Число точек с данными",
-                    "type": "integer"
-                },
-                "data": {
-                    "description": "Список однотипных данных",
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
-                },
-                "type": {
-                    "description": "Тип данных",
-                    "type": "string"
-                }
-            }
-        },
         "models.DtoDetection": {
             "type": "object",
             "properties": {
@@ -2758,12 +2730,58 @@ const docTemplate = `{
                 }
             }
         },
+        "models.DtoDeviceStatResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "description": "count",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "data",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/models.ModelsDeviceRequestStat"
+                    }
+                },
+                "time": {
+                    "description": "time",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "models.DtoErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
                     "description": "Описание ошибки",
                     "type": "string"
+                }
+            }
+        },
+        "models.DtoGetAnomaliesResponse": {
+            "type": "object",
+            "properties": {
+                "blocked_resourses_count": {
+                    "description": "blocked resourses count",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "data",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "host_names_count": {
+                    "description": "host names count",
+                    "type": "integer"
                 }
             }
         },
@@ -2866,6 +2884,39 @@ const docTemplate = `{
                 "total": {
                     "description": "Общее количество элементов",
                     "type": "integer"
+                }
+            }
+        },
+        "models.DtoRequestStatResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "description": "Число точек с данными",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "Список однотипных данных",
+                    "type": "object",
+                    "properties": {
+                        "data": {
+                            "description": "data",
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "time": {
+                            "description": "time",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "type": {
+                    "description": "Тип данных",
+                    "type": "string"
                 }
             }
         },
@@ -3135,39 +3186,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.ModelsAnomaly": {
-            "type": "object",
-            "properties": {
-                "blocked_resources_count": {
-                    "description": "blocked resources count",
-                    "type": "integer"
-                },
-                "firewalls_count": {
-                    "description": "firewalls count",
-                    "type": "integer"
-                },
-                "stat": {
-                    "description": "stat",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ModelsAnomalyResourse"
-                    }
-                }
-            }
-        },
-        "models.ModelsAnomalyResourse": {
-            "type": "object",
-            "properties": {
-                "resourse_name": {
-                    "description": "resourse name",
-                    "type": "string"
-                },
-                "unblocked_requests": {
-                    "description": "unblocked requests",
-                    "type": "integer"
-                }
-            }
-        },
         "models.ModelsBusinessLog": {
             "type": "object",
             "properties": {
@@ -3216,19 +3234,6 @@ const docTemplate = `{
                 "user_role": {
                     "description": "SA, CA",
                     "type": "string"
-                }
-            }
-        },
-        "models.ModelsCategoryCount": {
-            "type": "object",
-            "properties": {
-                "category": {
-                    "description": "category",
-                    "type": "string"
-                },
-                "count": {
-                    "description": "count",
-                    "type": "integer"
                 }
             }
         },
@@ -3302,23 +3307,26 @@ const docTemplate = `{
                 }
             }
         },
-        "models.ModelsDeviceStat": {
+        "models.ModelsDeviceRequestStat": {
             "type": "object",
             "properties": {
-                "name": {
-                    "description": "name",
-                    "type": "string"
-                },
-                "state": {
-                    "description": "state",
-                    "type": "string"
-                },
-                "statistics": {
-                    "description": "statistics",
+                "blocked": {
+                    "description": "blocked",
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ModelsResourcePoint"
+                        "type": "integer"
                     }
+                },
+                "pending": {
+                    "description": "pending",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "status": {
+                    "description": "status",
+                    "type": "string"
                 }
             }
         },
@@ -3359,23 +3367,6 @@ const docTemplate = `{
                 },
                 "total": {
                     "description": "total",
-                    "type": "integer"
-                }
-            }
-        },
-        "models.ModelsResourcePoint": {
-            "type": "object",
-            "properties": {
-                "date": {
-                    "description": "date",
-                    "type": "integer"
-                },
-                "delayed": {
-                    "description": "delayed",
-                    "type": "integer"
-                },
-                "locked": {
-                    "description": "locked",
                     "type": "integer"
                 }
             }
