@@ -856,8 +856,7 @@ paths:
         in: query
         name: to
         type: string
-      - default: prohibited
-        description: Статус запросов (allowed, blocked, prohibited, waiting)
+      - description: Статус запросов (Разрешен, Запрещен, Аномалия, Ожидает)
         in: query
         name: status
         type: string
@@ -950,10 +949,9 @@ paths:
         type: string
       - description: Фильтр по типу сессии
         enum:
-        - Заблокирован
-        - Запрещен
-        - Ожидает
-        - Разрешен
+        - '"Разрешен"'
+        - '"Заблокирован"'
+        - '"VPN"'
         in: query
         name: type
         type: string
@@ -1344,10 +1342,9 @@ paths:
         type: string
       - description: Фильтр по типу сессии
         enum:
-        - Заблокирован
-        - Запрещен
-        - Ожидает
-        - Разрешен
+        - '"Разрешен"'
+        - '"Запрещен"'
+        - '"VPN"'
         in: query
         name: type
         type: string
