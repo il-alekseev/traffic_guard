@@ -75,7 +75,7 @@ func (s *Server) CreateReportForDevice(c *gin.Context) {
 	hostname := c.Param("hostname")
 	devices, err := s.u.GetDevices(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusNotFound, gin.H{
 			"error": fmt.Sprintf("error with getting devices: %v", err),
 		})
 		return
