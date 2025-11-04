@@ -106,18 +106,26 @@
                 "summary": "Получение статистики по устройствам",
                 "parameters": [
                     {
-                        "type": "integer",
-                        "description": "Начало периода в timestamp",
-                        "name": "start",
-                        "in": "query",
-                        "required": true
+                        "type": "string",
+                        "default": "now-10m",
+                        "description": "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)",
+                        "name": "from",
+                        "in": "query"
                     },
                     {
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
                         "type": "integer",
-                        "description": "Конец периода в timestamp",
-                        "name": "end",
-                        "in": "query",
-                        "required": true
+                        "default": 20,
+                        "description": "Количество точек измерений",
+                        "name": "count",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -126,51 +134,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.DeviceStat"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Неверный формат параметров",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/dashboards/proh_activity": {
-            "get": {
-                "description": "Получение расписания запрещенной активности начиная с указанной даты",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "not implemented"
-                ],
-                "summary": "Получение графика запрещенной активности",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Дата начала в timestamp",
-                        "name": "start",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "График запрещенной активности",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "integer"
+                                "$ref": "#/definitions/dto.DeviceStatResponse"
                             }
                         }
                     },
@@ -1006,6 +970,26 @@
                 }
             }
         },
+        "dto.DeviceStatResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/models.DeviceRequestStat"
+                    }
+                },
+                "time": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "dto.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -1208,20 +1192,23 @@
                 }
             }
         },
-        "models.DeviceStat": {
+        "models.DeviceRequestStat": {
             "type": "object",
             "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "state": {
-                    "type": "string"
-                },
-                "statistics": {
+                "blocked": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/models.ResourcePoint"
+                        "type": "integer"
                     }
+                },
+                "pending": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },
@@ -1239,20 +1226,6 @@
                     "items": {
                         "type": "string"
                     }
-                }
-            }
-        },
-        "models.ResourcePoint": {
-            "type": "object",
-            "properties": {
-                "date": {
-                    "type": "integer"
-                },
-                "delayed": {
-                    "type": "integer"
-                },
-                "locked": {
-                    "type": "integer"
                 }
             }
         },

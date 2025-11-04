@@ -155,3 +155,83 @@ func (r *RepoPG) GetTopUnresolvedDetections(ctx context.Context, tr *trparser.Ti
 
 	return detections, nil
 }
+
+func (r *RepoPG) GetDeviceStat(ctx context.Context, tr *trparser.TimeRange, count uint) (dto.DeviceStatResponse, error) {
+	result := dto.DeviceStatResponse{
+		Time: make([]time.Time, count),
+		Data: make(map[string]models.DeviceRequestStat),
+	}
+
+	if !tr.IsValid() {
+		return result, fmt.Errorf("invalid time range: %s", tr.String())
+	}
+
+	if count == 0 {
+		return result, fmt.Errorf("count must be greater than 0")
+	}
+
+	totalDuration := tr.Duration()
+	intervalDuration := totalDuration / time.Duration(count)
+
+	// Создаем временные интервалы заранее
+	for i := uint(0); i < count; i++ {
+		start := tr.From.Add(time.Duration(i) * intervalDuration)
+		result.Time[i] = start.Add(intervalDuration / 2)
+	}
+
+	// Получем список хостов
+	hostnames, err := r.GetDevices(ctx)
+	if err != nil {
+		return result, fmt.Errorf("failed to get devices: %w", err)
+	}
+	for _, h := range hostnames {
+		result.Data[h] = models.DeviceRequestStat{
+			// TODO:  добавить определение текущего статуса сетевого узла
+			Blocked: make([]uint, count),
+			Pending: make([]uint, count),
+		}
+	}
+
+	var sessionRecords []dto.Session
+	if err := r.db.GetDB().WithContext(ctx).Table("sessions").
+		Select(`
+			sessions.id,
+			sessions.datetime_utc,
+			sessions.type,
+			sessions.status,
+			urls.path,
+			urls.proto,
+			devices.host_name,
+			sources.ip as src_ip,
+			sources.country as src_country,
+			sources.username,
+			domains.ip as dst_ip,
+			domains.port as dst_port,
+			domains.country as dst_country,
+			categories.name as category
+		`).
+		Joins("LEFT JOIN devices ON sessions.device_id = devices.id").
+		Joins("LEFT JOIN sources ON sessions.src_id = sources.id").
+		Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
+		Joins("LEFT JOIN urls ON domains.id = urls.domain_id").
+		Joins("LEFT JOIN categories ON domains.category_id = categories.id").
+		Where("sessions.datetime_utc BETWEEN ? AND ?", tr.From, tr.To).
+		Find(&sessionRecords).Error; err != nil {
+		return result, fmt.Errorf("failed to get sessions: %w", err)
+	}
+	for _, record := range sessionRecords {
+		// Определяем индекс интервала
+		timeDiff := record.DatetimeUTC.Sub(tr.From)
+		intervalIndex := int(timeDiff / intervalDuration)
+
+		if intervalIndex >= 0 && intervalIndex < int(count) {
+			if record.Status == status.StatusBlocked.String() && record.Status == status.StatusAnomaly.String() {
+				result.Data[record.HostName].Blocked[intervalIndex]++
+			} else if record.Status == status.StatusPending.String() {
+				result.Data[record.HostName].Pending[intervalIndex]++
+			}
+		}
+	}
+
+	return result, nil
+}

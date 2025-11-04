@@ -33,8 +33,7 @@ func (s *Server) configureRouter() {
 			dashboards.GET("/top-categories", s.GetTopCategories)
 			dashboards.GET("/top-unresolved_detections", s.GetTopUnresolvedDetections)
 			dashboards.GET("/anomalies", s.GetAnomalies)
-			dashboards.GET("/proh_activity", s.GetProhActivity)
-			dashboards.GET("/devices", s.GetDevicesStat)
+			dashboards.GET("/devices", s.GetDeviceStat)
 			dashboards.GET("/traffic", s.GetTrafficStat)
 			dashboards.GET("/requests", s.GetRequestStat)
 		}

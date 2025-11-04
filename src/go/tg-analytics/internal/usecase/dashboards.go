@@ -121,3 +121,29 @@ func (u *Usecase) GetTopUnresolvedDetections(ctx context.Context, tr *trparser.T
 	)
 	return ud, nil
 }
+
+func (u *Usecase) GetDeviceStat(ctx context.Context, tr *trparser.TimeRange, count uint) (dto.DeviceStatResponse, error) {
+	method := "GetDeviceStat"
+	u.l.InfoContext(ctx,
+		method,
+		slog.Any("time_range", tr),
+		slog.Uint64("count", uint64(count)),
+	)
+
+	deviceStat, err := u.db.GetDeviceStat(ctx, tr, count)
+	if err != nil {
+		err = fmt.Errorf("%s: failed to get device statistics: %w", method, err)
+		u.l.ErrorContext(ctx, "Database operation failed",
+			wsl.String("method", method),
+			wsl.String("error", err.Error()),
+		)
+		return deviceStat, err
+	}
+
+	u.l.InfoContext(ctx, "Device statistics retrieved",
+		slog.String("method", method),
+		slog.Int("devices_count", len(deviceStat.Data)),
+		slog.Uint64("points_count", uint64(count)),
+	)
+	return deviceStat, nil
+}

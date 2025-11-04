@@ -1,6 +1,9 @@
 package dto
 
-import "tg-an/internal/models"
+import (
+	"tg-an/internal/models"
+	"time"
+)
 
 type SuccessResponse struct {
 	Message string `json:"message"`
@@ -33,4 +36,10 @@ type RequestStatResponse struct {
 type TrafficStatResponse struct {
 	Data  models.TrafficStat `json:"data"`
 	Count uint               `json:"count"`
+}
+
+type DeviceStatResponse struct {
+	Time  []time.Time                         `json:"time"`
+	Data  map[string]models.DeviceRequestStat `json:"data"`
+	Count uint                                `json:"count"`
 }

@@ -12,8 +12,8 @@ import (
 	"tg-an/internal/models"
 	postresql "tg-an/internal/repo/postgresql"
 	"tg-an/internal/usecase"
+	"tg-an/pkg/cslogger"
 	"tg-an/pkg/pgorm/pgorm"
-	"tg-an/pkg/slogger"
 	"tg-an/pkg/slogger/wsl"
 	"time"
 )
@@ -55,12 +55,8 @@ func createConnection(ctx context.Context,
 func Run(cfg *config.Config) {
 	ctx := context.Background()
 
-	logLevel := slog.LevelDebug
-	if cfg.Log.Level != "debug" {
-		logLevel = slog.LevelInfo
-	}
-	slogger.InitLogging(logLevel)
-	logger := *slog.Default()
+	logger := *cslogger.NewColorLogger()
+	//logger := *slog.Default()
 
 	logger.InfoContext(ctx, "dashboard service", wsl.Info("Creating DB connection"))
 
