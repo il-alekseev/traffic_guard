@@ -2,6 +2,7 @@ RUN_TYPE ?= local
 ETL_URL="http://127.0.0.1:7000/swagger/doc.json"
 
 # Запуск ETL  микросервиса
+.PHONY: run
 run:
 	go run ./cmd/etl/main.go -type=$(RUN_TYPE)
 
