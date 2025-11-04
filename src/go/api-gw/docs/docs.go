@@ -15,6 +15,982 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/v1/analytics/categories": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получение списка всех категорий контента",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "common"
+                ],
+                "summary": "Получение списка категорий контента",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка при получении списка категорий",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/analytics/dashboards/anomalies": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получение списка обнаруженных аномалий в сетевом трафике за указанный период",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "not implemented"
+                ],
+                "summary": "Получение информации об аномалиях",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Начало периода в timestamp",
+                        "name": "start",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Конец периода в timestamp",
+                        "name": "end",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список обнаруженных аномалий",
+                        "schema": {
+                            "$ref": "#/definitions/models.ModelsAnomaly"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/analytics/dashboards/devices": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получение агрегированной статистики по сетевым узлам за указанный период",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "not implemented"
+                ],
+                "summary": "Получение статистики по устройствам",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Начало периода в timestamp",
+                        "name": "start",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Конец периода в timestamp",
+                        "name": "end",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Статистика по устройствам",
+                        "schema": {
+                            "$ref": "#/definitions/models.ModelsDeviceStat"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/analytics/dashboards/proh_activity": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получение расписания запрещенной активности начиная с указанной даты",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "not implemented"
+                ],
+                "summary": "Получение графика запрещенной активности",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "Дата начала в timestamp",
+                        "name": "start",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "График запрещенной активности",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/analytics/dashboards/requests": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает статистику запросов за указанный период с фильтрацией по статусу, хосту и категории",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "not implemented"
+                ],
+                "summary": "Получить статистику запросов",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "now-10m",
+                        "description": "Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона (формат: now, 2024-01-01T00:00:00Z)",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Статус запросов (Разрешен, Запрещен, Аномалия, Ожидает)",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени хоста",
+                        "name": "hostname",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "Агрессия",
+                            "расизм",
+                            "терроризм",
+                            "Ботнеты",
+                            "Веб-почта",
+                            "Досуг и развлечения",
+                            "Интернет-магазины",
+                            "Компьютерные игры",
+                            "Криптомайнинг",
+                            "Наркотики",
+                            "Порнография и секс",
+                            "Прокси и анонимайзеры",
+                            "Реестр запрещенных сайтов",
+                            "Сайты для взрослых",
+                            "Сайты",
+                            "распространяющие вирусы",
+                            "Социальные сети",
+                            "Торренты и Р2Р-сети",
+                            "Файловые архивы",
+                            "Фильмы и видео онлайн",
+                            "Фишинг",
+                            "Чаты и мессенджеры",
+                            "Дополнительно",
+                            "Криптоджекинг",
+                            "Реклама",
+                            "Онлайн-игры",
+                            "Игровые платформы",
+                            "Вредоносное ПО",
+                            "Азартные игры",
+                            "Депресивный контент и суицид",
+                            "Алкоголь",
+                            "табак"
+                        ],
+                        "type": "string",
+                        "description": "Фильтр по категории",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Количество интервалов",
+                        "name": "count",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Статистика запросов (массив чисел)",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoDataPointsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/analytics/dashboards/top-categories": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает наиболее часто встречаемые категории в сессиях с возможностью фильтрации",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "Получить топ категорий сессий",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "now-24h",
+                        "description": "Начало временного диапазона",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени хоста",
+                        "name": "hostname",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "\"Разрешен\"",
+                            "\"Заблокирован\"",
+                            "\"VPN\""
+                        ],
+                        "type": "string",
+                        "description": "Фильтр по типу сессии",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 50,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 5,
+                        "description": "Количество возвращаемых категорий",
+                        "name": "count",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.ModelsCategoryCount"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/analytics/dashboards/top-unresolved_detections": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список наиболее частых нерешенных выявлений за указанный временной период с возможностью фильтрации",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "Получение списка топ нерешенных выявлений",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "now-10m",
+                        "description": "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени хоста",
+                        "name": "hostname",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 5,
+                        "description": "Количество возвращаемых записей",
+                        "name": "count",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DtoUnresolvedDetection"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/analytics/dashboards/traffic": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает статистику трафика за указанный временной диапазон с заданным количеством точек данных в Кб",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "Получение статистики трафика",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "now-10m",
+                        "description": "Начало временного диапазона в формате парсера времени (по умолчанию now-10m)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона в формате парсера времени (по умолчанию now)",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени хоста",
+                        "name": "hostname",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Количество точек данных для возврата (по умолчанию 20)",
+                        "name": "count",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ со статистикой трафика",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoTrafficStatResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат параметров запроса",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера при получении статистики",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/analytics/detections": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список выявлений за указанный временной период с пагинацией и фильтрацией",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "detections"
+                ],
+                "summary": "Получение списка выявлений",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "now-10m",
+                        "description": "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона (формат: now, 2023-12-01T11:00:00Z)",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени хоста",
+                        "name": "hostname",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "Агрессия",
+                            "расизм",
+                            "терроризм",
+                            "Ботнеты",
+                            "Веб-почта",
+                            "Досуг и развлечения",
+                            "Интернет-магазины",
+                            "Компьютерные игры",
+                            "Криптомайнинг",
+                            "Наркотики",
+                            "Порнография и секс",
+                            "Прокси и анонимайзеры",
+                            "Реестр запрещенных сайтов",
+                            "Сайты для взрослых",
+                            "Сайты распространяющие вирусы",
+                            "Социальные сети",
+                            "Торренты и Р2Р-сети",
+                            "Файловые архивы",
+                            "Фильмы и видео онлайн",
+                            "Фишинг",
+                            "Чаты и мессенджеры",
+                            "Дополнительно",
+                            "Криптоджекинг",
+                            "Реклама",
+                            "Онлайн-игры",
+                            "Игровые платформы",
+                            "Вредоносное ПО",
+                            "Азартные игры",
+                            "Депресивный контент и суицид",
+                            "Алкоголь",
+                            "табак"
+                        ],
+                        "type": "string",
+                        "description": "Фильтр по категории",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "Разрешено",
+                            "Заблокировано",
+                            "Не решено"
+                        ],
+                        "type": "string",
+                        "description": "Действие пользователя",
+                        "name": "action",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Количество записей на странице",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoGetDetectionsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/analytics/detections/stat": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает статистику выявлений за указанный период с фильтрацией",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "detections"
+                ],
+                "summary": "Получение статистики по выявлениям",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "now-10m",
+                        "description": "Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона (формат: now, 2024-01-01T00:00:00Z)",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени хоста",
+                        "name": "hostname",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "Агрессия",
+                            "расизм",
+                            "терроризм",
+                            "Ботнеты",
+                            "Веб-почта",
+                            "Досуг и развлечения",
+                            "Интернет-магазины",
+                            "Компьютерные игры",
+                            "Криптомайнинг",
+                            "Наркотики",
+                            "Порнография и секс",
+                            "Прокси и анонимайзеры",
+                            "Реестр запрещенных сайтов",
+                            "Сайты для взрослых",
+                            "Сайты",
+                            "распространяющие вирусы",
+                            "Социальные сети",
+                            "Торренты и Р2Р-сети",
+                            "Файловые архивы",
+                            "Фильмы и видео онлайн",
+                            "Фишинг",
+                            "Чаты и мессенджеры",
+                            "Дополнительно",
+                            "Криптоджекинг",
+                            "Реклама",
+                            "Онлайн-игры",
+                            "Игровые платформы",
+                            "Вредоносное ПО",
+                            "Азартные игры",
+                            "Депресивный контент и суицид",
+                            "Алкоголь",
+                            "табак"
+                        ],
+                        "type": "string",
+                        "description": "Фильтр по категории",
+                        "name": "category",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Статистика детекций",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoDetectionStat"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат временного диапазона",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка при получении статистики выявлений",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/analytics/devices": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список всех уникальных имен устройств (хостов) из системы",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "common"
+                ],
+                "summary": "Получить список имен устройств",
+                "responses": {
+                    "200": {
+                        "description": "Список имен устройств",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Ошибка при получении имен устройств",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/analytics/sessions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает список сессий с возможностью фильтрации, поиска, сортировки и пагинации",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "sessions"
+                ],
+                "summary": "Получить список сессий",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "now-10m",
+                        "description": "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z). По умолчанию: now-10m",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z). По умолчанию: now",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени хоста",
+                        "name": "hostname",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "Агрессия",
+                            "расизм",
+                            "терроризм",
+                            "Ботнеты",
+                            "Веб-почта",
+                            "Досуг и развлечения",
+                            "Интернет-магазины",
+                            "Компьютерные игры",
+                            "Криптомайнинг",
+                            "Наркотики",
+                            "Порнография и секс",
+                            "Прокси и анонимайзеры",
+                            "Реестр запрещенных сайтов",
+                            "Сайты для взрослых",
+                            "Сайты",
+                            "распространяющие вирусы",
+                            "Социальные сети",
+                            "Торренты и Р2Р-сети",
+                            "Файловые архивы",
+                            "Фильмы и видео онлайн",
+                            "Фишинг",
+                            "Чаты и мессенджеры",
+                            "Дополнительно",
+                            "Криптоджекинг",
+                            "Реклама",
+                            "Онлайн-игры",
+                            "Игровые платформы",
+                            "Вредоносное ПО",
+                            "Азартные игры",
+                            "Депресивный контент и суицид",
+                            "Алкоголь",
+                            "табак"
+                        ],
+                        "type": "string",
+                        "description": "Фильтр по категории",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "\"Разрешен\"",
+                            "\"Запрещен\"",
+                            "\"VPN\""
+                        ],
+                        "type": "string",
+                        "description": "Фильтр по типу сессии",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поиск по частичному совпадению",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Количество записей на странице",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "id",
+                            "datetime_utc",
+                            "type",
+                            "status",
+                            "url",
+                            "proto",
+                            "host_name",
+                            "src_ip",
+                            "src_port",
+                            "src_country",
+                            "username",
+                            "dst_ip",
+                            "dst_port",
+                            "dst_country",
+                            "category"
+                        ],
+                        "type": "string",
+                        "default": "id",
+                        "description": "Поле для сортировки",
+                        "name": "order_by",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "default": "desc",
+                        "description": "Направление сортировки (asc/desc)",
+                        "name": "order_dir",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoGetSessionsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/auth/refresh": {
             "post": {
                 "description": "Для успешного обновления токена пользователю необходимо передать валидный токен OAuth в заголовке Authorization и refresh-токен в заголовке X-Refresh-Token.",
@@ -171,233 +1147,6 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/clixon/controller/config": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Возвращает xml конфигурацию, использует имя пользователя из jwt токена",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "clixon"
-                ],
-                "summary": "Получение текущей конфигурации (running) Clixon-controller",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Ошибки авторизации",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "internal error",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/clixon/controller/devices": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Возвращает статусы подключенных устройств, использует имя пользователя из jwt токена\n401 - \"Invalid token format. Expected 'Bearer \u003ctoken\u003e'\", \"authorization header is required\", \"error: Authorization header is required\", \"error: Invalid authorization header format\" ,\"error: Invalid token\" ,\"error: Invalid token claims\" ,\"error: sub claim is required (user uuid)\" ,\"error: preferred_username claim is required (username)\" ,\"error: Invalid token claims\" ,\"Ошибки авторизации\"",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "clixon"
-                ],
-                "summary": "Получение статуса подключенных устройств к Clixon-controller",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "Ошибки авторизации",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "internal error",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/clixon/device/config": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "401 - \"Invalid token format. Expected 'Bearer \u003ctoken\u003e'\", \"authorization header is required\", \"error: Authorization header is required\", \"error: Invalid authorization header format\" ,\"error: Invalid token\" ,\"error: Invalid token claims\" ,\"error: sub claim is required (user uuid)\" ,\"error: preferred_username claim is required (username)\" ,\"error: Invalid token claims\" ,\"Ошибки авторизации\"",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "clixon"
-                ],
-                "summary": "Получение конфигурации подключенного устройства",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "имя устройства",
-                        "name": "device",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "Ошибки авторизации",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "internal error",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/clixon/rawXml": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "В сообщении не должно быть заголовка rpc и сепаратора \"]]\u003e]]\"\n401 - \"Invalid token format. Expected 'Bearer \u003ctoken\u003e'\", \"authorization header is required\", \"error: Authorization header is required\", \"error: Invalid authorization header format\" ,\"error: Invalid token\" ,\"error: Invalid token claims\" ,\"error: sub claim is required (user uuid)\" ,\"error: preferred_username claim is required (username)\" ,\"error: Invalid token claims\" ,\"Ошибки авторизации\"",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "clixon"
-                ],
-                "summary": "Отправка произвольного xml на clixon-controller",
-                "parameters": [
-                    {
-                        "description": "xml сообщение",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "400": {
-                        "description": "Ошибка в теле запроса",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Ошибки авторизации",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "internal error",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/clixon/reconnect/device": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Переподключает устройства, использует имя пользователя из jwt токена\n401 - \"Invalid token format. Expected 'Bearer \u003ctoken\u003e'\", \"authorization header is required\", \"error: Authorization header is required\", \"error: Invalid authorization header format\" ,\"error: Invalid token\" ,\"error: Invalid token claims\" ,\"error: sub claim is required (user uuid)\" ,\"error: preferred_username claim is required (username)\" ,\"error: Invalid token claims\" ,\"Ошибки авторизации\"",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "clixon"
-                ],
-                "summary": "Переподключение устройств к Clixon-controller",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "имя устройства",
-                        "name": "device",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "401": {
-                        "description": "Ошибки авторизации",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "internal error",
                         "schema": {
                             "$ref": "#/definitions/models.DtoErrorResponse"
                         }
@@ -1825,19 +2574,19 @@ const docTemplate = `{
                     "type": "object",
                     "properties": {
                         "limit": {
-                            "description": "limit",
+                            "description": "Количество элементов на странице",
                             "type": "integer"
                         },
                         "page": {
-                            "description": "page",
+                            "description": "Текущая страница (начинается с 1)",
                             "type": "integer"
                         },
                         "pages": {
-                            "description": "pages",
+                            "description": "Общее количество страниц",
                             "type": "integer"
                         },
                         "total": {
-                            "description": "total",
+                            "description": "Общее количество элементов",
                             "type": "integer"
                         }
                     }
@@ -1923,12 +2672,166 @@ const docTemplate = `{
                 }
             }
         },
+        "models.DtoDataPointsResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "description": "Число точек с данными",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "Список однотипных данных",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "type": {
+                    "description": "Тип данных",
+                    "type": "string"
+                }
+            }
+        },
+        "models.DtoDetection": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "description": "action",
+                    "type": "string"
+                },
+                "categorized_at": {
+                    "description": "categorized at",
+                    "type": "string"
+                },
+                "category": {
+                    "description": "category",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "description",
+                    "type": "string"
+                },
+                "domain": {
+                    "description": "domain",
+                    "type": "string"
+                },
+                "host_name": {
+                    "description": "host name",
+                    "type": "string"
+                },
+                "ip": {
+                    "description": "ip",
+                    "type": "string"
+                },
+                "location": {
+                    "description": "location",
+                    "type": "string"
+                },
+                "port": {
+                    "description": "port",
+                    "type": "integer"
+                },
+                "request_count": {
+                    "description": "request count",
+                    "type": "integer"
+                }
+            }
+        },
+        "models.DtoDetectionStat": {
+            "type": "object",
+            "properties": {
+                "accepted": {
+                    "description": "accepted",
+                    "type": "integer"
+                },
+                "denied": {
+                    "description": "denied",
+                    "type": "integer"
+                },
+                "detected": {
+                    "description": "detected",
+                    "type": "integer"
+                },
+                "unresolved": {
+                    "description": "unresolved",
+                    "type": "integer"
+                }
+            }
+        },
         "models.DtoErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
-                    "description": "error",
+                    "description": "Описание ошибки",
                     "type": "string"
+                }
+            }
+        },
+        "models.DtoGetDetectionsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Список выявлений",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DtoDetection"
+                    }
+                },
+                "meta": {
+                    "description": "Метаданные пагинации",
+                    "type": "object",
+                    "properties": {
+                        "limit": {
+                            "description": "Количество элементов на странице",
+                            "type": "integer"
+                        },
+                        "page": {
+                            "description": "Текущая страница (начинается с 1)",
+                            "type": "integer"
+                        },
+                        "pages": {
+                            "description": "Общее количество страниц",
+                            "type": "integer"
+                        },
+                        "total": {
+                            "description": "Общее количество элементов",
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
+        "models.DtoGetSessionsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Список сессий",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DtoSession"
+                    }
+                },
+                "meta": {
+                    "description": "Метаданные пагинации",
+                    "type": "object",
+                    "properties": {
+                        "limit": {
+                            "description": "Количество элементов на странице",
+                            "type": "integer"
+                        },
+                        "page": {
+                            "description": "Текущая страница (начинается с 1)",
+                            "type": "integer"
+                        },
+                        "pages": {
+                            "description": "Общее количество страниц",
+                            "type": "integer"
+                        },
+                        "total": {
+                            "description": "Общее количество элементов",
+                            "type": "integer"
+                        }
+                    }
                 }
             }
         },
@@ -1949,19 +2852,19 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "limit": {
-                    "description": "limit",
+                    "description": "Количество элементов на странице",
                     "type": "integer"
                 },
                 "page": {
-                    "description": "page",
+                    "description": "Текущая страница (начинается с 1)",
                     "type": "integer"
                 },
                 "pages": {
-                    "description": "pages",
+                    "description": "Общее количество страниц",
                     "type": "integer"
                 },
                 "total": {
-                    "description": "total",
+                    "description": "Общее количество элементов",
                     "type": "integer"
                 }
             }
@@ -1986,12 +2889,111 @@ const docTemplate = `{
                 }
             }
         },
+        "models.DtoSession": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "description": "category",
+                    "type": "string"
+                },
+                "datetime_utc": {
+                    "description": "datetime utc",
+                    "type": "string"
+                },
+                "dst_country": {
+                    "description": "dst country",
+                    "type": "string"
+                },
+                "dst_ip": {
+                    "description": "dst ip",
+                    "type": "string"
+                },
+                "dst_port": {
+                    "description": "dst port",
+                    "type": "integer"
+                },
+                "host_name": {
+                    "description": "host name",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "id",
+                    "type": "integer"
+                },
+                "proto": {
+                    "description": "proto",
+                    "type": "string"
+                },
+                "src_country": {
+                    "description": "src country",
+                    "type": "string"
+                },
+                "src_ip": {
+                    "description": "src ip",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "status",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "type",
+                    "type": "string"
+                },
+                "url": {
+                    "description": "url",
+                    "type": "string"
+                },
+                "username": {
+                    "description": "username",
+                    "type": "string"
+                }
+            }
+        },
         "models.DtoSuccessResponse": {
             "type": "object",
             "properties": {
                 "message": {
                     "description": "message",
                     "type": "string"
+                }
+            }
+        },
+        "models.DtoTrafficStatResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "description": "count",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "data",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsTrafficStat"
+                        }
+                    ]
+                }
+            }
+        },
+        "models.DtoUnresolvedDetection": {
+            "type": "object",
+            "properties": {
+                "domain": {
+                    "description": "domain",
+                    "type": "string"
+                },
+                "requests_after": {
+                    "description": "requests after",
+                    "type": "integer"
+                },
+                "requests_all": {
+                    "description": "requests all",
+                    "type": "integer"
+                },
+                "requests_before": {
+                    "description": "requests before",
+                    "type": "integer"
                 }
             }
         },
@@ -2133,6 +3135,39 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ModelsAnomaly": {
+            "type": "object",
+            "properties": {
+                "blocked_resources_count": {
+                    "description": "blocked resources count",
+                    "type": "integer"
+                },
+                "firewalls_count": {
+                    "description": "firewalls count",
+                    "type": "integer"
+                },
+                "stat": {
+                    "description": "stat",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ModelsAnomalyResourse"
+                    }
+                }
+            }
+        },
+        "models.ModelsAnomalyResourse": {
+            "type": "object",
+            "properties": {
+                "resourse_name": {
+                    "description": "resourse name",
+                    "type": "string"
+                },
+                "unblocked_requests": {
+                    "description": "unblocked requests",
+                    "type": "integer"
+                }
+            }
+        },
         "models.ModelsBusinessLog": {
             "type": "object",
             "properties": {
@@ -2181,6 +3216,19 @@ const docTemplate = `{
                 "user_role": {
                     "description": "SA, CA",
                     "type": "string"
+                }
+            }
+        },
+        "models.ModelsCategoryCount": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "description": "category",
+                    "type": "string"
+                },
+                "count": {
+                    "description": "count",
+                    "type": "integer"
                 }
             }
         },
@@ -2254,6 +3302,26 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ModelsDeviceStat": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "name",
+                    "type": "string"
+                },
+                "state": {
+                    "description": "state",
+                    "type": "string"
+                },
+                "statistics": {
+                    "description": "statistics",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ModelsResourcePoint"
+                    }
+                }
+            }
+        },
         "models.ModelsLogs": {
             "type": "object",
             "properties": {
@@ -2295,6 +3363,23 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ModelsResourcePoint": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "description": "date",
+                    "type": "integer"
+                },
+                "delayed": {
+                    "description": "delayed",
+                    "type": "integer"
+                },
+                "locked": {
+                    "description": "locked",
+                    "type": "integer"
+                }
+            }
+        },
         "models.ModelsRole": {
             "type": "object",
             "properties": {
@@ -2326,6 +3411,32 @@ const docTemplate = `{
                 "refresh_token": {
                     "description": "refresh token",
                     "type": "string"
+                }
+            }
+        },
+        "models.ModelsTrafficStat": {
+            "type": "object",
+            "properties": {
+                "input": {
+                    "description": "input",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "output": {
+                    "description": "output",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "time": {
+                    "description": "time",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

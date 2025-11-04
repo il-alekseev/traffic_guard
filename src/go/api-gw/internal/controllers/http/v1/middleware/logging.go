@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// LoggingMiddleware - установка основных полей логирования и уникального идентификатора пользователя
 func LoggingMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Получаем или генерируем X-Request-ID

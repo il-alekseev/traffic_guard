@@ -1,0 +1,32 @@
+app:
+  name: 'tg-an'
+  version: '1.0.0'
+  dev_version: ''
+
+logger:
+  log_level: 'debug'
+
+etl:
+  pool_max: 2
+  host: "192.168.130.112"
+  user: "etl_user"
+  pass: "etl_password"
+  dbname: "etl"
+  port: "5433"
+  sslmode: "disable"
+
+http:
+  host: '127.0.0.1'
+  port: '7000'
+
+swagger:
+  host: '127.0.0.1:7000'
+
+metrics:
+  pool_max: 2
+  host: "192.168.130.112"
+  user: "ksu_user"
+  pass: "ksu_password"
+  dbname: "ksu_mon"
+  port: "5432"
+  sslmode: "disable"

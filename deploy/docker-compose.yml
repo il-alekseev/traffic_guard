@@ -237,7 +237,6 @@ services:
     build:
       context: ../src/go/blog
       dockerfile: "build/Dockerfile"
-    image: ${BLOG_APP_NAME}:1.0.1
     ports:
       - 8004:8004
     env_file: ./tg-blog/.env
@@ -253,7 +252,6 @@ services:
     build:
       context: ../src/go/userctrl
       dockerfile: "build/Dockerfile"
-    image: ${USER_CTRL_IMAGE_NAME}
     ports:
       - 8002:8002
     restart: always
@@ -279,7 +277,6 @@ services:
     build:
       context: ../src/go/api-gw
       dockerfile: "build/Dockerfile"
-    image: ${API_GW_IMAGE_NAME}
     ports:
       - ${API_GW_HTTP_PORT}:${API_GW_HTTP_PORT}
     restart: always
@@ -290,16 +287,15 @@ services:
     networks:
       - continent
 
-  tg-dbd:
-    container_name: tg-dbd
+  tg-an:
+    container_name: tg-an
     build:
-      context: ../src/go/tg-dbd
+      context: ../src/go/tg-analytics
       dockerfile: "build/Dockerfile"
-    image: tg-dbd
     ports:
-      - ${DBD_HTTP_PORT}:${DBD_HTTP_PORT}
+      - ${AN_HTTP_PORT}:${AN_HTTP_PORT}
     restart: always
-    env_file: ./tg-dbd/.env
+    env_file: ./tg-an/.env
     depends_on:
       configdb:
         condition: service_healthy
@@ -311,7 +307,6 @@ services:
     build:
       context: ../src/go/tg-etl
       dockerfile: "build/Dockerfile"
-    image: tg-etl
     ports:
       - '${ETL_HTTP_PORT}:${ETL_HTTP_PORT}'
     restart: always
@@ -427,6 +422,52 @@ services:
         condition: service_healthy
     networks:
       - continent 
+
+  # nginx:
+  #   image: nginx:latest
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #     - "7007:7007"
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+  #     - ../traffic_guard-front/certs:/etc/nginx/certs
+  #   #depends_on:
+  #     # api-gw:
+  #     #   condition: service_healthy
+  #     # frontend:
+  #     #   condition: service_healthy
+  #   restart: always
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f","-k", "https://localhost:443"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 30s
+  #   networks:
+  #     - continent
+  
+  frontend:
+    build:
+      context: ../traffic_guard-front
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "${APP_PORT_HOST:-3001}:${APP_PORT_CONTAINER:-3001}"
+    env_file:
+      - ./frontend/.env
+    environment:
+      HOST: "${APP_HOST:-0.0.0.0}" 
+      PORT: "${APP_PORT_CONTAINER:-3001}"
+    restart: always
+    # healthcheck:
+    #   test: ["CMD", "wget", "-qO-", "http://localhost:3001"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 6
+    #   start_period: 10s
+    networks:
+      - continent
 
 networks:
   continent:

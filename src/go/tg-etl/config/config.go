@@ -31,7 +31,7 @@ type (
 		Host string `env-required:"true" yaml:"host" env:"ETL_HTTP_HOST"`
 	}
 	Swagger struct {
-		Host string `env-required:"true" yaml:"host" env:"DBD_SWAGGER_HOST"`
+		Host string `env-required:"true" yaml:"host" env:"ETL_SWAGGER"`
 	}
 	// Log -.
 	Log struct {
@@ -40,13 +40,13 @@ type (
 
 	// KSU PG -.
 	KSU struct {
-		PoolMax int    `env-required:"true" yaml:"pool_max" env:"KSU_PG_POOL_MAX"`
-		Host    string `env-required:"true" yaml:"host" env:"KSU_PG_HOST"`
-		Port    string `env-required:"true" yaml:"port" env:"KSU_PG_PORT"`
-		User    string `env-required:"true" yaml:"user" env:"KSU_USER"`
-		Pass    string `env-required:"true" yaml:"pass" env:"KSU_PASS"`
-		DBName  string `env-required:"true" yaml:"dbname" env:"KSU_DBNAME"`
-		SSLMode string `env-required:"true" yaml:"sslmode" env:"KSU_SSLMODE"`
+		PoolMax int    `env-required:"true" yaml:"pool_max" env:"ETL_KSU_PG_POOL_MAX"`
+		Host    string `env-required:"true" yaml:"host" env:"ETL_KSU_PG_HOST"`
+		Port    string `env-required:"true" yaml:"port" env:"ETL_KSU_PG_PORT"`
+		User    string `env-required:"true" yaml:"user" env:"ETL_KSU_USER"`
+		Pass    string `env-required:"true" yaml:"pass" env:"ETL_KSU_PASS"`
+		DBName  string `env-required:"true" yaml:"dbname" env:"ETL_KSU_DBNAME"`
+		SSLMode string `env-required:"true" yaml:"sslmode" env:"ETL_KSU_SSLMODE"`
 	}
 
 	// ETL PG -.
@@ -60,13 +60,11 @@ type (
 		SSLMode string `env-required:"true" yaml:"sslmode" env:"ETL_SSLMODE"`
 	}
 
-	Cache struct {
-	}
-
 	EtlController struct {
-		TTL      int  `env-required:"true" yaml:"ttl" env:"ETL_TTL"`
-		Refresh  uint `env-required:"true" yaml:"refresh" env:"ETL_REFRESH"`
-		MaxCount uint `env-required:"true" yaml:"max_count" env:"ETL_MAX_COUNT"`
+		CacheTTL  int  `env-required:"true" yaml:"cache_ttl" env:"ETL_CACHE_TTL"`
+		Refresh   uint `env-required:"true" yaml:"refresh" env:"ETL_REFRESH"`
+		BatchSize uint `env-required:"true" yaml:"batchsize" env:"ETL_BATCHSIZE"`
+		MLAttemps uint `env-required:"true" yaml:"ml_attemps" env:"ETL_ML_ATTEMPS"`
 	}
 
 	Kafka struct {
@@ -79,26 +77,13 @@ type (
 )
 
 // NewConfig returns app config.
-func NewConfig() (*Config, error) {
+func NewConfig(cfgPath string) (*Config, error) {
 	currentDir, err := os.Getwd()
 	if err != nil {
 		fmt.Printf("Ошибка получения текущей директории: %v\n", err)
 		return nil, err
 	}
 	fmt.Printf("Текущая директория: %s\n", currentDir)
-
-	cfgPath := "./config/config.yaml"
-	//cfgPath := "C:/Users/Asus/Projects/VS Code/Continent/traffic_guard/src/go/tg-etl/config/config.yaml"
-
-	if _, err := os.Stat(cfgPath); err == nil {
-		fmt.Printf("Файл %s существует\n", cfgPath)
-	} else if os.IsNotExist(err) {
-		fmt.Printf("Файл %s не существует\n", cfgPath)
-		return nil, err
-	} else {
-		fmt.Printf("Ошибка при проверке файла: %v\n", err)
-		return nil, err
-	}
 
 	cfg := &Config{}
 	err = cleanenv.ReadConfig(cfgPath, cfg)

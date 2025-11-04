@@ -2,8 +2,10 @@ package v1
 
 import (
 	"api-gateway/config"
+	"api-gateway/pkg/analytics"
 	"api-gateway/pkg/blogserv"
 	"api-gateway/pkg/ctxcontrol"
+
 	"api-gateway/pkg/models"
 	"api-gateway/pkg/slogger"
 	"api-gateway/pkg/usercontrol"
@@ -29,21 +31,24 @@ import (
 // @description Type "Bearer" followed by a space and JWT token
 
 type Server struct {
-	userCl     *usercontrol.Usercontrol
-	ctxCl      *ctxcontrol.Ctxcontrol
-	blogCL     *blogserv.Blogserv
-	router     *gin.Engine
-	domain     string
-	httpServer *http.Server
-	key        string // для проверки подписи токенов
+	userCl      *usercontrol.Usercontrol
+	ctxCl       *ctxcontrol.Ctxcontrol
+	blogCL      *blogserv.Blogserv
+	analyticsCL *analytics.Analytics
+	router      *gin.Engine
+	domain      string
+	httpServer  *http.Server
+	key         string // для проверки подписи токенов
 }
 
+// New - инициализация http сервера
 func New(
 	ctx context.Context,
 	cfg *config.Config,
 	userCl *usercontrol.Usercontrol,
 	ctxCl *ctxcontrol.Ctxcontrol,
 	blogCL *blogserv.Blogserv,
+	analyticsCL *analytics.Analytics,
 ) (*Server, error) {
 	key, err := os.ReadFile(cfg.KeyCloak.PemFile)
 	if err != nil {
@@ -52,11 +57,12 @@ func New(
 
 	router := gin.New()
 	apigw := Server{
-		router: router,
-		userCl: userCl,
-		ctxCl:  ctxCl,
-		blogCL: blogCL,
-		domain: cfg.Swagger.Host,
+		router:      router,
+		userCl:      userCl,
+		ctxCl:       ctxCl,
+		blogCL:      blogCL,
+		analyticsCL: analyticsCL,
+		domain:      cfg.Swagger.Host,
 		httpServer: &http.Server{
 			Addr:    cfg.HTTP.Host + ":" + cfg.HTTP.Port,
 			Handler: router,
@@ -67,11 +73,13 @@ func New(
 	return &apigw, nil
 }
 
+// Run - запуск http сервера
 func (s *Server) Run() error {
 	slog.Info("Server started", "addr", s.httpServer.Addr)
 	return s.httpServer.ListenAndServe()
 }
 
+// Stop - остановка http сервера
 func (s *Server) Stop(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -79,6 +87,7 @@ func (s *Server) Stop(ctx context.Context) error {
 	return s.httpServer.Shutdown(ctx)
 }
 
+// ErrorResponse - обработка ошибок, логирование и вывод
 func (s *Server) ErrorResponse(c *gin.Context, code int, msg string, err error) {
 	errMsg := ""
 	if err != nil {

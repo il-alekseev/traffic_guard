@@ -3,6 +3,7 @@
 # Имя исполняемого файла
 BINARY_NAME=api-gateway.exe
 
+ANALYTICS_URL="http://127.0.0.1:7000/swagger/doc.json"
 USERCONTROL_URL="http://127.0.0.1:8002/swagger/doc.json"
 CTXCONTROL_URL="http://127.0.0.1:8003/swagger/doc.json"
 BLOG_SERV_URL="http://127.0.0.1:8004/swagger/doc.json"
@@ -11,6 +12,10 @@ BLOG_SERV_URL="http://127.0.0.1:8004/swagger/doc.json"
 all: generate build
 
 # Генерация кода из OpenAPI спецификации
+.PHONY: gen-a
+gen-a:
+	swagger generate client -c analytics -f $(USERCONTROL_URL) -A analytics -t pkg
+
 .PHONY: gen-u 
 gen-u:
 	swagger generate client -c usercontrol -f $(USERCONTROL_URL) -A usercontrol -t pkg
@@ -34,7 +39,7 @@ clean:
 
 .PHONY: swagger
 swagger:
-	swag init -g .\internal\controllers\http\v1\server.go -o ./docs
+	swag init -g ./internal/controllers/http/v1/server.go -o ./docs
 
 .PHONY: vet
 vet:

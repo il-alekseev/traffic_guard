@@ -1,14 +1,14 @@
 app:
   name: 'tg-etl'
   version: '1.0.1'
-  dev_version: '0.1.1-dev.6'
+  dev_version: ''
 
 http:
   host: '127.0.0.1'
   port: '7001'
 
 swagger:
-  host: '127.0.0.1'
+  host: '127.0.0.1:7001'
   
 logger:
   log_level: 'debug'
@@ -31,18 +31,11 @@ etl_postgres:
   port: "5432"
   sslmode: "disable"
   
-  #pool_max: 2
-  #host: "192.168.130.112"
-  #user: "etl_user"
-  #pass: "etl_password"
-  #dbname: "etl"
-  #port: "5433"
-  #sslmode: "disable"
-
 etl_controller:
+  cache_ttl: 10
   refresh: 10
-  ttl: 10
-  max_count: 100
+  batchsize: 100
+  ml_attemps: 20
   
 kafka:
   host: "192.168.130.112"  

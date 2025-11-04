@@ -47,23 +47,38 @@ const (
 
 // URLMetadataResult структура для результатов метаданных URL
 type URLMetadataResult struct {
-	RequestID   string            `json:"request_id"`
-	URL         string            `json:"url"`
-	Title       string            `json:"title"`
-	Description string            `json:"description"`
-	ImageURL    string            `json:"image_url"`
-	Metadata    map[string]string `json:"metadata"`
-	Timestamp   time.Time         `json:"timestamp"`
+	RequestID   string     `json:"request_id"`
+	Status      string     `json:"status"`
+	Failure     string     `json:"failure"`
+	Error       string     `json:"error"`
+	Warnings    []string   `json:"warnings"`
+	URL         string     `json:"url"`
+	Domain      DomainInfo `json:"domain"`
+	Strategy    string     `json:"strategy"`
+	Metric      int        `json:"metric"`
+	UserAgent   string     `json:"user_agent"`
+	ProcessedAt string     `json:"processed_at"`
+}
+
+type DomainInfo struct {
+	Name string `json:"name"`
+	IP   string `json:"ip"`
+	Geo  Geo    `json:"geo"`
+}
+
+type Geo struct {
+	AsDomain      string `json:"as_domain"`
+	AsName        string `json:"as_name"`
+	ASN           string `json:"asn"`
+	Continent     string `json:"continent"`
+	ContinentCode string `json:"continent_code"`
+	Country       string `json:"country"`
+	CountryCode   string `json:"country_code"`
 }
 
 // MLAnalysisResult структура для результатов ML анализа
 type MLAnalysisResult struct {
-	RequestID    string                 `json:"request_id"`
-	URL          string                 `json:"url"`
-	Category     string                 `json:"category"`
-	Sentiment    string                 `json:"sentiment"`
-	Keywords     []string               `json:"keywords"`
-	Confidence   float64                `json:"confidence"`
-	AnalysisData map[string]interface{} `json:"analysis_data"`
-	Timestamp    time.Time              `json:"timestamp"`
+	RequestID       string `json:"REQUEST_ID"`
+	ContentGUID     string `json:"CONTENT_GUID"`
+	RecognisedClass string `json:"RECOGNISED_CLASS"`
 }

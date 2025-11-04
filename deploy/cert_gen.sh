@@ -16,9 +16,11 @@ if [ -f "./fazenda.key" ]; then
     echo "Copying key to service directories..."
     cp "./fazenda.key" "./deploy/grafana/grafana.key"
     cp "./fazenda.key" "./deploy/keycloak/keycloak.key"
+    cp "./fazenda.key" "./traffic_guard-front/certs/fazenda.key"
     
     chmod +r "./deploy/grafana/grafana.key"
     chmod +r "./deploy/keycloak/keycloak.key"
+    chmod +r "./traffic_guard-front/certs/fazenda.key"
 else
     echo "Error: Failed to generate key file "
     exit 1
@@ -29,10 +31,12 @@ if [ -f "./fazenda.crt" ]; then
     echo "Copying certificate to service directories..."
     cp "./fazenda.crt" "./deploy/grafana/grafana.crt"
     cp "./fazenda.crt" "./deploy/keycloak/fullchain.crt"
+    cp "./fazenda.crt" "./traffic_guard-front/certs/fazenda.crt"
     
 
     chmod +r "./deploy/grafana/grafana.crt"
     chmod +r "./deploy/keycloak/fullchain.crt"
+    chmod +r "./traffic_guard-front/certs/fazenda.crt"
 
 else
     echo "Error: Failed to generate certificate"

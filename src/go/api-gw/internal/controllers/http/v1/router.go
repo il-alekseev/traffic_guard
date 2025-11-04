@@ -76,4 +76,33 @@ func (s *Server) configureRouter() {
 	{
 		blog.GET("/logs", s.logs) // SA, CA
 	}
+
+	analytics := apiRouter.Group("/v1/analytics")
+	{
+		// common
+		analytics.GET("/categories", s.getCategories)
+		analytics.GET("/devices", s.getDevices)
+
+		//dashboards
+		analytics.GET("/dashboards/top-categories", s.getDashboardsTopCategories)
+		analytics.GET("/dashboards/traffic", s.getDashboardsTraffic)
+		analytics.GET("/dashboards/top-unresolved_detections", s.getDashboardsTopUnresolvedDetections)
+
+		//detections
+		analytics.GET("/detections", s.getDetections)
+		analytics.GET("/detections/stat", s.getDetectionsStat)
+
+		//sessions
+		analytics.GET("/sessions", s.getSessions)
+
+		//utils
+		// analytics.GET("/v1/healthcheck", s.getV1Healthcheck)
+		// analytics.GET("/version", s.getVersion)
+
+		//not implemented
+		analytics.GET("/dashboards/anomalies", s.getV1DashboardsAnomalies)
+		analytics.GET("/dashboards/devices", s.getV1DashboardsDevices)
+		analytics.GET("/dashboards/proh_activity", s.getV1DashboardsProhActivity)
+		analytics.GET("/dashboards/requests", s.getDashboardsRequests)
+	}
 }

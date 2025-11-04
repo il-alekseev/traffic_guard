@@ -49,6 +49,40 @@ def truncate_text_for_llm(text: str, max_tokens: int = 3500) -> str:
     return truncated_text
 
 
+def insert_classified_content(conn, request_id, content_id, url, source_content, identified_class):
+    """
+    Вставляет запись в таблицу classified_content.
+
+    Параметры:
+        conn (psycopg2.connection): Активное соединение с базой данных PostgreSQL.
+        request_id (str): Уникальный идентификатор запроса (PRIMARY KEY).
+        content_id (str): Идентификатор содержимого.
+        url (str): URL источника контента.
+        source_content (str): Контент для анализа.
+        identified_class (str): Определённый класс (категория) контента.
+
+    Возвращает:
+        bool: True, если вставка выполнена успешно, False — если произошла ошибка.
+
+    """
+    try:
+        with conn.cursor() as cur:
+            insert_query = sql.SQL("""
+                INSERT INTO classified_content (
+                    request_id, content_id, url, source_content, identified_class
+                )
+                VALUES (%s, %s, %s, %s, %s)
+            """)
+            cur.execute(insert_query, (request_id, content_id,
+                        url, source_content, identified_class))
+            conn.commit()
+            return True
+    except psycopg2.Error as e:
+        conn.rollback()
+        print(f"Ошибка при вставке данных: {e}")
+        return False
+
+
 def get_text_by_content_guid(config: dict, content_guid: str) -> str | None:
     """
     Извлекает текстовое содержимое из таблицы PostgreSQL по значению CONTENT_GUID.
@@ -257,7 +291,7 @@ def get_ollama_response(model_name: str, prompt: str, server_url: str) -> str:
         json_llm_output = json.loads(llm_output)
         # Возвращаем значение ключа "category", если оно есть
         category = json_llm_output.get("category")
-        print("Первоначальная распознанная категория: ",category)
+        # print("Первоначальная распознанная категория: ", category)
         return is_recognizable_category(category)
     except json.JSONDecodeError:
         # Если JSON некорректный — возвращаем стандартную фразу
@@ -394,7 +428,7 @@ def main():
     kafka_producer_group_id = os.getenv("KAFKA_PRODUCER_GROUP_ID")
     kafka_timeout = float(os.getenv("KAFKA_TIMEOUT"))
 
-    # Параметры базы данных (если они понадобятся другим функциям)
+    # Параметры базы данных
     database_config = {
         'user': os.getenv("DATABASE_USER"),
         'password': os.getenv("DATABASE_PASSWORD"),
@@ -421,6 +455,9 @@ def main():
     # Создаём Kafka-потребителя и подписываемся на нужный топик
     consumer = Consumer(kafka_consumer_config)
     consumer.subscribe([consumer_topic])
+
+    # Создаем подключение к базе данных
+    conn = psycopg2.connect(**database_config)
 
     # Создаём Kafka-производителя для отправки результатов
     producer = Producer(kafka_producer_config)
@@ -449,8 +486,9 @@ def main():
             content_id = message.get('content_id')
             request_id = message.get('request_id')
             content = message.get('content')
+            url = message.get('url')
 
-            print("Полученное сообщение: ", content)
+            # print("Полученное сообщение: ", content)
             # Сокращаем текст, чтобы он поместился в лимит LLM
             resized_content = truncate_text_for_llm(content)
 
@@ -460,12 +498,17 @@ def main():
             # Получаем ответ от LLM (категорию текста)
             recognised_class = get_ollama_response(
                 model_name, final_prompt, llm_url)
-            print("Распознанный класс:", recognised_class)
+
+            # Записываем результат классификации в базу данных
+            insert_res = insert_classified_content(
+                conn, request_id, content_id, url, content, recognised_class)
+
+            print(
+                "Request-id: {}, Распознанный класс: {}".format(request_id, recognised_class))
 
             # Отправляем результат обратно в Kafka
             send_to_kafka(producer, producer_topic, request_id,
                           content_id, recognised_class)
-            print("------------------------")
 
     except KeyboardInterrupt:
         # Корректное завершение работы при остановке вручную
