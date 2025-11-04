@@ -24,6 +24,13 @@ type RepoPGInterface interface {
 	GetDetectionStat(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter) (dto.DetectionStat, error)
 	// Actions
 	Act(ctx context.Context, action, path string) error
+	// Reports
+	GetCategories(ctx context.Context, tr *trparser.TimeRange) (map[string]models.RequestReport, error)
+	GetResourses(ctx context.Context, tr *trparser.TimeRange) (map[string]models.ResourceStat, error)
+	GetDevicesAnalytics(ctx context.Context, tr *trparser.TimeRange, hostname string) (models.DevicesAnalyticsPage, error)
+	GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, hostname string) (map[string]models.AnomaliesListPage, error)
+	GetTopAnomalies(ctx context.Context, tr *trparser.TimeRange) (models.TopAnomaliesPage, error)
+	GetTopCategoriesForReport(ctx context.Context, tr *trparser.TimeRange, hostname string) (map[string]models.TopCategoriesPage, error)
 }
 
 type RepoMetricsPGInterface interface {

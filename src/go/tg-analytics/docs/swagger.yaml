@@ -179,6 +179,75 @@ definitions:
       requests_before:
         type: integer
     type: object
+  models.AnomaliesListPage:
+    properties:
+      anomalies:
+        additionalProperties:
+          $ref: '#/definitions/models.AnomalyStat'
+        type: object
+    type: object
+  models.AnomalyStat:
+    properties:
+      after_block:
+        type: integer
+      before_block:
+        type: integer
+      input:
+        type: integer
+      live_count:
+        type: integer
+      output:
+        type: integer
+      pending:
+        type: integer
+      requests:
+        type: integer
+    type: object
+  models.DetectionReport:
+    properties:
+      all:
+        type: integer
+      allowed:
+        type: integer
+      blocked:
+        type: integer
+      unresolved:
+        type: integer
+    type: object
+  models.DeviceAnalyticsPage:
+    properties:
+      all:
+        type: integer
+      allowed:
+        $ref: '#/definitions/models.RequestStat'
+      anomalies:
+        type: integer
+      blocked:
+        $ref: '#/definitions/models.RequestStat'
+      blocks:
+        type: integer
+      pending:
+        $ref: '#/definitions/models.RequestStat'
+      traffic:
+        $ref: '#/definitions/models.TrafficStat'
+    type: object
+  models.DeviceReport:
+    properties:
+      all:
+        type: integer
+      anomalies:
+        type: integer
+      blocks:
+        type: integer
+      detections:
+        $ref: '#/definitions/models.DetectionReport'
+      input:
+        type: integer
+      output:
+        type: integer
+      requests:
+        type: integer
+    type: object
   models.DeviceRequestStat:
     properties:
       blocked:
@@ -192,6 +261,75 @@ definitions:
       status:
         type: string
     type: object
+  models.DevicesAnalyticsPage:
+    properties:
+      analytics:
+        additionalProperties:
+          $ref: '#/definitions/models.DeviceReport'
+        type: object
+    type: object
+  models.MainActivityPage:
+    properties:
+      top_categories:
+        additionalProperties:
+          $ref: '#/definitions/models.RequestReport'
+        type: object
+      top_resources:
+        additionalProperties:
+          $ref: '#/definitions/models.ResourceStat'
+        type: object
+      traffic:
+        $ref: '#/definitions/models.TrafficStat'
+    type: object
+  models.Report:
+    properties:
+      anomalies_list_page:
+        additionalProperties:
+          $ref: '#/definitions/models.AnomaliesListPage'
+        type: object
+      device_analytics_page:
+        $ref: '#/definitions/models.DevicesAnalyticsPage'
+      from:
+        type: string
+      main_activity_page:
+        $ref: '#/definitions/models.MainActivityPage'
+      to:
+        type: string
+      top_anomalies_page:
+        $ref: '#/definitions/models.TopAnomaliesPage'
+      top_categories_page:
+        additionalProperties:
+          $ref: '#/definitions/models.TopCategoriesPage'
+        type: object
+    type: object
+  models.ReportForDevice:
+    properties:
+      anomalies_list_page:
+        additionalProperties:
+          $ref: '#/definitions/models.AnomalyStat'
+        type: object
+      categories_page:
+        additionalProperties:
+          $ref: '#/definitions/models.TopCategory'
+        type: object
+      device_analytics_page:
+        $ref: '#/definitions/models.DeviceAnalyticsPage'
+      from:
+        type: string
+      host_name:
+        type: string
+      to:
+        type: string
+    type: object
+  models.RequestReport:
+    properties:
+      after_block:
+        type: integer
+      before_block:
+        type: integer
+      pending:
+        type: integer
+    type: object
   models.RequestStat:
     properties:
       data:
@@ -202,6 +340,59 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  models.ResourceStat:
+    properties:
+      category:
+        type: string
+      stat:
+        $ref: '#/definitions/models.RequestReport'
+    type: object
+  models.TopAnomaliesPage:
+    properties:
+      anomalies:
+        additionalProperties:
+          $ref: '#/definitions/models.TopAnomaly'
+        type: object
+    type: object
+  models.TopAnomaly:
+    properties:
+      all:
+        type: integer
+      anomalies:
+        type: integer
+      blocks:
+        type: integer
+      detections:
+        $ref: '#/definitions/models.DetectionReport'
+      input:
+        type: integer
+      output:
+        type: integer
+      requests:
+        type: integer
+    type: object
+  models.TopCategoriesPage:
+    properties:
+      categories:
+        additionalProperties:
+          $ref: '#/definitions/models.TopCategory'
+        type: object
+    type: object
+  models.TopCategory:
+    properties:
+      after_block:
+        type: integer
+      before_block:
+        type: integer
+      input:
+        type: integer
+      output:
+        type: integer
+      pending:
+        type: integer
+      requests:
+        type: integer
     type: object
   models.TrafficStat:
     properties:
@@ -306,9 +497,7 @@ paths:
         "200":
           description: Статистика по устройствам
           schema:
-            items:
-              $ref: '#/definitions/dto.DeviceStatResponse'
-            type: array
+            $ref: '#/definitions/dto.DeviceStatResponse'
         "400":
           description: Неверный формат параметров
           schema:
@@ -756,6 +945,86 @@ paths:
       summary: Полуечение списка имен устройств
       tags:
       - common
+  /api/v1/reports:
+    get:
+      consumes:
+      - application/json
+      description: Генерирует полный отчет по активности за указанный временной период,
+        включая аналитику по устройствам, категориям и аномалиям
+      parameters:
+      - default: now-24h
+        description: 'Начало временного диапазона (формат: now-24h, 2023-12-01T10:00:00Z)'
+        in: query
+        name: from
+        type: string
+      - default: now
+        description: 'Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)'
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Полный отчет по активности
+          schema:
+            $ref: '#/definitions/models.Report'
+        "400":
+          description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера при генерации отчета
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Создание отчета
+      tags:
+      - reports
+  /api/v1/reports/{hostname}:
+    get:
+      consumes:
+      - application/json
+      description: Генерирует детализированный отчет по конкретному сетевому устройству
+        за указанный временной период, включая статистику трафика, аномалии и категории
+        запросов
+      parameters:
+      - description: Имя сетевого устройства (хоста)
+        in: path
+        name: hostname
+        required: true
+        type: string
+      - default: now-24h
+        description: 'Начало временного диапазона (формат: now-24h, 2023-12-01T10:00:00Z)'
+        in: query
+        name: from
+        type: string
+      - default: now
+        description: 'Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)'
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Детализированный отчет по устройству
+          schema:
+            $ref: '#/definitions/models.ReportForDevice'
+        "400":
+          description: Неверный формат параметров или устройство не найдено
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Устройство не найдено в базе данных
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера при генерации отчета
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Создание отчета по конкретному устройству
+      tags:
+      - reports
   /api/v1/sessions:
     get:
       consumes:

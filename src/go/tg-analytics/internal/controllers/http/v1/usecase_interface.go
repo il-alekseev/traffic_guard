@@ -25,4 +25,7 @@ type UseCaseInterface interface {
 	GetDetectionStat(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter) (dto.DetectionStat, error)
 	// Actions
 	Act(ctx context.Context, action, path string) error
+	// Reports
+	CreateReport(ctx context.Context, tr *trparser.TimeRange) (models.Report, error)
+	CreateReportForDevice(ctx context.Context, tr *trparser.TimeRange, hostname string) (models.ReportForDevice, error)
 }

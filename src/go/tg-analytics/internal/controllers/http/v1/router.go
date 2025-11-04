@@ -43,6 +43,12 @@ func (s *Server) configureRouter() {
 			detections.GET("/", s.GetDetections)
 			detections.GET("/stat", s.GetDetectionStat)
 		}
+		// Вкладка Отыеты
+		reports := v1.Group("/reports")
+		{
+			reports.GET("/", s.CreateReport)
+			reports.GET("/:hostname", s.CreateReportForDevice)
+		}
 		// Утилиты
 		v1.GET("/healthcheck", s.Healthcheck)
 		v1.GET("/version", s.Version)

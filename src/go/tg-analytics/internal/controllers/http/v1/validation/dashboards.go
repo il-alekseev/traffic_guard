@@ -273,3 +273,41 @@ func (r *ActRequest) ValidateAndNormalize() error {
 	r.Normalize()
 	return r.Validate()
 }
+
+// GetAnomaliesRequest представляет запрос для получения состояния устройств
+type GetDeviceReportRequest struct {
+	From     string `form:"from" binding:"omitempty"`
+	To       string `form:"to" binding:"omitempty"`
+	HostName string `form:"host_name"`
+}
+
+// Normalize нормализует значения запроса
+func (r *GetDeviceReportRequest) Normalize() {
+	// Тримим строковые поля
+	r.From = strings.TrimSpace(r.From)
+	r.To = strings.TrimSpace(r.To)
+	r.HostName = strings.TrimSpace(r.HostName)
+	// Устанавливаем значения по умолчанию
+	if r.From == "" {
+		r.From = "now-10m"
+	}
+	if r.To == "" {
+		r.To = "now"
+	}
+}
+
+// Validate выполняет валидацию всех полей запроса
+func (r *GetDeviceReportRequest) Validate() error {
+	// Валидация временного диапазона
+	if err := validateTimeRange(r.From, r.To); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ValidateAndNormalize выполняет нормализацию и валидацию
+func (r *GetDeviceReportRequest) ValidateAndNormalize() error {
+	r.Normalize()
+	return r.Validate()
+}

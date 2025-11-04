@@ -512,7 +512,7 @@ func (s *Server) GetTopUnresolvedDetections(c *gin.Context) {
 // @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)" default(now-10m)
 // @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)" default(now)
 // @Param count query int false "Количество точек измерений" default(20) minimum(1)
-// @Success 200 {array} dto.DeviceStatResponse "Статистика по устройствам"
+// @Success 200 {object} dto.DeviceStatResponse "Статистика по устройствам"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/dashboards/devices [get]
