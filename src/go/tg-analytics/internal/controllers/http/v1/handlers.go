@@ -38,7 +38,7 @@ func (s *Server) Version(c *gin.Context) {
 // @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z). По умолчанию: now" default(now)
 // @Param hostname query string false "Фильтр по имени хоста"
 // @Param category query string false "Фильтр по категории" Enums(Неизвестный класс, Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депрессивный контент, Алкоголь и табак, Положительная категория)
-// @Param type query string false "Фильтр по типу сессии" Enums(Заблокирован, Запрещен, Ожидает, Разрешен)
+// @Param type query string false "Фильтр по типу сессии" Enums(Разрешен, Запрещен, VPN)
 // @Param search query string false "Поиск по URL или имени пользователя"
 // @Param page query int false "Номер страницы" default(1) minimum(1)
 // @Param limit query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
@@ -117,7 +117,7 @@ func (s *Server) GetSessions(c *gin.Context) {
 // @Param from query string false "Начало временного диапазона" default(now-24h)
 // @Param to query string false "Конец временного диапазона" default(now)
 // @Param hostname query string false "Фильтр по имени хоста"
-// @Param type query string false "Фильтр по типу сессии" Enums(Заблокирован, Запрещен, Ожидает, Разрешен)
+// @Param type query string false "Фильтр по типу сессии" Enums(Разрешен, Заблокирован, VPN)
 // @Param count query int false "Количество возвращаемых категорий" default(5) minimum(1) maximum(50)
 // @Success 200 {array} models.CategoryCount
 // @Failure 400 {object} dto.ErrorResponse
@@ -308,7 +308,7 @@ func (s *Server) GetDetectionStat(c *gin.Context) {
 // @Produce json
 // @Param from query string false "Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)" default(now-10m)
 // @Param to query string false "Конец временного диапазона (формат: now, 2024-01-01T00:00:00Z)" default(now)
-// @Param status query string false "Статус запросов (allowed, blocked, prohibited, waiting)" default(prohibited)
+// @Param status query string false "Статус запросов (Разрешен, Запрещен, Аномалия, Ожидает)"
 // @Param hostname query string false "Фильтр по имени хоста"
 // @Param category query string false "Фильтр по категории" Enums(Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет-магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты, распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Дополнительно, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депресивный контент и суицид, Алкоголь, табак)
 // @Param count query integer false "Количество интервалов" default(10)

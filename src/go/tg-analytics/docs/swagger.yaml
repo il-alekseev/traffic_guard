@@ -242,13 +242,11 @@ paths:
         период
       parameters:
       - description: Начало периода в timestamp
-        format: int64
         in: query
         name: start
         required: true
         type: integer
       - description: Конец периода в timestamp
-        format: int64
         in: query
         name: end
         required: true
@@ -277,13 +275,11 @@ paths:
         период
       parameters:
       - description: Начало периода в timestamp
-        format: int64
         in: query
         name: start
         required: true
         type: integer
       - description: Конец периода в timestamp
-        format: int64
         in: query
         name: end
         required: true
@@ -314,7 +310,6 @@ paths:
         даты
       parameters:
       - description: Дата начала в timestamp
-        format: int64
         in: query
         name: start
         required: true
@@ -356,8 +351,7 @@ paths:
         in: query
         name: to
         type: string
-      - default: prohibited
-        description: Статус запросов (allowed, blocked, prohibited, waiting)
+      - description: Статус запросов (Разрешен, Запрещен, Аномалия, Ожидает)
         in: query
         name: status
         type: string
@@ -448,10 +442,9 @@ paths:
         type: string
       - description: Фильтр по типу сессии
         enum:
-        - Заблокирован
-        - Запрещен
-        - Ожидает
         - Разрешен
+        - Заблокирован
+        - VPN
         in: query
         name: type
         type: string
@@ -830,10 +823,9 @@ paths:
         type: string
       - description: Фильтр по типу сессии
         enum:
-        - Заблокирован
-        - Запрещен
-        - Ожидает
         - Разрешен
+        - Запрещен
+        - VPN
         in: query
         name: type
         type: string

@@ -63,7 +63,6 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Начало периода в timestamp",
                         "name": "start",
                         "in": "query",
@@ -71,7 +70,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Конец периода в timestamp",
                         "name": "end",
                         "in": "query",
@@ -113,7 +111,6 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Начало периода в timestamp",
                         "name": "start",
                         "in": "query",
@@ -121,7 +118,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Конец периода в timestamp",
                         "name": "end",
                         "in": "query",
@@ -166,7 +162,6 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Дата начала в timestamp",
                         "name": "start",
                         "in": "query",
@@ -228,8 +223,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "default": "prohibited",
-                        "description": "Статус запросов (allowed, blocked, prohibited, waiting)",
+                        "description": "Статус запросов (Разрешен, Запрещен, Аномалия, Ожидает)",
                         "name": "status",
                         "in": "query"
                     },
@@ -345,10 +339,9 @@ const docTemplate = `{
                     },
                     {
                         "enum": [
+                            "Разрешен",
                             "Заблокирован",
-                            "Запрещен",
-                            "Ожидает",
-                            "Разрешен"
+                            "VPN"
                         ],
                         "type": "string",
                         "description": "Фильтр по типу сессии",
@@ -853,10 +846,9 @@ const docTemplate = `{
                     },
                     {
                         "enum": [
-                            "Заблокирован",
+                            "Разрешен",
                             "Запрещен",
-                            "Ожидает",
-                            "Разрешен"
+                            "VPN"
                         ],
                         "type": "string",
                         "description": "Фильтр по типу сессии",

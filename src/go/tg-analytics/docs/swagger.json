@@ -59,7 +59,6 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Начало периода в timestamp",
                         "name": "start",
                         "in": "query",
@@ -67,7 +66,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Конец периода в timestamp",
                         "name": "end",
                         "in": "query",
@@ -109,7 +107,6 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Начало периода в timestamp",
                         "name": "start",
                         "in": "query",
@@ -117,7 +114,6 @@
                     },
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Конец периода в timestamp",
                         "name": "end",
                         "in": "query",
@@ -162,7 +158,6 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "format": "int64",
                         "description": "Дата начала в timestamp",
                         "name": "start",
                         "in": "query",
@@ -224,8 +219,7 @@
                     },
                     {
                         "type": "string",
-                        "default": "prohibited",
-                        "description": "Статус запросов (allowed, blocked, prohibited, waiting)",
+                        "description": "Статус запросов (Разрешен, Запрещен, Аномалия, Ожидает)",
                         "name": "status",
                         "in": "query"
                     },
@@ -341,10 +335,9 @@
                     },
                     {
                         "enum": [
+                            "Разрешен",
                             "Заблокирован",
-                            "Запрещен",
-                            "Ожидает",
-                            "Разрешен"
+                            "VPN"
                         ],
                         "type": "string",
                         "description": "Фильтр по типу сессии",
@@ -849,10 +842,9 @@
                     },
                     {
                         "enum": [
-                            "Заблокирован",
+                            "Разрешен",
                             "Запрещен",
-                            "Ожидает",
-                            "Разрешен"
+                            "VPN"
                         ],
                         "type": "string",
                         "description": "Фильтр по типу сессии",

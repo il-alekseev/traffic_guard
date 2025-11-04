@@ -1,8 +1,18 @@
+RUN_TYPE ?= local
 AN_URL="http://127.0.0.1:7000/swagger/doc.json"
-# Запуск dashboard микросервиса
+
+# Запуск tg-analytics микросервиса
 .PHONY: run
 run: 
-	go run ./cmd/analytics/main.go
+	go run ./cmd/analytics/main.go -type=$(RUN_TYPE)
+
+.PHONY: run-local
+run-local:
+	$(MAKE) run RUN_TYPE=local
+
+.PHONY: run-remote
+run-remote:
+	$(MAKE) run RUN_TYPE=remote
 
 # Генерация Swagger документации
 .PHONY: swagger

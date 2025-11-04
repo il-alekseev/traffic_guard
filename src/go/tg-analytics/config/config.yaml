@@ -6,7 +6,7 @@ app:
 logger:
   log_level: 'debug'
 
-postgres:
+etl:
   pool_max: 2
   host: "192.168.130.112"
   user: "etl_user"
@@ -27,7 +27,7 @@ http:
   port: '7000'
 
 swagger:
-  host: '127.0.0.1'
+  host: '127.0.0.1:7000'
 
 metrics:
   pool_max: 2

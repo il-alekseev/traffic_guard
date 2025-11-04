@@ -64,9 +64,9 @@ func Run(cfg *config.Config) {
 
 	logger.InfoContext(ctx, "dashboard service", wsl.Info("Creating DB connection"))
 
-	dsnETL := getDSN(cfg.PG.Host, cfg.PG.User, cfg.PG.Pass,
-		cfg.PG.DBName, cfg.PG.Port, cfg.PG.SSLMode)
-	db, err := createConnection(ctx, dsnETL, cfg.PG.PoolMax, logger, false, models.Session{})
+	dsnETL := getDSN(cfg.ETL.Host, cfg.ETL.User, cfg.ETL.Pass,
+		cfg.ETL.DBName, cfg.ETL.Port, cfg.ETL.SSLMode)
+	db, err := createConnection(ctx, dsnETL, cfg.ETL.PoolMax, logger, false, models.Session{})
 	if err != nil {
 		logger.ErrorContext(ctx, "dashboard service", wsl.String("create db connection error", err.Error()))
 		return

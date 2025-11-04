@@ -8,19 +8,19 @@ logger:
 
 etl:
   pool_max: 2
-  host: "192.168.130.112"
-  user: "etl_user"
-  pass: "etl_password"
+  host: "localhost"
+  user: "etl"
+  pass: "etlpassword"
   dbname: "etl"
-  port: "5433"
+  port: "5432"
   sslmode: "disable"
 
 http:
-  host: '0.0.0.0'
+  host: '127.0.0.1'
   port: '7000'
 
 swagger:
-  host: '192.168.130.112:7000'
+  host: '127.0.0.1:7000'
 
 metrics:
   pool_max: 2
