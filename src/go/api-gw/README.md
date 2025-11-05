@@ -79,6 +79,12 @@ API_GW_ANALYTICS_HOST==172.17.134.91           # Хост сервиса ANALYTI
 API_GW_ANALYTICS_PORT=8005           # Порт сервиса ANALYTICS
 ```
 
+Интеграции:
+- UserControl - через кодогенерацию по swagger документации сервиса
+- ContextControl - через кодогенерацию по swagger документации сервиса
+- Blog - через кодогенерацию по swagger документации сервиса
+- Analytics - через кодогенерацию по swagger документации сервиса
+
 Структура проекта
 ```
 api-gw
