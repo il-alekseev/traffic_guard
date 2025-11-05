@@ -5,6 +5,7 @@ import (
 	"api-gateway/pkg/analytics/common"
 	"api-gateway/pkg/analytics/dashboards"
 	"api-gateway/pkg/analytics/detections"
+	"api-gateway/pkg/analytics/reports"
 	"api-gateway/pkg/analytics/sessions"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -568,6 +569,95 @@ func (s *Server) getDetectionsStat(c *gin.Context) {
 		}
 
 		s.ErrorResponse(c, http.StatusBadRequest, "Detections.GetAPIV1DetectionsStat", err)
+		return
+	}
+
+	c.JSON(resp.Code(), resp.GetPayload())
+}
+
+//---------------------reports---------------------
+
+// getV1Reports -
+// @Summary Создание отчета
+// @Description Генерирует полный отчет по активности за указанный временной период, включая аналитику по устройствам, категориям и аномалиям
+// @Tags reports
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param from query string false "Начало временного диапазона (формат: now-24h, 2023-12-01T10:00:00Z)" default(now-24h)
+// @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)" default(now)
+// @Success 200 {object} models.ModelsReport "Полный отчет по активности"
+// @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров"
+// @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера при генерации отчета"
+// @Router /v1/analytics/reports [get]
+func (s *Server) getV1Reports(c *gin.Context) {
+	// Создаем authInfoWriter для передачи токена
+	//authInfo, err := utils.GetAuthInfo(c)
+	//if err != nil {
+	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+	//	return
+	//}
+
+	//Парсим входные данные
+	from := c.DefaultQuery("from", "now-24h")
+	to := c.DefaultQuery("to", "now")
+
+	resp, err := s.analyticsCL.Reports.GetAPIV1Reports(&reports.GetAPIV1ReportsParams{
+		From: &from,
+		To:   &to,
+	})
+	if err != nil {
+		if conflictErr, ok := err.(ResponseErrorInterface); ok {
+			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
+			return
+		}
+
+		s.ErrorResponse(c, http.StatusBadRequest, "Reports.GetAPIV1Reports", err)
+		return
+	}
+
+	c.JSON(resp.Code(), resp.GetPayload())
+}
+
+// @Summary Создание отчета по конкретному устройству
+// @Description Генерирует детализированный отчет по конкретному сетевому устройству за указанный временной период, включая статистику трафика, аномалии и категории запросов
+// @Tags reports
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param hostname path string true "Имя сетевого устройства (хоста)"
+// @Param from query string false "Начало временного диапазона (формат: now-24h, 2023-12-01T10:00:00Z)" default(now-24h)
+// @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)" default(now)
+// @Success 200 {object} models.ModelsReportForDevice "Детализированный отчет по устройству"
+// @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров или устройство не найдено"
+// @Failure 404 {object} models.DtoErrorResponse "Устройство не найдено в базе данных"
+// @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера при генерации отчета"
+// @Router /v1/analytics/reports/{hostname} [get]
+func (s *Server) getV1ReportsHostname(c *gin.Context) {
+	// Создаем authInfoWriter для передачи токена
+	//authInfo, err := utils.GetAuthInfo(c)
+	//if err != nil {
+	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+	//	return
+	//}
+
+	//Парсим входные данные
+	hostname := c.Param("hostname")
+	from := c.DefaultQuery("from", "now-24h")
+	to := c.DefaultQuery("to", "now")
+
+	resp, err := s.analyticsCL.Reports.GetAPIV1ReportsHostname(&reports.GetAPIV1ReportsHostnameParams{
+		Hostname: hostname,
+		From:     &from,
+		To:       &to,
+	})
+	if err != nil {
+		if conflictErr, ok := err.(ResponseErrorInterface); ok {
+			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
+			return
+		}
+
+		s.ErrorResponse(c, http.StatusBadRequest, "Reports.GetAPIV1ReportsHostname", err)
 		return
 	}
 

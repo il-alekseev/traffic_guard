@@ -801,6 +801,131 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/analytics/reports": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Генерирует полный отчет по активности за указанный временной период, включая аналитику по устройствам, категориям и аномалиям",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reports"
+                ],
+                "summary": "Создание отчета",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "now-24h",
+                        "description": "Начало временного диапазона (формат: now-24h, 2023-12-01T10:00:00Z)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)",
+                        "name": "to",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Полный отчет по активности",
+                        "schema": {
+                            "$ref": "#/definitions/models.ModelsReport"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера при генерации отчета",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/analytics/reports/{hostname}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Генерирует детализированный отчет по конкретному сетевому устройству за указанный временной период, включая статистику трафика, аномалии и категории запросов",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reports"
+                ],
+                "summary": "Создание отчета по конкретному устройству",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Имя сетевого устройства (хоста)",
+                        "name": "hostname",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "now-24h",
+                        "description": "Начало временного диапазона (формат: now-24h, 2023-12-01T10:00:00Z)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)",
+                        "name": "to",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Детализированный отчет по устройству",
+                        "schema": {
+                            "$ref": "#/definitions/models.ModelsReportForDevice"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат параметров или устройство не найдено",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Устройство не найдено в базе данных",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера при генерации отчета",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/analytics/sessions": {
             "get": {
                 "security": [
@@ -3186,6 +3311,51 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ModelsAnomaliesListPage": {
+            "type": "object",
+            "properties": {
+                "anomalies": {
+                    "description": "anomalies",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/models.ModelsAnomalyStat"
+                    }
+                }
+            }
+        },
+        "models.ModelsAnomalyStat": {
+            "type": "object",
+            "properties": {
+                "after_block": {
+                    "description": "after block",
+                    "type": "integer"
+                },
+                "before_block": {
+                    "description": "before block",
+                    "type": "integer"
+                },
+                "input": {
+                    "description": "input",
+                    "type": "integer"
+                },
+                "live_count": {
+                    "description": "live count",
+                    "type": "integer"
+                },
+                "output": {
+                    "description": "output",
+                    "type": "integer"
+                },
+                "pending": {
+                    "description": "pending",
+                    "type": "integer"
+                },
+                "requests": {
+                    "description": "requests",
+                    "type": "integer"
+                }
+            }
+        },
         "models.ModelsBusinessLog": {
             "type": "object",
             "properties": {
@@ -3307,6 +3477,113 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ModelsDetectionReport": {
+            "type": "object",
+            "properties": {
+                "all": {
+                    "description": "all",
+                    "type": "integer"
+                },
+                "allowed": {
+                    "description": "allowed",
+                    "type": "integer"
+                },
+                "blocked": {
+                    "description": "blocked",
+                    "type": "integer"
+                },
+                "unresolved": {
+                    "description": "unresolved",
+                    "type": "integer"
+                }
+            }
+        },
+        "models.ModelsDeviceAnalyticsPage": {
+            "type": "object",
+            "properties": {
+                "all": {
+                    "description": "all",
+                    "type": "integer"
+                },
+                "allowed": {
+                    "description": "allowed",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsRequestStat"
+                        }
+                    ]
+                },
+                "anomalies": {
+                    "description": "anomalies",
+                    "type": "integer"
+                },
+                "blocked": {
+                    "description": "blocked",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsRequestStat"
+                        }
+                    ]
+                },
+                "blocks": {
+                    "description": "blocks",
+                    "type": "integer"
+                },
+                "pending": {
+                    "description": "pending",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsRequestStat"
+                        }
+                    ]
+                },
+                "traffic": {
+                    "description": "traffic",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsTrafficStat"
+                        }
+                    ]
+                }
+            }
+        },
+        "models.ModelsDeviceReport": {
+            "type": "object",
+            "properties": {
+                "all": {
+                    "description": "all",
+                    "type": "integer"
+                },
+                "anomalies": {
+                    "description": "anomalies",
+                    "type": "integer"
+                },
+                "blocks": {
+                    "description": "blocks",
+                    "type": "integer"
+                },
+                "detections": {
+                    "description": "detections",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsDetectionReport"
+                        }
+                    ]
+                },
+                "input": {
+                    "description": "input",
+                    "type": "integer"
+                },
+                "output": {
+                    "description": "output",
+                    "type": "integer"
+                },
+                "requests": {
+                    "description": "requests",
+                    "type": "integer"
+                }
+            }
+        },
         "models.ModelsDeviceRequestStat": {
             "type": "object",
             "properties": {
@@ -3330,6 +3607,18 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ModelsDevicesAnalyticsPage": {
+            "type": "object",
+            "properties": {
+                "analytics": {
+                    "description": "analytics",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/models.ModelsDeviceReport"
+                    }
+                }
+            }
+        },
         "models.ModelsLogs": {
             "type": "object",
             "properties": {
@@ -3345,6 +3634,33 @@ const docTemplate = `{
                     "allOf": [
                         {
                             "$ref": "#/definitions/models.ModelsMeta"
+                        }
+                    ]
+                }
+            }
+        },
+        "models.ModelsMainActivityPage": {
+            "type": "object",
+            "properties": {
+                "top_categories": {
+                    "description": "top categories",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/models.ModelsRequestReport"
+                    }
+                },
+                "top_resources": {
+                    "description": "top resources",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/models.ModelsResourceStat"
+                    }
+                },
+                "traffic": {
+                    "description": "traffic",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsTrafficStat"
                         }
                     ]
                 }
@@ -3368,6 +3684,149 @@ const docTemplate = `{
                 "total": {
                     "description": "total",
                     "type": "integer"
+                }
+            }
+        },
+        "models.ModelsReport": {
+            "type": "object",
+            "properties": {
+                "anomalies_list_page": {
+                    "description": "anomalies list page",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/models.ModelsAnomaliesListPage"
+                    }
+                },
+                "device_analytics_page": {
+                    "description": "device analytics page",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsDevicesAnalyticsPage"
+                        }
+                    ]
+                },
+                "from": {
+                    "description": "from",
+                    "type": "string"
+                },
+                "main_activity_page": {
+                    "description": "main activity page",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsMainActivityPage"
+                        }
+                    ]
+                },
+                "to": {
+                    "description": "to",
+                    "type": "string"
+                },
+                "top_anomalies_page": {
+                    "description": "top anomalies page",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsTopAnomaliesPage"
+                        }
+                    ]
+                },
+                "top_categories_page": {
+                    "description": "top categories page",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/models.ModelsTopCategoriesPage"
+                    }
+                }
+            }
+        },
+        "models.ModelsReportForDevice": {
+            "type": "object",
+            "properties": {
+                "anomalies_list_page": {
+                    "description": "anomalies list page",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/models.ModelsAnomalyStat"
+                    }
+                },
+                "categories_page": {
+                    "description": "categories page",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/models.ModelsTopCategory"
+                    }
+                },
+                "device_analytics_page": {
+                    "description": "device analytics page",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsDeviceAnalyticsPage"
+                        }
+                    ]
+                },
+                "from": {
+                    "description": "from",
+                    "type": "string"
+                },
+                "host_name": {
+                    "description": "host name",
+                    "type": "string"
+                },
+                "to": {
+                    "description": "to",
+                    "type": "string"
+                }
+            }
+        },
+        "models.ModelsRequestReport": {
+            "type": "object",
+            "properties": {
+                "after_block": {
+                    "description": "after block",
+                    "type": "integer"
+                },
+                "before_block": {
+                    "description": "before block",
+                    "type": "integer"
+                },
+                "pending": {
+                    "description": "pending",
+                    "type": "integer"
+                }
+            }
+        },
+        "models.ModelsRequestStat": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "data",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "time": {
+                    "description": "time",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "models.ModelsResourceStat": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "description": "category",
+                    "type": "string"
+                },
+                "stat": {
+                    "description": "stat",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsRequestReport"
+                        }
+                    ]
                 }
             }
         },
@@ -3402,6 +3861,96 @@ const docTemplate = `{
                 "refresh_token": {
                     "description": "refresh token",
                     "type": "string"
+                }
+            }
+        },
+        "models.ModelsTopAnomaliesPage": {
+            "type": "object",
+            "properties": {
+                "anomalies": {
+                    "description": "anomalies",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/models.ModelsTopAnomaly"
+                    }
+                }
+            }
+        },
+        "models.ModelsTopAnomaly": {
+            "type": "object",
+            "properties": {
+                "all": {
+                    "description": "all",
+                    "type": "integer"
+                },
+                "anomalies": {
+                    "description": "anomalies",
+                    "type": "integer"
+                },
+                "blocks": {
+                    "description": "blocks",
+                    "type": "integer"
+                },
+                "detections": {
+                    "description": "detections",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsDetectionReport"
+                        }
+                    ]
+                },
+                "input": {
+                    "description": "input",
+                    "type": "integer"
+                },
+                "output": {
+                    "description": "output",
+                    "type": "integer"
+                },
+                "requests": {
+                    "description": "requests",
+                    "type": "integer"
+                }
+            }
+        },
+        "models.ModelsTopCategoriesPage": {
+            "type": "object",
+            "properties": {
+                "categories": {
+                    "description": "categories",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/models.ModelsTopCategory"
+                    }
+                }
+            }
+        },
+        "models.ModelsTopCategory": {
+            "type": "object",
+            "properties": {
+                "after_block": {
+                    "description": "after block",
+                    "type": "integer"
+                },
+                "before_block": {
+                    "description": "before block",
+                    "type": "integer"
+                },
+                "input": {
+                    "description": "input",
+                    "type": "integer"
+                },
+                "output": {
+                    "description": "output",
+                    "type": "integer"
+                },
+                "pending": {
+                    "description": "pending",
+                    "type": "integer"
+                },
+                "requests": {
+                    "description": "requests",
+                    "type": "integer"
                 }
             }
         },

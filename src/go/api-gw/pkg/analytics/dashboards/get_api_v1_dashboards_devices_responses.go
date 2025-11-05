@@ -58,7 +58,7 @@ GetAPIV1DashboardsDevicesOK describes a response with status code 200, with defa
 Статистика по устройствам
 */
 type GetAPIV1DashboardsDevicesOK struct {
-	Payload []*models.DtoDeviceStatResponse
+	Payload *models.DtoDeviceStatResponse
 }
 
 // IsSuccess returns true when this get Api v1 dashboards devices o k response has a 2xx status code
@@ -101,14 +101,16 @@ func (o *GetAPIV1DashboardsDevicesOK) String() string {
 	return fmt.Sprintf("[GET /api/v1/dashboards/devices][%d] getApiV1DashboardsDevicesOK %s", 200, payload)
 }
 
-func (o *GetAPIV1DashboardsDevicesOK) GetPayload() []*models.DtoDeviceStatResponse {
+func (o *GetAPIV1DashboardsDevicesOK) GetPayload() *models.DtoDeviceStatResponse {
 	return o.Payload
 }
 
 func (o *GetAPIV1DashboardsDevicesOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
+	o.Payload = new(models.DtoDeviceStatResponse)
+
 	// response payload
-	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
