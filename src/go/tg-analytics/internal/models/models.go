@@ -23,3 +23,14 @@ type TrafficStat struct {
 	Input  []uint
 	Output []uint
 }
+
+type RequestStat struct {
+	Time []time.Time
+	Data []uint
+}
+
+type DeviceRequestStat struct {
+	Status  string `json:"status"`
+	Blocked []uint `json:"blocked"`
+	Pending []uint `json:"pending"`
+}

@@ -58,7 +58,7 @@ GetAPIV1DashboardsTopCategoriesOK describes a response with status code 200, wit
 OK
 */
 type GetAPIV1DashboardsTopCategoriesOK struct {
-	Payload []*models.ModelsCategoryCount
+	Payload []*models.DtoCategory
 }
 
 // IsSuccess returns true when this get Api v1 dashboards top categories o k response has a 2xx status code
@@ -101,7 +101,7 @@ func (o *GetAPIV1DashboardsTopCategoriesOK) String() string {
 	return fmt.Sprintf("[GET /api/v1/dashboards/top-categories][%d] getApiV1DashboardsTopCategoriesOK %s", 200, payload)
 }
 
-func (o *GetAPIV1DashboardsTopCategoriesOK) GetPayload() []*models.ModelsCategoryCount {
+func (o *GetAPIV1DashboardsTopCategoriesOK) GetPayload() []*models.DtoCategory {
 	return o.Payload
 }
 

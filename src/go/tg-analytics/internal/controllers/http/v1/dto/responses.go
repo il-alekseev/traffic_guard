@@ -1,6 +1,9 @@
 package dto
 
-import "tg-an/internal/models"
+import (
+	"tg-an/internal/models"
+	"time"
+)
 
 type SuccessResponse struct {
 	Message string `json:"message"`
@@ -24,13 +27,25 @@ type ListResponse struct {
 	Meta PaginationMeta `json:"meta"` // Метаданные пагинации
 }
 
-type DataPointsResponse struct {
-	Type  string `json:"type"`  // Тип данных
-	Data  []uint `json:"data"`  // Список однотипных данных
-	Count uint   `json:"count"` // Число точек с данными
+type RequestStatResponse struct {
+	Type  string             `json:"type"`  // Тип данных
+	Data  models.RequestStat `json:"data"`  // Список однотипных данных
+	Count uint               `json:"count"` // Число точек с данными
 }
 
 type TrafficStatResponse struct {
 	Data  models.TrafficStat `json:"data"`
 	Count uint               `json:"count"`
+}
+
+type DeviceStatResponse struct {
+	Time  []time.Time                         `json:"time"`
+	Data  map[string]models.DeviceRequestStat `json:"data"`
+	Count uint                                `json:"count"`
+}
+
+type GetAnomaliesResponse struct {
+	BlockedResoursesCount uint                `json:"blocked_resourses_count"`
+	HostNamesCount        uint                `json:"host_names_count"`
+	Data                  map[string][]string `json:"data"`
 }

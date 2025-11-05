@@ -10,10 +10,11 @@ import (
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 
+	"api-gateway/pkg/analytics/actions"
 	"api-gateway/pkg/analytics/common"
 	"api-gateway/pkg/analytics/dashboards"
 	"api-gateway/pkg/analytics/detections"
-	"api-gateway/pkg/analytics/not_implemented"
+	"api-gateway/pkg/analytics/reports"
 	"api-gateway/pkg/analytics/sessions"
 	"api-gateway/pkg/analytics/utils"
 )
@@ -60,10 +61,11 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Analytics 
 
 	cli := new(Analytics)
 	cli.Transport = transport
+	cli.Actions = actions.New(transport, formats)
 	cli.Common = common.New(transport, formats)
 	cli.Dashboards = dashboards.New(transport, formats)
 	cli.Detections = detections.New(transport, formats)
-	cli.NotImplemented = not_implemented.New(transport, formats)
+	cli.Reports = reports.New(transport, formats)
 	cli.Sessions = sessions.New(transport, formats)
 	cli.Utils = utils.New(transport, formats)
 	return cli
@@ -110,13 +112,15 @@ func (cfg *TransportConfig) WithSchemes(schemes []string) *TransportConfig {
 
 // Analytics is a client for analytics
 type Analytics struct {
+	Actions actions.ClientService
+
 	Common common.ClientService
 
 	Dashboards dashboards.ClientService
 
 	Detections detections.ClientService
 
-	NotImplemented not_implemented.ClientService
+	Reports reports.ClientService
 
 	Sessions sessions.ClientService
 
@@ -128,10 +132,11 @@ type Analytics struct {
 // SetTransport changes the transport on the client and all its subresources
 func (c *Analytics) SetTransport(transport runtime.ClientTransport) {
 	c.Transport = transport
+	c.Actions.SetTransport(transport)
 	c.Common.SetTransport(transport)
 	c.Dashboards.SetTransport(transport)
 	c.Detections.SetTransport(transport)
-	c.NotImplemented.SetTransport(transport)
+	c.Reports.SetTransport(transport)
 	c.Sessions.SetTransport(transport)
 	c.Utils.SetTransport(transport)
 }

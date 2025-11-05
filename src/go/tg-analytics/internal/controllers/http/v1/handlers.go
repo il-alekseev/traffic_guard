@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-	"strconv"
 	"tg-an/internal/controllers/http/v1/dto"
 	"tg-an/internal/controllers/http/v1/validation"
 	"tg-an/internal/models"
-	"tg-an/internal/pkg/status"
 	"tg-an/pkg/trparser"
 	"time"
 
@@ -119,7 +117,7 @@ func (s *Server) GetSessions(c *gin.Context) {
 // @Param hostname query string false "Фильтр по имени хоста"
 // @Param type query string false "Фильтр по типу сессии" Enums(Разрешен, Заблокирован, VPN)
 // @Param count query int false "Количество возвращаемых категорий" default(5) minimum(1) maximum(50)
-// @Success 200 {array} models.CategoryCount
+// @Success 200 {object} []dto.Category
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
 // @Router /api/v1/dashboards/top-categories [get]
@@ -301,68 +299,59 @@ func (s *Server) GetDetectionStat(c *gin.Context) {
 	c.JSON(http.StatusOK, stat)
 }
 
-// @Summary Получить статистику запросов
-// @Description Возвращает статистику запросов за указанный период с фильтрацией по статусу, хосту и категории
-// @Tags not implemented
+// @Summary Получение статистики запросов
+// @Description Получение статистики запросов за указанный период с фильтрацией по хосту и типу запросов
+// @Tags dashboards
 // @Accept json
 // @Produce json
 // @Param from query string false "Начало временного диапазона (формат: now-10m, now-1h, 2024-01-01T00:00:00Z)" default(now-10m)
 // @Param to query string false "Конец временного диапазона (формат: now, 2024-01-01T00:00:00Z)" default(now)
-// @Param status query string false "Статус запросов (Разрешен, Запрещен, Аномалия, Ожидает)"
+// @Param request_type query string false "Тип запроса" Enums(allowed, blocked, before_block, pending) default(pending)
 // @Param hostname query string false "Фильтр по имени хоста"
-// @Param category query string false "Фильтр по категории" Enums(Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет-магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты, распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Дополнительно, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депресивный контент и суицид, Алкоголь, табак)
 // @Param count query integer false "Количество интервалов" default(10)
-// @Success 200 {object} dto.DataPointsResponse "Статистика запросов (массив чисел)"
+// @Success 200 {object} dto.RequestStatResponse "Статистика запросов (массив чисел)"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/dashboards/requests [get]
-func (s *Server) GetRequestsStat(c *gin.Context) {
-	//Парсим временные метки
-	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
-	to := c.DefaultQuery("to", "now")
+func (s *Server) GetRequestStat(c *gin.Context) {
+	var req validation.GetRequestStatRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("Invalid query parameters: %v", err),
+		})
+		return
+	}
+	// Нормализация и валидация
+	if err := req.ValidateAndNormalize(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 
+	// Парсим временной диапазон
 	parser := &trparser.TimeRangeParser{}
 	now := time.Now()
-	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", from, to), now)
+	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", req.From, req.To), now)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Неверный формат временного диапазона",
 		})
 		return
 	}
-	// Парсим тип запросов (по умолчанию - запрещено/prohibited)
-	status, err := status.ParseStatus(c.DefaultQuery("status", "prohibited"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверныф тип запроса",
-		})
-		return
-	}
-	// Парсим фильтры
-	filter := models.DashboardFilter{
-		HostName:    c.DefaultQuery("hostname", ""),
-		TopCategory: c.DefaultQuery("category", ""),
-	}
-	// Парсим колтчество точек
-	count, err := strconv.ParseUint(c.DefaultQuery("count", "20"), 10, 32)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат count",
-		})
-		return
-	}
+
 	// Получем данные
-	stat, err := s.u.GetRequestsStat(c, timeRange, filter, status, uint(count))
+	stat, err := s.u.GetRequestStat(c, timeRange, req.HostName, req.RequestType, req.Count)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "ошибка при получении статистики запросов",
 		})
 		return
 	}
-	resp := dto.DataPointsResponse{
-		Type:  fmt.Sprintf("requests_%s", status.String()),
+	resp := dto.RequestStatResponse{
+		Type:  fmt.Sprintf("requests_%s", req.RequestType),
 		Data:  stat,
-		Count: uint(count),
+		Count: req.Count,
 	}
 	c.JSON(http.StatusOK, resp)
 }
@@ -516,80 +505,48 @@ func (s *Server) GetTopUnresolvedDetections(c *gin.Context) {
 	c.JSON(http.StatusOK, UnresolvedDetections)
 }
 
-// Устарело
-
 // @Summary Получение статистики по устройствам
 // @Description Получение агрегированной статистики по сетевым узлам за указанный период
-// @Tags not implemented
+// @Tags dashboards
 // @Produce application/json
-// @Param start query int64 true "Начало периода в timestamp"
-// @Param end query int64 true "Конец периода в timestamp"
-// @Success 200 {array} models.DeviceStat "Статистика по устройствам"
+// @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)" default(now-10m)
+// @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)" default(now)
+// @Param count query int false "Количество точек измерений" default(20) minimum(1)
+// @Success 200 {object} dto.DeviceStatResponse "Статистика по устройствам"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/dashboards/devices [get]
-func (s *Server) GetDevicesStat(c *gin.Context) {
-	start, err := strconv.ParseInt(c.Query("start"), 10, 64)
+func (s *Server) GetDeviceStat(c *gin.Context) {
+	// Валидация запроса
+	var req validation.GetDeviceStatRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("Invalid query parameters: %v", err),
+		})
+		return
+	}
+	// Нормализация и валидация
+	if err := req.ValidateAndNormalize(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	// Парсим временной диапазон
+	parser := &trparser.TimeRangeParser{}
+	now := time.Now()
+	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", req.From, req.To), now)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат start timestamp",
+			"error": "Неверный формат временного диапазона",
 		})
 		return
 	}
-
-	end, err := strconv.ParseInt(c.Query("end"), 10, 64)
+	// Получаем данные из usecase
+	response, err := s.u.GetDeviceStat(c, timeRange, req.Count)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат end timestamp",
-		})
-		return
-	}
-
-	startTime := time.Unix(start, 0)
-	endTime := time.Unix(end, 0)
-
-	response, err := s.u.GetDevicesStat(
-		c,
-		startTime,
-		endTime,
-	)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "ошибка при получении статистики по узлам",
-		})
-		return
-	}
-	c.JSON(http.StatusOK, response)
-}
-
-// @Summary Получение графика запрещенной активности
-// @Description Получение расписания запрещенной активности начиная с указанной даты
-// @Tags not implemented
-// @Produce application/json
-// @Param start query int64 true "Дата начала в timestamp"
-// @Success 200 {object} map[int64]int "График запрещенной активности"
-// @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
-// @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /api/v1/dashboards/proh_activity [get]
-func (s *Server) GetProhActivity(c *gin.Context) {
-	start, err := strconv.ParseInt(c.Query("start"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат start timestamp",
-		})
-		return
-	}
-
-	startTime := time.Unix(start, 0)
-
-	response, err := s.u.GetProhActSchedule(
-		c,
-		startTime,
-		"",
-	)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "ошибка при получении графика запрещенной активности",
+			"error": "Ошибка при получении статистики сетевых узлов",
 		})
 		return
 	}
@@ -597,45 +554,88 @@ func (s *Server) GetProhActivity(c *gin.Context) {
 }
 
 // @Summary Получение информации об аномалиях
-// @Description Получение списка обнаруженных аномалий в сетевом трафике за указанный период
-// @Tags not implemented
+// @Description Получение статистики об аномалиях за указанный период
+// @Tags dashboards
 // @Produce application/json
-// @Param start query int64 true "Начало периода в timestamp"
-// @Param end query int64 true "Конец периода в timestamp"
-// @Success 200 {object} models.Anomaly "Список обнаруженных аномалий"
+// @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)" default(now-10m)
+// @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)" default(now)
+// @Success 200 {object} dto.GetAnomaliesResponse "Статистика обнаруженных аномалий"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/dashboards/anomalies [get]
 func (s *Server) GetAnomalies(c *gin.Context) {
-	start, err := strconv.ParseInt(c.Query("start"), 10, 64)
-	if err != nil {
+	// Валидация запроса
+	var req validation.GetAnomaliesRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат start timestamp",
+			"error": fmt.Sprintf("Invalid query parameters: %v", err),
 		})
 		return
 	}
-
-	end, err := strconv.ParseInt(c.Query("end"), 10, 64)
-	if err != nil {
+	// Нормализация и валидация
+	if err := req.ValidateAndNormalize(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат end timestamp",
+			"error": err.Error(),
 		})
 		return
 	}
-
-	startTime := time.Unix(start, 0)
-	endTime := time.Unix(end, 0)
-
-	response, err := s.u.GetAnomalies(
-		c,
-		startTime,
-		endTime,
-	)
+	// Парсим временной диапазон
+	parser := &trparser.TimeRangeParser{}
+	now := time.Now()
+	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", req.From, req.To), now)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "ошибка при получении статистики по аномалиям",
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Неверный формат временного диапазона",
+		})
+		return
+	}
+	// Получаем данные из usecase
+	response, err := s.u.GetAnomalies(c, timeRange)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Ошибка при получении статистики сетевых узлов",
 		})
 		return
 	}
 	c.JSON(http.StatusOK, response)
+}
+
+// @Summary Выполнение действия над доменом
+// @Description Устанавливает действие (разрешить/заблокировать) для указанного домена
+// @Tags actions
+// @Accept json
+// @Produce json
+// @Param action query string true "Тип действия" Enums(allow, deny) default(allow)
+// @Param path query string true "Путь домена"
+// @Success 200 {object} dto.SuccessResponse "Действие успешно применено к домену"
+// @Failure 400 {object} dto.ErrorResponse "Неверные параметры запроса"
+// @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
+// @Router /api/v1/dashbords/act [get]
+func (s *Server) Act(c *gin.Context) {
+	// Валидация запроса
+	var req validation.ActRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": fmt.Sprintf("Invalid query parameters: %v", err),
+		})
+		return
+	}
+	// Нормализация и валидация
+	if err := req.ValidateAndNormalize(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	err := s.u.Act(c, req.Path, req.Action)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Ошибка при установке значения действия к домену",
+		})
+		return
+	}
+	resp := dto.SuccessResponse{
+		Message: fmt.Sprintf("Success %s to domain %s", req.Action, req.Path),
+	}
+	c.JSON(http.StatusOK, resp)
 }
