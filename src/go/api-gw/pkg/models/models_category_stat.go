@@ -13,23 +13,20 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// ModelsResourceStat models resource stat
+// ModelsCategoryStat models category stat
 //
-// swagger:model models.ResourceStat
-type ModelsResourceStat struct {
+// swagger:model models.CategoryStat
+type ModelsCategoryStat struct {
 
-	// categories
-	Categories []string `json:"categories"`
-
-	// resource
-	Resource string `json:"resource,omitempty"`
+	// category
+	Category string `json:"category,omitempty"`
 
 	// stat
 	Stat *ModelsRequestReport `json:"stat,omitempty"`
 }
 
-// Validate validates this models resource stat
-func (m *ModelsResourceStat) Validate(formats strfmt.Registry) error {
+// Validate validates this models category stat
+func (m *ModelsCategoryStat) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateStat(formats); err != nil {
@@ -42,7 +39,7 @@ func (m *ModelsResourceStat) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *ModelsResourceStat) validateStat(formats strfmt.Registry) error {
+func (m *ModelsCategoryStat) validateStat(formats strfmt.Registry) error {
 	if swag.IsZero(m.Stat) { // not required
 		return nil
 	}
@@ -61,8 +58,8 @@ func (m *ModelsResourceStat) validateStat(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validate this models resource stat based on the context it is used
-func (m *ModelsResourceStat) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validate this models category stat based on the context it is used
+func (m *ModelsCategoryStat) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.contextValidateStat(ctx, formats); err != nil {
@@ -75,7 +72,7 @@ func (m *ModelsResourceStat) ContextValidate(ctx context.Context, formats strfmt
 	return nil
 }
 
-func (m *ModelsResourceStat) contextValidateStat(ctx context.Context, formats strfmt.Registry) error {
+func (m *ModelsCategoryStat) contextValidateStat(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Stat != nil {
 
@@ -97,7 +94,7 @@ func (m *ModelsResourceStat) contextValidateStat(ctx context.Context, formats st
 }
 
 // MarshalBinary interface implementation
-func (m *ModelsResourceStat) MarshalBinary() ([]byte, error) {
+func (m *ModelsCategoryStat) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -105,8 +102,8 @@ func (m *ModelsResourceStat) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *ModelsResourceStat) UnmarshalBinary(b []byte) error {
-	var res ModelsResourceStat
+func (m *ModelsCategoryStat) UnmarshalBinary(b []byte) error {
+	var res ModelsCategoryStat
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

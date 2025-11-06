@@ -18,41 +18,25 @@ import (
 // swagger:model models.DeviceAnalyticsPage
 type ModelsDeviceAnalyticsPage struct {
 
-	// all
-	All int64 `json:"all,omitempty"`
+	// anomaly block stat
+	AnomalyBlockStat *ModelsAnomalyBlockStat `json:"anomaly_block_stat,omitempty"`
 
-	// allowed
-	Allowed *ModelsRequestStat `json:"allowed,omitempty"`
-
-	// anomalies
-	Anomalies int64 `json:"anomalies,omitempty"`
-
-	// blocked
-	Blocked *ModelsRequestStat `json:"blocked,omitempty"`
-
-	// blocks
-	Blocks int64 `json:"blocks,omitempty"`
-
-	// pending
-	Pending *ModelsRequestStat `json:"pending,omitempty"`
+	// requests analytics
+	RequestsAnalytics *ModelsRequestsAnalytics `json:"requests_analytics,omitempty"`
 
 	// traffic
-	Traffic *ModelsTrafficStat `json:"traffic,omitempty"`
+	Traffic *ModelsTrafficStatData `json:"traffic,omitempty"`
 }
 
 // Validate validates this models device analytics page
 func (m *ModelsDeviceAnalyticsPage) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateAllowed(formats); err != nil {
+	if err := m.validateAnomalyBlockStat(formats); err != nil {
 		res = append(res, err)
 	}
 
-	if err := m.validateBlocked(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validatePending(formats); err != nil {
+	if err := m.validateRequestsAnalytics(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -66,17 +50,17 @@ func (m *ModelsDeviceAnalyticsPage) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *ModelsDeviceAnalyticsPage) validateAllowed(formats strfmt.Registry) error {
-	if swag.IsZero(m.Allowed) { // not required
+func (m *ModelsDeviceAnalyticsPage) validateAnomalyBlockStat(formats strfmt.Registry) error {
+	if swag.IsZero(m.AnomalyBlockStat) { // not required
 		return nil
 	}
 
-	if m.Allowed != nil {
-		if err := m.Allowed.Validate(formats); err != nil {
+	if m.AnomalyBlockStat != nil {
+		if err := m.AnomalyBlockStat.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("allowed")
+				return ve.ValidateName("anomaly_block_stat")
 			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("allowed")
+				return ce.ValidateName("anomaly_block_stat")
 			}
 			return err
 		}
@@ -85,36 +69,17 @@ func (m *ModelsDeviceAnalyticsPage) validateAllowed(formats strfmt.Registry) err
 	return nil
 }
 
-func (m *ModelsDeviceAnalyticsPage) validateBlocked(formats strfmt.Registry) error {
-	if swag.IsZero(m.Blocked) { // not required
+func (m *ModelsDeviceAnalyticsPage) validateRequestsAnalytics(formats strfmt.Registry) error {
+	if swag.IsZero(m.RequestsAnalytics) { // not required
 		return nil
 	}
 
-	if m.Blocked != nil {
-		if err := m.Blocked.Validate(formats); err != nil {
+	if m.RequestsAnalytics != nil {
+		if err := m.RequestsAnalytics.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("blocked")
+				return ve.ValidateName("requests_analytics")
 			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("blocked")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (m *ModelsDeviceAnalyticsPage) validatePending(formats strfmt.Registry) error {
-	if swag.IsZero(m.Pending) { // not required
-		return nil
-	}
-
-	if m.Pending != nil {
-		if err := m.Pending.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("pending")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("pending")
+				return ce.ValidateName("requests_analytics")
 			}
 			return err
 		}
@@ -146,15 +111,11 @@ func (m *ModelsDeviceAnalyticsPage) validateTraffic(formats strfmt.Registry) err
 func (m *ModelsDeviceAnalyticsPage) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.contextValidateAllowed(ctx, formats); err != nil {
+	if err := m.contextValidateAnomalyBlockStat(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
-	if err := m.contextValidateBlocked(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.contextValidatePending(ctx, formats); err != nil {
+	if err := m.contextValidateRequestsAnalytics(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -168,19 +129,19 @@ func (m *ModelsDeviceAnalyticsPage) ContextValidate(ctx context.Context, formats
 	return nil
 }
 
-func (m *ModelsDeviceAnalyticsPage) contextValidateAllowed(ctx context.Context, formats strfmt.Registry) error {
+func (m *ModelsDeviceAnalyticsPage) contextValidateAnomalyBlockStat(ctx context.Context, formats strfmt.Registry) error {
 
-	if m.Allowed != nil {
+	if m.AnomalyBlockStat != nil {
 
-		if swag.IsZero(m.Allowed) { // not required
+		if swag.IsZero(m.AnomalyBlockStat) { // not required
 			return nil
 		}
 
-		if err := m.Allowed.ContextValidate(ctx, formats); err != nil {
+		if err := m.AnomalyBlockStat.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("allowed")
+				return ve.ValidateName("anomaly_block_stat")
 			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("allowed")
+				return ce.ValidateName("anomaly_block_stat")
 			}
 			return err
 		}
@@ -189,40 +150,19 @@ func (m *ModelsDeviceAnalyticsPage) contextValidateAllowed(ctx context.Context, 
 	return nil
 }
 
-func (m *ModelsDeviceAnalyticsPage) contextValidateBlocked(ctx context.Context, formats strfmt.Registry) error {
+func (m *ModelsDeviceAnalyticsPage) contextValidateRequestsAnalytics(ctx context.Context, formats strfmt.Registry) error {
 
-	if m.Blocked != nil {
+	if m.RequestsAnalytics != nil {
 
-		if swag.IsZero(m.Blocked) { // not required
+		if swag.IsZero(m.RequestsAnalytics) { // not required
 			return nil
 		}
 
-		if err := m.Blocked.ContextValidate(ctx, formats); err != nil {
+		if err := m.RequestsAnalytics.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("blocked")
+				return ve.ValidateName("requests_analytics")
 			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("blocked")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (m *ModelsDeviceAnalyticsPage) contextValidatePending(ctx context.Context, formats strfmt.Registry) error {
-
-	if m.Pending != nil {
-
-		if swag.IsZero(m.Pending) { // not required
-			return nil
-		}
-
-		if err := m.Pending.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("pending")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("pending")
+				return ce.ValidateName("requests_analytics")
 			}
 			return err
 		}

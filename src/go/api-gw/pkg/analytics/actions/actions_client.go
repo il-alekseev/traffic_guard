@@ -56,30 +56,30 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	GetAPIV1DashbordsAct(params *GetAPIV1DashbordsActParams, opts ...ClientOption) (*GetAPIV1DashbordsActOK, error)
+	GetAPIV1DetectionsAct(params *GetAPIV1DetectionsActParams, opts ...ClientOption) (*GetAPIV1DetectionsActOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
 
 /*
-GetAPIV1DashbordsAct выполнениеs действия над доменом
+GetAPIV1DetectionsAct выполнениеs действия над доменом
 
 Устанавливает действие (разрешить/заблокировать) для указанного домена
 */
-func (a *Client) GetAPIV1DashbordsAct(params *GetAPIV1DashbordsActParams, opts ...ClientOption) (*GetAPIV1DashbordsActOK, error) {
+func (a *Client) GetAPIV1DetectionsAct(params *GetAPIV1DetectionsActParams, opts ...ClientOption) (*GetAPIV1DetectionsActOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
-		params = NewGetAPIV1DashbordsActParams()
+		params = NewGetAPIV1DetectionsActParams()
 	}
 	op := &runtime.ClientOperation{
-		ID:                 "GetAPIV1DashbordsAct",
+		ID:                 "GetAPIV1DetectionsAct",
 		Method:             "GET",
-		PathPattern:        "/api/v1/dashbords/act",
+		PathPattern:        "/api/v1/detections/act",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http"},
 		Params:             params,
-		Reader:             &GetAPIV1DashbordsActReader{formats: a.formats},
+		Reader:             &GetAPIV1DetectionsActReader{formats: a.formats},
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -91,13 +91,13 @@ func (a *Client) GetAPIV1DashbordsAct(params *GetAPIV1DashbordsActParams, opts .
 	if err != nil {
 		return nil, err
 	}
-	success, ok := result.(*GetAPIV1DashbordsActOK)
+	success, ok := result.(*GetAPIV1DetectionsActOK)
 	if ok {
 		return success, nil
 	}
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetAPIV1DashbordsAct: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	msg := fmt.Sprintf("unexpected success response for GetAPIV1DetectionsAct: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 

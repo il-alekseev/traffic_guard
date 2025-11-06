@@ -7,11 +7,11 @@ package models
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // ModelsTopCategoriesPage models top categories page
@@ -20,7 +20,7 @@ import (
 type ModelsTopCategoriesPage struct {
 
 	// categories
-	Categories map[string]ModelsTopCategory `json:"categories,omitempty"`
+	Categories []*ModelsTopCategory `json:"categories"`
 }
 
 // Validate validates this models top categories page
@@ -42,17 +42,17 @@ func (m *ModelsTopCategoriesPage) validateCategories(formats strfmt.Registry) er
 		return nil
 	}
 
-	for k := range m.Categories {
-
-		if err := validate.Required("categories"+"."+k, "body", m.Categories[k]); err != nil {
-			return err
+	for i := 0; i < len(m.Categories); i++ {
+		if swag.IsZero(m.Categories[i]) { // not required
+			continue
 		}
-		if val, ok := m.Categories[k]; ok {
-			if err := val.Validate(formats); err != nil {
+
+		if m.Categories[i] != nil {
+			if err := m.Categories[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("categories" + "." + k)
+					return ve.ValidateName("categories" + "." + strconv.Itoa(i))
 				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("categories" + "." + k)
+					return ce.ValidateName("categories" + "." + strconv.Itoa(i))
 				}
 				return err
 			}
@@ -79,10 +79,20 @@ func (m *ModelsTopCategoriesPage) ContextValidate(ctx context.Context, formats s
 
 func (m *ModelsTopCategoriesPage) contextValidateCategories(ctx context.Context, formats strfmt.Registry) error {
 
-	for k := range m.Categories {
+	for i := 0; i < len(m.Categories); i++ {
 
-		if val, ok := m.Categories[k]; ok {
-			if err := val.ContextValidate(ctx, formats); err != nil {
+		if m.Categories[i] != nil {
+
+			if swag.IsZero(m.Categories[i]) { // not required
+				return nil
+			}
+
+			if err := m.Categories[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("categories" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("categories" + "." + strconv.Itoa(i))
+				}
 				return err
 			}
 		}

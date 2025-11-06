@@ -7,11 +7,11 @@ package models
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // ModelsDevicesAnalyticsPage models devices analytics page
@@ -20,7 +20,7 @@ import (
 type ModelsDevicesAnalyticsPage struct {
 
 	// analytics
-	Analytics map[string]ModelsDeviceReport `json:"analytics,omitempty"`
+	Analytics []*ModelsDeviceReport `json:"analytics"`
 }
 
 // Validate validates this models devices analytics page
@@ -42,17 +42,17 @@ func (m *ModelsDevicesAnalyticsPage) validateAnalytics(formats strfmt.Registry) 
 		return nil
 	}
 
-	for k := range m.Analytics {
-
-		if err := validate.Required("analytics"+"."+k, "body", m.Analytics[k]); err != nil {
-			return err
+	for i := 0; i < len(m.Analytics); i++ {
+		if swag.IsZero(m.Analytics[i]) { // not required
+			continue
 		}
-		if val, ok := m.Analytics[k]; ok {
-			if err := val.Validate(formats); err != nil {
+
+		if m.Analytics[i] != nil {
+			if err := m.Analytics[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("analytics" + "." + k)
+					return ve.ValidateName("analytics" + "." + strconv.Itoa(i))
 				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("analytics" + "." + k)
+					return ce.ValidateName("analytics" + "." + strconv.Itoa(i))
 				}
 				return err
 			}
@@ -79,10 +79,20 @@ func (m *ModelsDevicesAnalyticsPage) ContextValidate(ctx context.Context, format
 
 func (m *ModelsDevicesAnalyticsPage) contextValidateAnalytics(ctx context.Context, formats strfmt.Registry) error {
 
-	for k := range m.Analytics {
+	for i := 0; i < len(m.Analytics); i++ {
 
-		if val, ok := m.Analytics[k]; ok {
-			if err := val.ContextValidate(ctx, formats); err != nil {
+		if m.Analytics[i] != nil {
+
+			if swag.IsZero(m.Analytics[i]) { // not required
+				return nil
+			}
+
+			if err := m.Analytics[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("analytics" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("analytics" + "." + strconv.Itoa(i))
+				}
 				return err
 			}
 		}

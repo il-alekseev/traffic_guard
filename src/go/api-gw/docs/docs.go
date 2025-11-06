@@ -22,7 +22,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Получение списка всех категорий контента",
+                "description": "Возвращает список всех уникальных категорий контента из системы",
                 "produces": [
                     "application/json"
                 ],
@@ -117,7 +117,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Получение списка обнаруженных аномалий в сетевом трафике за указанный период",
+                "description": "Получение статистики об аномалиях за указанный период",
                 "produces": [
                     "application/json"
                 ],
@@ -138,6 +138,12 @@ const docTemplate = `{
                         "default": "now",
                         "description": "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)",
                         "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени хоста",
+                        "name": "hostname",
                         "in": "query"
                     }
                 ],
@@ -323,7 +329,7 @@ const docTemplate = `{
                 "tags": [
                     "dashboards"
                 ],
-                "summary": "Получить топ категорий сессий",
+                "summary": "Получение списка самых запрашиваемых категорий",
                 "parameters": [
                     {
                         "type": "string",
@@ -347,9 +353,9 @@ const docTemplate = `{
                     },
                     {
                         "enum": [
-                            "\"Разрешен\"",
-                            "\"Заблокирован\"",
-                            "\"VPN\""
+                            "Разрешен",
+                            "Заблокирован",
+                            "VPN"
                         ],
                         "type": "string",
                         "description": "Фильтр по типу сессии",
@@ -943,7 +949,7 @@ const docTemplate = `{
                 "tags": [
                     "sessions"
                 ],
-                "summary": "Получить список сессий",
+                "summary": "Получение списка сессий",
                 "parameters": [
                     {
                         "type": "string",
@@ -1046,7 +1052,7 @@ const docTemplate = `{
                             "status",
                             "url",
                             "proto",
-                            "host_name",
+                            "hostname",
                             "src_ip",
                             "src_country",
                             "username",
@@ -2812,8 +2818,8 @@ const docTemplate = `{
                     "description": "domain",
                     "type": "string"
                 },
-                "host_name": {
-                    "description": "host name",
+                "hostname": {
+                    "description": "hostname",
                     "type": "string"
                 },
                 "ip": {
@@ -2904,8 +2910,8 @@ const docTemplate = `{
                         }
                     }
                 },
-                "host_names_count": {
-                    "description": "host names count",
+                "hostnames_count": {
+                    "description": "hostnames count",
                     "type": "integer"
                 }
             }
@@ -3088,8 +3094,8 @@ const docTemplate = `{
                     "description": "dst port",
                     "type": "integer"
                 },
-                "host_name": {
-                    "description": "host name",
+                "hostname": {
+                    "description": "hostname",
                     "type": "string"
                 },
                 "id": {
@@ -3311,48 +3317,49 @@ const docTemplate = `{
                 }
             }
         },
-        "models.ModelsAnomaliesListPage": {
+        "models.ModelsAnomalyBlockStat": {
             "type": "object",
             "properties": {
+                "all": {
+                    "description": "all",
+                    "type": "integer"
+                },
                 "anomalies": {
                     "description": "anomalies",
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/models.ModelsAnomalyStat"
-                    }
+                    "type": "integer"
+                },
+                "blocks": {
+                    "description": "blocks",
+                    "type": "integer"
                 }
             }
         },
-        "models.ModelsAnomalyStat": {
+        "models.ModelsAnomalyReport": {
             "type": "object",
             "properties": {
-                "after_block": {
-                    "description": "after block",
-                    "type": "integer"
-                },
-                "before_block": {
-                    "description": "before block",
-                    "type": "integer"
-                },
-                "input": {
-                    "description": "input",
-                    "type": "integer"
-                },
                 "live_count": {
                     "description": "live count",
                     "type": "integer"
                 },
-                "output": {
-                    "description": "output",
-                    "type": "integer"
+                "stat": {
+                    "description": "stat",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsRequestReport"
+                        }
+                    ]
                 },
-                "pending": {
-                    "description": "pending",
-                    "type": "integer"
+                "traffic": {
+                    "description": "traffic",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsTraffic"
+                        }
+                    ]
                 },
-                "requests": {
-                    "description": "requests",
-                    "type": "integer"
+                "url": {
+                    "description": "url",
+                    "type": "string"
                 }
             }
         },
@@ -3404,6 +3411,23 @@ const docTemplate = `{
                 "user_role": {
                     "description": "SA, CA",
                     "type": "string"
+                }
+            }
+        },
+        "models.ModelsCategoryStat": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "description": "category",
+                    "type": "string"
+                },
+                "stat": {
+                    "description": "stat",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsRequestReport"
+                        }
+                    ]
                 }
             }
         },
@@ -3501,39 +3525,19 @@ const docTemplate = `{
         "models.ModelsDeviceAnalyticsPage": {
             "type": "object",
             "properties": {
-                "all": {
-                    "description": "all",
-                    "type": "integer"
-                },
-                "allowed": {
-                    "description": "allowed",
+                "anomaly_block_stat": {
+                    "description": "anomaly block stat",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/models.ModelsRequestStat"
+                            "$ref": "#/definitions/models.ModelsAnomalyBlockStat"
                         }
                     ]
                 },
-                "anomalies": {
-                    "description": "anomalies",
-                    "type": "integer"
-                },
-                "blocked": {
-                    "description": "blocked",
+                "requests_analytics": {
+                    "description": "requests analytics",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/models.ModelsRequestStat"
-                        }
-                    ]
-                },
-                "blocks": {
-                    "description": "blocks",
-                    "type": "integer"
-                },
-                "pending": {
-                    "description": "pending",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.ModelsRequestStat"
+                            "$ref": "#/definitions/models.ModelsRequestsAnalytics"
                         }
                     ]
                 },
@@ -3541,26 +3545,38 @@ const docTemplate = `{
                     "description": "traffic",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/models.ModelsTrafficStat"
+                            "$ref": "#/definitions/models.ModelsTrafficStatData"
                         }
                     ]
                 }
             }
         },
-        "models.ModelsDeviceReport": {
+        "models.ModelsDeviceAnomaly": {
             "type": "object",
             "properties": {
-                "all": {
-                    "description": "all",
-                    "type": "integer"
+                "anomaly_stat": {
+                    "description": "anomaly stat",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ModelsAnomalyReport"
+                    }
                 },
-                "anomalies": {
-                    "description": "anomalies",
-                    "type": "integer"
-                },
-                "blocks": {
-                    "description": "blocks",
-                    "type": "integer"
+                "hostname": {
+                    "description": "hostname",
+                    "type": "string"
+                }
+            }
+        },
+        "models.ModelsDeviceAnomalyAnalytics": {
+            "type": "object",
+            "properties": {
+                "anomaly_block_stat": {
+                    "description": "anomaly block stat",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsAnomalyBlockStat"
+                        }
+                    ]
                 },
                 "detections": {
                     "description": "detections",
@@ -3570,17 +3586,58 @@ const docTemplate = `{
                         }
                     ]
                 },
-                "input": {
-                    "description": "input",
-                    "type": "integer"
-                },
-                "output": {
-                    "description": "output",
-                    "type": "integer"
+                "hostname": {
+                    "description": "hostname",
+                    "type": "string"
                 },
                 "requests": {
                     "description": "requests",
                     "type": "integer"
+                },
+                "traffic": {
+                    "description": "traffic",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsTraffic"
+                        }
+                    ]
+                }
+            }
+        },
+        "models.ModelsDeviceReport": {
+            "type": "object",
+            "properties": {
+                "anomaly_block_stat": {
+                    "description": "anomaly block stat",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsAnomalyBlockStat"
+                        }
+                    ]
+                },
+                "detections": {
+                    "description": "detections",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsDetectionReport"
+                        }
+                    ]
+                },
+                "hostname": {
+                    "description": "hostname",
+                    "type": "string"
+                },
+                "requests": {
+                    "description": "requests",
+                    "type": "integer"
+                },
+                "traffic": {
+                    "description": "traffic",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsTraffic"
+                        }
+                    ]
                 }
             }
         },
@@ -3612,9 +3669,21 @@ const docTemplate = `{
             "properties": {
                 "analytics": {
                     "description": "analytics",
-                    "type": "object",
-                    "additionalProperties": {
+                    "type": "array",
+                    "items": {
                         "$ref": "#/definitions/models.ModelsDeviceReport"
+                    }
+                }
+            }
+        },
+        "models.ModelsDevicesAnomaliesListPage": {
+            "type": "object",
+            "properties": {
+                "anomalies": {
+                    "description": "anomalies",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ModelsDeviceAnomaly"
                     }
                 }
             }
@@ -3644,15 +3713,15 @@ const docTemplate = `{
             "properties": {
                 "top_categories": {
                     "description": "top categories",
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/models.ModelsRequestReport"
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ModelsCategoryStat"
                     }
                 },
                 "top_resources": {
                     "description": "top resources",
-                    "type": "object",
-                    "additionalProperties": {
+                    "type": "array",
+                    "items": {
                         "$ref": "#/definitions/models.ModelsResourceStat"
                     }
                 },
@@ -3660,7 +3729,7 @@ const docTemplate = `{
                     "description": "traffic",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/models.ModelsTrafficStat"
+                            "$ref": "#/definitions/models.ModelsTrafficStatData"
                         }
                     ]
                 }
@@ -3692,10 +3761,11 @@ const docTemplate = `{
             "properties": {
                 "anomalies_list_page": {
                     "description": "anomalies list page",
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/models.ModelsAnomaliesListPage"
-                    }
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsDevicesAnomaliesListPage"
+                        }
+                    ]
                 },
                 "device_analytics_page": {
                     "description": "device analytics page",
@@ -3731,10 +3801,11 @@ const docTemplate = `{
                 },
                 "top_categories_page": {
                     "description": "top categories page",
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/models.ModelsTopCategoriesPage"
-                    }
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsTopCategoriesPage"
+                        }
+                    ]
                 }
             }
         },
@@ -3743,17 +3814,19 @@ const docTemplate = `{
             "properties": {
                 "anomalies_list_page": {
                     "description": "anomalies list page",
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/models.ModelsAnomalyStat"
-                    }
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsTopAnomaliesPage"
+                        }
+                    ]
                 },
                 "categories_page": {
                     "description": "categories page",
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/models.ModelsTopCategory"
-                    }
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsTopCategoriesPage"
+                        }
+                    ]
                 },
                 "device_analytics_page": {
                     "description": "device analytics page",
@@ -3767,8 +3840,8 @@ const docTemplate = `{
                     "description": "from",
                     "type": "string"
                 },
-                "host_name": {
-                    "description": "host name",
+                "hostname": {
+                    "description": "hostname",
                     "type": "string"
                 },
                 "to": {
@@ -3784,6 +3857,10 @@ const docTemplate = `{
                     "description": "after block",
                     "type": "integer"
                 },
+                "all": {
+                    "description": "all",
+                    "type": "integer"
+                },
                 "before_block": {
                     "description": "before block",
                     "type": "integer"
@@ -3794,9 +3871,13 @@ const docTemplate = `{
                 }
             }
         },
-        "models.ModelsRequestStat": {
+        "models.ModelsRequestStatData": {
             "type": "object",
             "properties": {
+                "count": {
+                    "description": "count",
+                    "type": "integer"
+                },
                 "data": {
                     "description": "data",
                     "type": "array",
@@ -3813,11 +3894,47 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ModelsRequestsAnalytics": {
+            "type": "object",
+            "properties": {
+                "allowed": {
+                    "description": "allowed",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsRequestStatData"
+                        }
+                    ]
+                },
+                "blocked": {
+                    "description": "blocked",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsRequestStatData"
+                        }
+                    ]
+                },
+                "pending": {
+                    "description": "pending",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsRequestStatData"
+                        }
+                    ]
+                }
+            }
+        },
         "models.ModelsResourceStat": {
             "type": "object",
             "properties": {
-                "category": {
-                    "description": "category",
+                "categories": {
+                    "description": "categories",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "resource": {
+                    "description": "resource",
                     "type": "string"
                 },
                 "stat": {
@@ -3867,49 +3984,12 @@ const docTemplate = `{
         "models.ModelsTopAnomaliesPage": {
             "type": "object",
             "properties": {
-                "anomalies": {
-                    "description": "anomalies",
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/models.ModelsTopAnomaly"
+                "device_anomaly": {
+                    "description": "device anomaly",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ModelsDeviceAnomalyAnalytics"
                     }
-                }
-            }
-        },
-        "models.ModelsTopAnomaly": {
-            "type": "object",
-            "properties": {
-                "all": {
-                    "description": "all",
-                    "type": "integer"
-                },
-                "anomalies": {
-                    "description": "anomalies",
-                    "type": "integer"
-                },
-                "blocks": {
-                    "description": "blocks",
-                    "type": "integer"
-                },
-                "detections": {
-                    "description": "detections",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.ModelsDetectionReport"
-                        }
-                    ]
-                },
-                "input": {
-                    "description": "input",
-                    "type": "integer"
-                },
-                "output": {
-                    "description": "output",
-                    "type": "integer"
-                },
-                "requests": {
-                    "description": "requests",
-                    "type": "integer"
                 }
             }
         },
@@ -3918,8 +3998,8 @@ const docTemplate = `{
             "properties": {
                 "categories": {
                     "description": "categories",
-                    "type": "object",
-                    "additionalProperties": {
+                    "type": "array",
+                    "items": {
                         "$ref": "#/definitions/models.ModelsTopCategory"
                     }
                 }
@@ -3928,28 +4008,37 @@ const docTemplate = `{
         "models.ModelsTopCategory": {
             "type": "object",
             "properties": {
-                "after_block": {
-                    "description": "after block",
-                    "type": "integer"
+                "category": {
+                    "description": "category",
+                    "type": "string"
                 },
-                "before_block": {
-                    "description": "before block",
-                    "type": "integer"
+                "stat": {
+                    "description": "stat",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsRequestReport"
+                        }
+                    ]
                 },
+                "traffic": {
+                    "description": "traffic",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsTraffic"
+                        }
+                    ]
+                }
+            }
+        },
+        "models.ModelsTraffic": {
+            "type": "object",
+            "properties": {
                 "input": {
                     "description": "input",
                     "type": "integer"
                 },
                 "output": {
                     "description": "output",
-                    "type": "integer"
-                },
-                "pending": {
-                    "description": "pending",
-                    "type": "integer"
-                },
-                "requests": {
-                    "description": "requests",
                     "type": "integer"
                 }
             }
@@ -3977,6 +4066,23 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                }
+            }
+        },
+        "models.ModelsTrafficStatData": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "description": "count",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "data",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ModelsTrafficStat"
+                        }
+                    ]
                 }
             }
         },

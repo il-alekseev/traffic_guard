@@ -20,6 +20,9 @@ type ModelsRequestReport struct {
 	// after block
 	AfterBlock int64 `json:"after_block,omitempty"`
 
+	// all
+	All int64 `json:"all,omitempty"`
+
 	// before block
 	BeforeBlock int64 `json:"before_block,omitempty"`
 

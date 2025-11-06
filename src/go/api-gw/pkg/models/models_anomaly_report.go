@@ -13,23 +13,26 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// ModelsTopCategory models top category
+// ModelsAnomalyReport models anomaly report
 //
-// swagger:model models.TopCategory
-type ModelsTopCategory struct {
+// swagger:model models.AnomalyReport
+type ModelsAnomalyReport struct {
 
-	// category
-	Category string `json:"category,omitempty"`
+	// live count
+	LiveCount int64 `json:"live_count,omitempty"`
 
 	// stat
 	Stat *ModelsRequestReport `json:"stat,omitempty"`
 
 	// traffic
 	Traffic *ModelsTraffic `json:"traffic,omitempty"`
+
+	// url
+	URL string `json:"url,omitempty"`
 }
 
-// Validate validates this models top category
-func (m *ModelsTopCategory) Validate(formats strfmt.Registry) error {
+// Validate validates this models anomaly report
+func (m *ModelsAnomalyReport) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateStat(formats); err != nil {
@@ -46,7 +49,7 @@ func (m *ModelsTopCategory) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *ModelsTopCategory) validateStat(formats strfmt.Registry) error {
+func (m *ModelsAnomalyReport) validateStat(formats strfmt.Registry) error {
 	if swag.IsZero(m.Stat) { // not required
 		return nil
 	}
@@ -65,7 +68,7 @@ func (m *ModelsTopCategory) validateStat(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *ModelsTopCategory) validateTraffic(formats strfmt.Registry) error {
+func (m *ModelsAnomalyReport) validateTraffic(formats strfmt.Registry) error {
 	if swag.IsZero(m.Traffic) { // not required
 		return nil
 	}
@@ -84,8 +87,8 @@ func (m *ModelsTopCategory) validateTraffic(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validate this models top category based on the context it is used
-func (m *ModelsTopCategory) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validate this models anomaly report based on the context it is used
+func (m *ModelsAnomalyReport) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.contextValidateStat(ctx, formats); err != nil {
@@ -102,7 +105,7 @@ func (m *ModelsTopCategory) ContextValidate(ctx context.Context, formats strfmt.
 	return nil
 }
 
-func (m *ModelsTopCategory) contextValidateStat(ctx context.Context, formats strfmt.Registry) error {
+func (m *ModelsAnomalyReport) contextValidateStat(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Stat != nil {
 
@@ -123,7 +126,7 @@ func (m *ModelsTopCategory) contextValidateStat(ctx context.Context, formats str
 	return nil
 }
 
-func (m *ModelsTopCategory) contextValidateTraffic(ctx context.Context, formats strfmt.Registry) error {
+func (m *ModelsAnomalyReport) contextValidateTraffic(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Traffic != nil {
 
@@ -145,7 +148,7 @@ func (m *ModelsTopCategory) contextValidateTraffic(ctx context.Context, formats 
 }
 
 // MarshalBinary interface implementation
-func (m *ModelsTopCategory) MarshalBinary() ([]byte, error) {
+func (m *ModelsAnomalyReport) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -153,8 +156,8 @@ func (m *ModelsTopCategory) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *ModelsTopCategory) UnmarshalBinary(b []byte) error {
-	var res ModelsTopCategory
+func (m *ModelsAnomalyReport) UnmarshalBinary(b []byte) error {
+	var res ModelsAnomalyReport
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

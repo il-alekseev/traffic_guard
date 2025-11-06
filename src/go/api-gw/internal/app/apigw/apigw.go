@@ -38,6 +38,7 @@ func Run(cfg *config.Config) {
 	slogger.InitLogging(logLevel)
 
 	// инициализация слоя usecase
+	// инициализация клиента сервиса usercontrol
 	userCtrlCl := usercontrol.New(
 		httptransport.New(
 			cfg.UserControl.Host+":"+cfg.UserControl.Port,

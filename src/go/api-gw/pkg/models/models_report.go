@@ -11,7 +11,6 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // ModelsReport models report
@@ -20,7 +19,7 @@ import (
 type ModelsReport struct {
 
 	// anomalies list page
-	AnomaliesListPage map[string]ModelsAnomaliesListPage `json:"anomalies_list_page,omitempty"`
+	AnomaliesListPage *ModelsDevicesAnomaliesListPage `json:"anomalies_list_page,omitempty"`
 
 	// device analytics page
 	DeviceAnalyticsPage *ModelsDevicesAnalyticsPage `json:"device_analytics_page,omitempty"`
@@ -38,7 +37,7 @@ type ModelsReport struct {
 	TopAnomaliesPage *ModelsTopAnomaliesPage `json:"top_anomalies_page,omitempty"`
 
 	// top categories page
-	TopCategoriesPage map[string]ModelsTopCategoriesPage `json:"top_categories_page,omitempty"`
+	TopCategoriesPage *ModelsTopCategoriesPage `json:"top_categories_page,omitempty"`
 }
 
 // Validate validates this models report
@@ -76,22 +75,15 @@ func (m *ModelsReport) validateAnomaliesListPage(formats strfmt.Registry) error 
 		return nil
 	}
 
-	for k := range m.AnomaliesListPage {
-
-		if err := validate.Required("anomalies_list_page"+"."+k, "body", m.AnomaliesListPage[k]); err != nil {
+	if m.AnomaliesListPage != nil {
+		if err := m.AnomaliesListPage.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("anomalies_list_page")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("anomalies_list_page")
+			}
 			return err
 		}
-		if val, ok := m.AnomaliesListPage[k]; ok {
-			if err := val.Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("anomalies_list_page" + "." + k)
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("anomalies_list_page" + "." + k)
-				}
-				return err
-			}
-		}
-
 	}
 
 	return nil
@@ -159,22 +151,15 @@ func (m *ModelsReport) validateTopCategoriesPage(formats strfmt.Registry) error 
 		return nil
 	}
 
-	for k := range m.TopCategoriesPage {
-
-		if err := validate.Required("top_categories_page"+"."+k, "body", m.TopCategoriesPage[k]); err != nil {
+	if m.TopCategoriesPage != nil {
+		if err := m.TopCategoriesPage.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("top_categories_page")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("top_categories_page")
+			}
 			return err
 		}
-		if val, ok := m.TopCategoriesPage[k]; ok {
-			if err := val.Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("top_categories_page" + "." + k)
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("top_categories_page" + "." + k)
-				}
-				return err
-			}
-		}
-
 	}
 
 	return nil
@@ -212,14 +197,20 @@ func (m *ModelsReport) ContextValidate(ctx context.Context, formats strfmt.Regis
 
 func (m *ModelsReport) contextValidateAnomaliesListPage(ctx context.Context, formats strfmt.Registry) error {
 
-	for k := range m.AnomaliesListPage {
+	if m.AnomaliesListPage != nil {
 
-		if val, ok := m.AnomaliesListPage[k]; ok {
-			if err := val.ContextValidate(ctx, formats); err != nil {
-				return err
-			}
+		if swag.IsZero(m.AnomaliesListPage) { // not required
+			return nil
 		}
 
+		if err := m.AnomaliesListPage.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("anomalies_list_page")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("anomalies_list_page")
+			}
+			return err
+		}
 	}
 
 	return nil
@@ -290,14 +281,20 @@ func (m *ModelsReport) contextValidateTopAnomaliesPage(ctx context.Context, form
 
 func (m *ModelsReport) contextValidateTopCategoriesPage(ctx context.Context, formats strfmt.Registry) error {
 
-	for k := range m.TopCategoriesPage {
+	if m.TopCategoriesPage != nil {
 
-		if val, ok := m.TopCategoriesPage[k]; ok {
-			if err := val.ContextValidate(ctx, formats); err != nil {
-				return err
-			}
+		if swag.IsZero(m.TopCategoriesPage) { // not required
+			return nil
 		}
 
+		if err := m.TopCategoriesPage.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("top_categories_page")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("top_categories_page")
+			}
+			return err
+		}
 	}
 
 	return nil

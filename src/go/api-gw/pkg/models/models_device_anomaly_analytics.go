@@ -13,10 +13,10 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// ModelsDeviceReport models device report
+// ModelsDeviceAnomalyAnalytics models device anomaly analytics
 //
-// swagger:model models.DeviceReport
-type ModelsDeviceReport struct {
+// swagger:model models.DeviceAnomalyAnalytics
+type ModelsDeviceAnomalyAnalytics struct {
 
 	// anomaly block stat
 	AnomalyBlockStat *ModelsAnomalyBlockStat `json:"anomaly_block_stat,omitempty"`
@@ -34,8 +34,8 @@ type ModelsDeviceReport struct {
 	Traffic *ModelsTraffic `json:"traffic,omitempty"`
 }
 
-// Validate validates this models device report
-func (m *ModelsDeviceReport) Validate(formats strfmt.Registry) error {
+// Validate validates this models device anomaly analytics
+func (m *ModelsDeviceAnomalyAnalytics) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateAnomalyBlockStat(formats); err != nil {
@@ -56,7 +56,7 @@ func (m *ModelsDeviceReport) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *ModelsDeviceReport) validateAnomalyBlockStat(formats strfmt.Registry) error {
+func (m *ModelsDeviceAnomalyAnalytics) validateAnomalyBlockStat(formats strfmt.Registry) error {
 	if swag.IsZero(m.AnomalyBlockStat) { // not required
 		return nil
 	}
@@ -75,7 +75,7 @@ func (m *ModelsDeviceReport) validateAnomalyBlockStat(formats strfmt.Registry) e
 	return nil
 }
 
-func (m *ModelsDeviceReport) validateDetections(formats strfmt.Registry) error {
+func (m *ModelsDeviceAnomalyAnalytics) validateDetections(formats strfmt.Registry) error {
 	if swag.IsZero(m.Detections) { // not required
 		return nil
 	}
@@ -94,7 +94,7 @@ func (m *ModelsDeviceReport) validateDetections(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *ModelsDeviceReport) validateTraffic(formats strfmt.Registry) error {
+func (m *ModelsDeviceAnomalyAnalytics) validateTraffic(formats strfmt.Registry) error {
 	if swag.IsZero(m.Traffic) { // not required
 		return nil
 	}
@@ -113,8 +113,8 @@ func (m *ModelsDeviceReport) validateTraffic(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validate this models device report based on the context it is used
-func (m *ModelsDeviceReport) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validate this models device anomaly analytics based on the context it is used
+func (m *ModelsDeviceAnomalyAnalytics) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.contextValidateAnomalyBlockStat(ctx, formats); err != nil {
@@ -135,7 +135,7 @@ func (m *ModelsDeviceReport) ContextValidate(ctx context.Context, formats strfmt
 	return nil
 }
 
-func (m *ModelsDeviceReport) contextValidateAnomalyBlockStat(ctx context.Context, formats strfmt.Registry) error {
+func (m *ModelsDeviceAnomalyAnalytics) contextValidateAnomalyBlockStat(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.AnomalyBlockStat != nil {
 
@@ -156,7 +156,7 @@ func (m *ModelsDeviceReport) contextValidateAnomalyBlockStat(ctx context.Context
 	return nil
 }
 
-func (m *ModelsDeviceReport) contextValidateDetections(ctx context.Context, formats strfmt.Registry) error {
+func (m *ModelsDeviceAnomalyAnalytics) contextValidateDetections(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Detections != nil {
 
@@ -177,7 +177,7 @@ func (m *ModelsDeviceReport) contextValidateDetections(ctx context.Context, form
 	return nil
 }
 
-func (m *ModelsDeviceReport) contextValidateTraffic(ctx context.Context, formats strfmt.Registry) error {
+func (m *ModelsDeviceAnomalyAnalytics) contextValidateTraffic(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Traffic != nil {
 
@@ -199,7 +199,7 @@ func (m *ModelsDeviceReport) contextValidateTraffic(ctx context.Context, formats
 }
 
 // MarshalBinary interface implementation
-func (m *ModelsDeviceReport) MarshalBinary() ([]byte, error) {
+func (m *ModelsDeviceAnomalyAnalytics) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -207,8 +207,8 @@ func (m *ModelsDeviceReport) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *ModelsDeviceReport) UnmarshalBinary(b []byte) error {
-	var res ModelsDeviceReport
+func (m *ModelsDeviceAnomalyAnalytics) UnmarshalBinary(b []byte) error {
+	var res ModelsDeviceAnomalyAnalytics
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}
