@@ -7,6 +7,9 @@ import (
 	"tg-etl/internal/models"
 	"tg-etl/internal/usecase"
 	"tg-etl/pkg/slogger/wsl"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 // MetadataHandler обрабатывает сообщения из metadata топика
@@ -24,17 +27,26 @@ func NewMetadataHandler(queryUsecase usecase.QueryUsecase, l *slog.Logger) *Meta
 }
 
 func (h *MetadataHandler) HandleURLMetadata(ctx context.Context, result models.URLMetadataResult) {
-	//h.l.DebugContext(ctx, "Processing URL metadata result",
-	//	slog.String("request_id", result.RequestID),
-	//	slog.String("url", result.URL))
 	// Обновляем поля домена полученной информацией
 	// TODO: Продумать кейсы с различными данными (domain, ip, url)
+	// пока метаданные обновляются для домена постоянно при анализпе различных URL
 	domain := models.Domain{
 		IP:      result.Domain.IP,
 		Country: result.Domain.Geo.CountryCode,
 		Path:    result.Domain.Name,
 	}
 	if err := h.q.UpdateDomain(ctx, domain); err != nil {
+		h.l.ErrorContext(ctx, "failed to handle URL metadata", wsl.Err(err))
+	}
+	// Обновляем время получения метаданных для URL по requestID
+	url := models.URL{
+		GetMetaDataAt: time.Now(),
+	}
+	requestID, err := uuid.Parse(result.RequestID)
+	if err != nil {
+		h.l.ErrorContext(ctx, "failed to parse requestID", wsl.Err(err))
+	}
+	if err := h.q.UpdateURLByRequestID(ctx, requestID, url); err != nil {
 		h.l.ErrorContext(ctx, "failed to handle URL metadata", wsl.Err(err))
 	}
 }

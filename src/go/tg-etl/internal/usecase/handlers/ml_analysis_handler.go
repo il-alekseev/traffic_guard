@@ -30,16 +30,20 @@ func NewMLAnalysisHandler(mlAttemps uint, queryUsecase usecase.QueryUsecase, log
 
 // HandleMLAnalysis обрабатывает результат ML анализа
 func (h *MLAnalysisHandler) HandleMLAnalysis(ctx context.Context, result models.MLAnalysisResult) {
-	//h.l.DebugContext(ctx, "Processing ML analysis result",
-	//	slog.String("request_id", result.RequestID),
-	//	slog.String("RecognisedClass", result.RecognisedClass),
-	//)
 	// парсим RequestID
 	requestID, err := uuid.Parse(result.RequestID)
 	if err != nil {
 		h.l.ErrorContext(ctx, "failed to parse request_id to uuid", wsl.Err(err))
 		return
 	}
+	// Обновляем время получения метаданных для URL по requestID
+	url := models.URL{
+		GetCategoryAt: time.Now(),
+	}
+	if err := h.q.UpdateURLByRequestID(ctx, requestID, url); err != nil {
+		h.l.ErrorContext(ctx, "failed to handle URL metadata", wsl.Err(err))
+	}
+
 	// Находим категорию
 	category, err := h.q.GetCategoryByName(ctx, result.RecognisedClass)
 	if err != nil {

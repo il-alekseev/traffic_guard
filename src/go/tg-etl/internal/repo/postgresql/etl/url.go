@@ -74,3 +74,35 @@ func (r *ELTRepoPG) GetURLByRequestID(ctx context.Context, requestID uuid.UUID) 
 
 	return &url, nil
 }
+
+func (r *ELTRepoPG) UpdateURLByRequestID(ctx context.Context, requestID uuid.UUID, newURL models.URL) error {
+	err := r.db.WithTx(ctx, func(tx *gorm.DB) error {
+		// Создаем map для обновления только переданных полей
+		updates := make(map[string]interface{})
+
+		if !newURL.GetCategoryAt.IsZero() {
+			updates["put_kafka_at"] = newURL.GetCategoryAt
+		}
+		if !newURL.GetMetaDataAt.IsZero() {
+			updates["get_category_at"] = newURL.GetMetaDataAt
+		}
+
+		// Если нет полей для обновления - выходим
+		if len(updates) == 0 {
+			return nil
+		}
+
+		result := tx.Model(&models.URL{}).Where("request_id = ?", requestID).Updates(updates)
+		if result.Error != nil {
+			return fmt.Errorf("failed to update URL %d: %w", requestID, result.Error)
+		}
+		if result.RowsAffected == 0 {
+			return fmt.Errorf("URL with request_id %d not found", requestID)
+		}
+		return nil
+	})
+	if err != nil {
+		return slogger.WrapError(ctx, err)
+	}
+	return nil
+}

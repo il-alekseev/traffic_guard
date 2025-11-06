@@ -43,3 +43,8 @@ kafka:
   url_topic: "url-processing-requests"
   metadata_topic: "url-metadata-results"
   ml_topic: "ml-analysis-results"
+
+usercontrol:
+  proto: "http"
+  host: "192.168.130.112"
+  port: "8002"

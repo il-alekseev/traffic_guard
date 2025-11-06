@@ -61,14 +61,15 @@ type DomainControlLists struct {
 }
 
 type URL struct {
-	ID               uint      `gorm:"primaryKey" json:"id"`
-	Path             string    `gorm:"type:varchar" json:"path"`
-	Proto            string    `gorm:"type:varchar(10);not null" json:"proto"`
-	DomainID         uint      `gorm:"type:integer;not null;index" json:"domain_id"`
-	PutKafkaDateTime time.Time `gorm:"column:put_kafka_datetime" json:"put_kafka_datetime"`
-	//RequestID        uuid.UUID `gorm:"type:uuid;uniqueIndex" json:"request_id"`
-	// TODO:  Временно! отладить, почему requestID повторяется!
-	RequestID uuid.UUID `gorm:"type:uuid;" json:"request_id"`
+	ID            uint      `gorm:"primaryKey;column:id" json:"id"`
+	Path          string    `gorm:"type:varchar(2048);not null" json:"path"`
+	Proto         string    `gorm:"type:varchar(10);not null" json:"proto"`
+	DomainID      uint      `gorm:"type:integer;not null;index" json:"domain_id"`
+	IDSLogsAt     time.Time `gorm:"column:ids_logs_at;type:timestamp" json:"ids_logs_at"`
+	PutKafkaAt    time.Time `gorm:"column:put_kafka_at;type:timestamp" json:"put_kafka_at"`
+	GetMetaDataAt time.Time `gorm:"column:get_metadata_at;type:timestamp" json:"get_metadata_at"`
+	GetCategoryAt time.Time `gorm:"column:get_category_at;type:timestamp" json:"get_category_at"`
+	RequestID     uuid.UUID `gorm:"type:uuid;uniqueIndex" json:"request_id"`
 }
 
 // Category представляет категорию в базе данных

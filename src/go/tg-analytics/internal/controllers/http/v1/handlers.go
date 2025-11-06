@@ -628,7 +628,7 @@ func (s *Server) Act(c *gin.Context) {
 		})
 		return
 	}
-	err := s.u.Act(c, req.Path, req.Action)
+	err := s.u.Act(c, req.Action, req.Path)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Ошибка при установке значения действия к домену",
