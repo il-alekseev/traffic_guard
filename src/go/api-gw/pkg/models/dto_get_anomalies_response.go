@@ -24,7 +24,7 @@ type DtoGetAnomaliesResponse struct {
 	Data map[string][]string `json:"data,omitempty"`
 
 	// host names count
-	HostNamesCount int64 `json:"host_names_count,omitempty"`
+	HostNamesCount int64 `json:"hostnames_count,omitempty"`
 }
 
 // Validate validates this dto get anomalies response

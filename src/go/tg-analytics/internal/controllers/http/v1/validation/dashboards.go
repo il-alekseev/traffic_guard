@@ -210,8 +210,9 @@ func (r *GetDeviceStatRequest) ValidateAndNormalize() error {
 
 // GetAnomaliesRequest представляет запрос для получения состояния устройств
 type GetAnomaliesRequest struct {
-	From string `form:"from" binding:"omitempty"`
-	To   string `form:"to" binding:"omitempty"`
+	From     string `form:"from" binding:"omitempty"`
+	To       string `form:"to" binding:"omitempty"`
+	HostName string `form:"hostname" binding:"omitempty,max=100"`
 }
 
 // Normalize нормализует значения запроса
@@ -278,7 +279,7 @@ func (r *ActRequest) ValidateAndNormalize() error {
 type GetDeviceReportRequest struct {
 	From     string `form:"from" binding:"omitempty"`
 	To       string `form:"to" binding:"omitempty"`
-	HostName string `form:"host_name"`
+	HostName string `form:"hostname" binding:"omitempty,max=100"`
 }
 
 // Normalize нормализует значения запроса

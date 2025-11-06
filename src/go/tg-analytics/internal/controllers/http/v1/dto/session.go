@@ -9,7 +9,7 @@ type Session struct {
 	Status      string    `json:"status"`
 	URL         string    `json:"url"`
 	Proto       string    `json:"proto"`
-	HostName    string    `json:"host_name"`
+	HostName    string    `json:"hostname"`
 	SrcIP       string    `json:"src_ip"`
 	SrcCountry  string    `json:"src_country"`
 	Username    string    `json:"username"`
@@ -30,7 +30,7 @@ type Detection struct {
 	Location      string    `json:"location"`
 	Domain        string    `json:"domain"`
 	RequestCount  int       `json:"request_count"`
-	HostName      string    `json:"host_name"`
+	HostName      string    `json:"hostname"`
 	Category      string    `json:"category"`
 	Description   string    `json:"description"`
 	Action        string    `json:"action"`

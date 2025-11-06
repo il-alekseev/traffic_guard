@@ -1,4 +1,4 @@
-package postresql
+package postgresql
 
 import (
 	"log/slog"

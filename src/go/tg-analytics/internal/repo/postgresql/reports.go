@@ -1,4 +1,4 @@
-package postresql
+package postgresql
 
 import (
 	"context"
@@ -7,41 +7,37 @@ import (
 )
 
 // GetCategories возвращает категории для главной страницы отчета
-func (r *RepoPG) GetCategories(ctx context.Context, tr *trparser.TimeRange) (map[string]models.RequestReport, error) {
+func (r *RepoPG) GetCategories(ctx context.Context, tr *trparser.TimeRange) ([]models.CategoryStat, error) {
 	// TODO: реализовать логику получения категорий
-	return map[string]models.RequestReport{}, nil
+	return []models.CategoryStat{}, nil
 }
 
 // GetResourses возвращает ресурсы для главной страницы отчета
-func (r *RepoPG) GetResourses(ctx context.Context, tr *trparser.TimeRange) (map[string]models.ResourceStat, error) {
+func (r *RepoPG) GetResourses(ctx context.Context, tr *trparser.TimeRange) ([]models.ResourceStat, error) {
 	// TODO: реализовать логику получения ресурсов
-	return map[string]models.ResourceStat{}, nil
+	return []models.ResourceStat{}, nil
 }
 
 // GetDevicesAnalytics возвращает аналитику по устройствам
-func (r *RepoPG) GetDevicesAnalytics(ctx context.Context, tr *trparser.TimeRange, hostname string) (models.DevicesAnalyticsPage, error) {
+func (r *RepoPG) GetDevicesAnalytics(ctx context.Context, tr *trparser.TimeRange, hostname string) ([]models.DeviceReport, error) {
 	// TODO: реализовать логику получения аналитики устройств
-	return models.DevicesAnalyticsPage{
-		Analytics: make(map[string]models.DeviceReport),
-	}, nil
+	return []models.DeviceReport{}, nil
 }
 
 // GetAnomaliesList возвращает список аномалий
-func (r *RepoPG) GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, hostname string) (map[string]models.AnomaliesListPage, error) {
+func (r *RepoPG) GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, hostname string) ([]models.DeviceAnomaly, error) {
 	// TODO: реализовать логику получения списка аномалий
-	return make(map[string]models.AnomaliesListPage), nil
+	return []models.DeviceAnomaly{}, nil
 }
 
 // GetTopAnomalies возвращает топ аномалий
-func (r *RepoPG) GetTopAnomalies(ctx context.Context, tr *trparser.TimeRange) (models.TopAnomaliesPage, error) {
+func (r *RepoPG) GetTopAnomalies(ctx context.Context, tr *trparser.TimeRange) ([]models.DeviceAnomalyAnalytics, error) {
 	// TODO: реализовать логику получения топ аномалий
-	return models.TopAnomaliesPage{
-		Anomalies: make(map[string]models.TopAnomaly),
-	}, nil
+	return []models.DeviceAnomalyAnalytics{}, nil
 }
 
 // GetTopCategoriesForReport возвращает топ категорий для отчета
-func (r *RepoPG) GetTopCategoriesForReport(ctx context.Context, tr *trparser.TimeRange, hostname string) (map[string]models.TopCategoriesPage, error) {
+func (r *RepoPG) GetTopCategoriesForReport(ctx context.Context, tr *trparser.TimeRange, hostname string) ([]models.TopCategory, error) {
 	// TODO: реализовать логику получения топ категорий для отчета
-	return make(map[string]models.TopCategoriesPage), nil
+	return []models.TopCategory{}, nil
 }

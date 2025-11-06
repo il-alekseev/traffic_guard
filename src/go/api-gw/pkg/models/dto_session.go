@@ -33,7 +33,7 @@ type DtoSession struct {
 	DstPort int64 `json:"dst_port,omitempty"`
 
 	// host name
-	HostName string `json:"host_name,omitempty"`
+	HostName string `json:"hostname,omitempty"`
 
 	// id
 	ID int64 `json:"id,omitempty"`

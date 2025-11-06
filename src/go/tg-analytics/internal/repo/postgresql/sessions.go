@@ -1,4 +1,4 @@
-package postresql
+package postgresql
 
 import (
 	"context"
@@ -23,7 +23,7 @@ func (r *RepoPG) GetSessions(ctx context.Context, tr *trparser.TimeRange, f mode
 			sessions.status,
 			urls.path,
 			urls.proto,
-			devices.host_name,
+			devices.hostname,
 			sources.ip as src_ip,
 			sources.country as src_country,
 			sources.username,
@@ -45,7 +45,7 @@ func (r *RepoPG) GetSessions(ctx context.Context, tr *trparser.TimeRange, f mode
 
 	// Применяем фильтры
 	if f.HostName != "" {
-		query = query.Where("devices.host_name = ?", f.HostName)
+		query = query.Where("devices.hostname = ?", f.HostName)
 	}
 	if f.Category != "" {
 		query = query.Where("categories.name = ?", f.Category)

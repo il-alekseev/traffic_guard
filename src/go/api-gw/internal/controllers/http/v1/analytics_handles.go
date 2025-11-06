@@ -6,9 +6,10 @@ import (
 	"api-gateway/pkg/analytics/dashboards"
 	"api-gateway/pkg/analytics/detections"
 	"api-gateway/pkg/analytics/sessions"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 //---------------------common---------------------
@@ -591,7 +592,7 @@ func (s *Server) getDetectionsStat(c *gin.Context) {
 // @Param search query string false "Поиск по URL или имени пользователя"
 // @Param page query int false "Номер страницы" default(1) minimum(1)
 // @Param limit query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
-// @Param order_by query string false "Поле для сортировки" default(datetime_utc) Enums(id, datetime_utc, type, status, url, proto, host_name, src_ip, src_country, username, dst_ip, dst_port, dst_country, category)
+// @Param order_by query string false "Поле для сортировки" default(datetime_utc) Enums(id, datetime_utc, type, status, url, proto, hostname, src_ip, src_country, username, dst_ip, dst_port, dst_country, category)
 // @Param order_dir query string false "Направление сортировки (asc/desc)" default(desc) Enums(asc, desc)
 // @Success 200 {object} models.DtoGetSessionsResponse "Успешный ответ"
 // @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров"
