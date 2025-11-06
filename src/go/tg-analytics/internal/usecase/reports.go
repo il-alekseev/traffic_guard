@@ -7,6 +7,7 @@ import (
 	"tg-an/internal/models"
 	"tg-an/pkg/slogger/wsl"
 	"tg-an/pkg/trparser"
+	"time"
 )
 
 func (u *Usecase) CreateReport(ctx context.Context, tr *trparser.TimeRange) (models.Report, error) {
@@ -15,12 +16,35 @@ func (u *Usecase) CreateReport(ctx context.Context, tr *trparser.TimeRange) (mod
 		method,
 		slog.Any("time_range", tr),
 	)
+
 	var report models.Report
 	report.From = tr.From
 	report.To = tr.To
 
-	// Получаем данные для первой страницы
+	// Функция для логирования времени выполнения запроса
+	logDBTime := func(operation string, start time.Time, err error) {
+		duration := time.Since(start)
+
+		// Создаем аргументы для логирования
+		args := []any{
+			wsl.String("method", method),
+			wsl.String("operation", operation),
+			slog.Duration("duration", duration),
+		}
+
+		// Добавляем ошибку только если она не nil
+		if err != nil {
+			args = append(args, wsl.Err(err))
+			u.l.ErrorContext(ctx, "Database operation failed", args...)
+		} else {
+			u.l.InfoContext(ctx, "Database operation completed", args...)
+		}
+	}
+
+	// Получаем данные для первой страницы (MainActivityPage)
+	start := time.Now()
 	cats, err := u.db.GetCategories(ctx, tr)
+	logDBTime("GetCategories", start, err)
 	if err != nil {
 		err = fmt.Errorf("%s: failed to get categories for main page: %w", method, err)
 		u.l.ErrorContext(ctx, "Database operation failed",
@@ -30,7 +54,9 @@ func (u *Usecase) CreateReport(ctx context.Context, tr *trparser.TimeRange) (mod
 	}
 	report.MainActivityPage.TopCategories = cats
 
+	start = time.Now()
 	rs, err := u.db.GetResourses(ctx, tr)
+	logDBTime("GetResourses", start, err)
 	if err != nil {
 		err = fmt.Errorf("%s: failed to get resourses for main page: %w", method, err)
 		u.l.ErrorContext(ctx, "Database operation failed",
@@ -40,7 +66,9 @@ func (u *Usecase) CreateReport(ctx context.Context, tr *trparser.TimeRange) (mod
 	}
 	report.MainActivityPage.TopResources = rs
 
+	start = time.Now()
 	trf, err := u.mdb.GetTrafficStat(ctx, tr, "", 20)
+	logDBTime("GetTrafficStat", start, err)
 	if err != nil {
 		err = fmt.Errorf("%s: failed to get traffic stat for main page: %w", method, err)
 		u.l.ErrorContext(ctx, "Database operation failed",
@@ -51,8 +79,10 @@ func (u *Usecase) CreateReport(ctx context.Context, tr *trparser.TimeRange) (mod
 	report.MainActivityPage.Traffic.Data = trf
 	report.MainActivityPage.Traffic.Count = 20
 
-	// Получаем данные для второй страницы
+	// Получаем данные для второй страницы (DevicesAnalyticsPage)
+	start = time.Now()
 	dv, err := u.db.GetDevicesAnalytics(ctx, tr, "")
+	logDBTime("GetDevicesAnalytics", start, err)
 	if err != nil {
 		err = fmt.Errorf("%s: failed to get devices stat for second page: %w", method, err)
 		u.l.ErrorContext(ctx, "Database operation failed",
@@ -62,8 +92,10 @@ func (u *Usecase) CreateReport(ctx context.Context, tr *trparser.TimeRange) (mod
 	}
 	report.DeviceAnalyticsPage.Analytics = dv
 
-	// Получаем данные для третьей страницы
+	// Получаем данные для третьей страницы (AnomaliesListPage)
+	start = time.Now()
 	ans, err := u.db.GetAnomaliesList(ctx, tr, "")
+	logDBTime("GetAnomaliesList", start, err)
 	if err != nil {
 		err = fmt.Errorf("%s: failed to get anomalies list for third page: %w", method, err)
 		u.l.ErrorContext(ctx, "Database operation failed",
@@ -73,8 +105,10 @@ func (u *Usecase) CreateReport(ctx context.Context, tr *trparser.TimeRange) (mod
 	}
 	report.AnomaliesListPage.Anomalies = ans
 
-	// Получаем данные для четвертой страницы
+	// Получаем данные для четвертой страницы (TopAnomaliesPage)
+	start = time.Now()
 	anr, err := u.db.GetTopAnomalies(ctx, tr)
+	logDBTime("GetTopAnomalies", start, err)
 	if err != nil {
 		err = fmt.Errorf("%s: failed to get top anomalies for forth page: %w", method, err)
 		u.l.ErrorContext(ctx, "Database operation failed",
@@ -84,8 +118,10 @@ func (u *Usecase) CreateReport(ctx context.Context, tr *trparser.TimeRange) (mod
 	}
 	report.TopAnomaliesPage.DeviceAnomaly = anr
 
-	// Получаем данные для пятой страницы
+	// Получаем данные для пятой страницы (TopCategoriesPage)
+	start = time.Now()
 	cs, err := u.db.GetTopCategoriesForReport(ctx, tr, "")
+	logDBTime("GetTopCategoriesForReport", start, err)
 	if err != nil {
 		err = fmt.Errorf("%s: failed to get top categories for fifth page: %w", method, err)
 		u.l.ErrorContext(ctx, "Database operation failed",
@@ -95,12 +131,20 @@ func (u *Usecase) CreateReport(ctx context.Context, tr *trparser.TimeRange) (mod
 	}
 	report.TopCategoriesPage.Categories = cs
 
+	// Логируем общее время формирования отчета
+	totalDuration := time.Since(start)
 	u.l.InfoContext(ctx, "report created",
 		slog.String("method", method),
+		slog.Duration("total_duration", totalDuration),
+		slog.Int("categories_count", len(cats)),
+		slog.Int("resources_count", len(rs)),
+		slog.Int("devices_count", len(dv)),
+		slog.Int("anomalies_count", len(ans)),
+		slog.Int("top_anomalies_count", len(anr)),
+		slog.Int("top_categories_count", len(cs)),
 	)
 	return report, nil
 }
-
 func (u *Usecase) CreateReportForDevice(ctx context.Context, tr *trparser.TimeRange, hostname string) (models.ReportForDevice, error) {
 	method := "CreateReportForDevice"
 	u.l.InfoContext(ctx,
@@ -180,38 +224,38 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, tr *trparser.TimeRa
 	}
 
 	// Ищем данные для конкретного устройства
+	var deviceFound bool
 	for _, device := range dv {
 		if device.HostName == hostname {
 			report.DeviceAnalyticsPage.AnomalyBlockStat = device.AnomalyBlockStat
+			deviceFound = true
 			break
 		}
 	}
 
-	// Получаем данные для второй страницы (AnomaliesListPage)
-	ans, err := u.db.GetAnomaliesList(ctx, tr, hostname)
+	// Если устройство не найдено, создаем пустую статистику
+	if !deviceFound {
+		report.DeviceAnalyticsPage.AnomalyBlockStat = models.AnomalyBlockStat{}
+	}
+
+	// Получаем данные для второй страницы (TopAnomaliesPage)
+	topAnomalies, err := u.db.GetTopAnomalies(ctx, tr)
 	if err != nil {
-		err = fmt.Errorf("%s: failed to get anomalies list: %w", method, err)
+		err = fmt.Errorf("%s: failed to get top anomalies: %w", method, err)
 		u.l.ErrorContext(ctx, "Database operation failed",
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
 	}
 
-	// Ищем аномалии для конкретного устройства
-	for _, anomaly := range ans {
+	// Фильтруем топ аномалии для текущего устройства
+	var deviceTopAnomalies []models.DeviceAnomalyAnalytics
+	for _, anomaly := range topAnomalies {
 		if anomaly.HostName == hostname {
-			report.AnomaliesListPage.DeviceAnomaly = []models.DeviceAnomalyAnalytics{
-				{
-					HostName:         anomaly.HostName,
-					Traffic:          models.Traffic{},          // TODO: заполнить из данных
-					Requests:         0,                         // TODO: заполнить из данных
-					AnomalyBlockStat: models.AnomalyBlockStat{}, // TODO: заполнить из данных
-					Detections:       models.DetectionReport{},  // TODO: заполнить из данных
-				},
-			}
-			break
+			deviceTopAnomalies = append(deviceTopAnomalies, anomaly)
 		}
 	}
+	report.AnomaliesListPage.DeviceAnomaly = deviceTopAnomalies
 
 	// Получаем данные для третьей страницы (CategoriesPage)
 	cs, err := u.db.GetTopCategoriesForReport(ctx, tr, hostname)
@@ -226,6 +270,9 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, tr *trparser.TimeRa
 
 	u.l.InfoContext(ctx, "report for device created",
 		slog.String("method", method),
+		slog.String("hostname", hostname),
+		slog.Int("categories_count", len(cs)),
+		slog.Int("anomalies_count", len(deviceTopAnomalies)),
 	)
 	return report, nil
 }
