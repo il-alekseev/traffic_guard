@@ -215,7 +215,7 @@ func (r *RepoPG) GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, h
 		URL             string     `json:"url"`
 		CategorizedAt   time.Time  `json:"categorized_at"`
 		ActionCreatedAt *time.Time `json:"action_created_at"`
-		All             uint       `json:"all"`
+		Total           uint       `json:"total"`
 		BeforeBlock     uint       `json:"before_block"`
 		AfterBlock      uint       `json:"after_block"`
 		Pending         uint       `json:"pending"`
@@ -229,7 +229,7 @@ func (r *RepoPG) GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, h
 			domains.path as url,
 			domains.categorized_at as categorized_at,
 			actions.created_at as action_created_at,
-			COUNT(*) as all,
+			COUNT(*) as total,
 			COUNT(CASE WHEN sessions.datetime_utc < domains.categorized_at THEN 1 END) as before_block,
 			COUNT(CASE WHEN sessions.datetime_utc >= domains.categorized_at AND sessions.status != ? THEN 1 END) as after_block,
 			COUNT(CASE WHEN sessions.status = ? THEN 1 END) as pending
@@ -253,7 +253,7 @@ func (r *RepoPG) GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, h
 
 	err := query.
 		Group("devices.hostname, domains.path, domains.categorized_at, actions.created_at").
-		Order("all DESC").
+		Order("total DESC").
 		Find(&tempResults).Error
 
 	if err != nil {
@@ -283,7 +283,7 @@ func (r *RepoPG) GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, h
 				Output: 0, // Заглушка
 			},
 			Stat: models.RequestReport{
-				All:         anomaly.All,
+				All:         anomaly.Total,
 				BeforeBlock: anomaly.BeforeBlock,
 				Pending:     anomaly.Pending,
 				AfterBlock:  anomaly.AfterBlock,
@@ -353,8 +353,8 @@ func (r *RepoPG) GetTopAnomalies(ctx context.Context, tr *trparser.TimeRange) ([
 
 	err := query.
 		Group("devices.hostname").
-		Having("anomalies > 0"). // Только устройства с аномалиями
-		Order("anomalies DESC"). // Сортируем по количеству аномалий
+		Having("COUNT(CASE WHEN sessions.status = ? THEN 1 END) > 0", status.StatusAnomaly.String()). // Используем исходное выражение вместо псевдонима
+		Order("anomalies DESC").                                                                      // Сортируем по количеству аномалий
 		Find(&tempResults).Error
 
 	if err != nil {
@@ -413,7 +413,7 @@ func (r *RepoPG) GetTopAnomalies(ctx context.Context, tr *trparser.TimeRange) ([
 func (r *RepoPG) GetTopCategoriesForReport(ctx context.Context, tr *trparser.TimeRange, hostname string) ([]models.TopCategory, error) {
 	type categoryTemp struct {
 		Category    string `json:"category"`
-		All         uint   `json:"all"`
+		Total       uint   `json:"total"`
 		BeforeBlock uint   `json:"before_block"`
 		AfterBlock  uint   `json:"after_block"`
 		Pending     uint   `json:"pending"`
@@ -424,7 +424,7 @@ func (r *RepoPG) GetTopCategoriesForReport(ctx context.Context, tr *trparser.Tim
 	query := r.db.GetDB().WithContext(ctx).Table("sessions").
 		Select(`
 			categories.name as category,
-			COUNT(*) as all,
+			COUNT(*) as total,
 			COUNT(CASE WHEN sessions.datetime_utc < domains.categorized_at THEN 1 END) as before_block,
 			COUNT(CASE WHEN sessions.datetime_utc >= domains.categorized_at AND sessions.status != ? THEN 1 END) as after_block,
 			COUNT(CASE WHEN sessions.status = ? THEN 1 END) as pending
@@ -446,7 +446,7 @@ func (r *RepoPG) GetTopCategoriesForReport(ctx context.Context, tr *trparser.Tim
 
 	err := query.
 		Group("categories.name").
-		Order("all DESC"). // Сортируем по общему количеству запросов
+		Order("total DESC"). // Сортируем по общему количеству запросов
 		Find(&tempResults).Error
 
 	if err != nil {
@@ -463,7 +463,7 @@ func (r *RepoPG) GetTopCategoriesForReport(ctx context.Context, tr *trparser.Tim
 				Output: 0, // Заглушка
 			},
 			Stat: models.RequestReport{
-				All:         category.All,
+				All:         category.Total,
 				BeforeBlock: category.BeforeBlock,
 				Pending:     category.Pending,
 				AfterBlock:  category.AfterBlock,
