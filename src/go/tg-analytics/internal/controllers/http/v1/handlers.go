@@ -611,7 +611,7 @@ func (s *Server) GetAnomalies(c *gin.Context) {
 // @Success 200 {object} dto.SuccessResponse "Действие успешно применено к домену"
 // @Failure 400 {object} dto.ErrorResponse "Неверные параметры запроса"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /api/v1/detections/act [get]
+// @Router /api/v1/detections/act [patch]
 func (s *Server) Act(c *gin.Context) {
 	// Валидация запроса
 	var req validation.ActRequest

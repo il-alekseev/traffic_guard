@@ -575,7 +575,7 @@ const docTemplate = `{
             }
         },
         "/api/v1/detections/act": {
-            "get": {
+            "patch": {
                 "description": "Устанавливает действие (разрешить/заблокировать) для указанного домена",
                 "consumes": [
                     "application/json"
@@ -756,6 +756,26 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/healthcheck": {
+            "get": {
+                "description": "Проверка, что сервер работает",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "utils"
+                ],
+                "summary": "Проверка работоспособности сервера",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
                         }
                     }
                 }
@@ -1050,26 +1070,6 @@ const docTemplate = `{
                     "utils"
                 ],
                 "summary": "Получение версии сервиса",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.SuccessResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/healthcheck": {
-            "get": {
-                "description": "Проверка, что сервер работает",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "utils"
-                ],
-                "summary": "Проверка работоспособности сервера",
                 "responses": {
                     "200": {
                         "description": "OK",

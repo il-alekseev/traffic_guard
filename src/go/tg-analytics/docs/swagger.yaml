@@ -845,7 +845,7 @@ paths:
       tags:
       - detections
   /api/v1/detections/act:
-    get:
+    patch:
       consumes:
       - application/json
       description: Устанавливает действие (разрешить/заблокировать) для указанного
@@ -980,6 +980,19 @@ paths:
       summary: Полуечение списка имен устройств
       tags:
       - common
+  /api/v1/healthcheck:
+    get:
+      description: Проверка, что сервер работает
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+      summary: Проверка работоспособности сервера
+      tags:
+      - utils
   /api/v1/reports:
     get:
       consumes:
@@ -1201,19 +1214,6 @@ paths:
           schema:
             $ref: '#/definitions/dto.SuccessResponse'
       summary: Получение версии сервиса
-      tags:
-      - utils
-  /v1/healthcheck:
-    get:
-      description: Проверка, что сервер работает
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.SuccessResponse'
-      summary: Проверка работоспособности сервера
       tags:
       - utils
 schemes:
