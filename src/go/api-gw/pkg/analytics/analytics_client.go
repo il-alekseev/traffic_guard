@@ -14,6 +14,7 @@ import (
 	"api-gateway/pkg/analytics/common"
 	"api-gateway/pkg/analytics/dashboards"
 	"api-gateway/pkg/analytics/detections"
+	"api-gateway/pkg/analytics/reports"
 	"api-gateway/pkg/analytics/sessions"
 	"api-gateway/pkg/analytics/utils"
 )
@@ -64,6 +65,7 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Analytics 
 	cli.Common = common.New(transport, formats)
 	cli.Dashboards = dashboards.New(transport, formats)
 	cli.Detections = detections.New(transport, formats)
+	cli.Reports = reports.New(transport, formats)
 	cli.Sessions = sessions.New(transport, formats)
 	cli.Utils = utils.New(transport, formats)
 	return cli
@@ -118,6 +120,8 @@ type Analytics struct {
 
 	Detections detections.ClientService
 
+	Reports reports.ClientService
+
 	Sessions sessions.ClientService
 
 	Utils utils.ClientService
@@ -132,6 +136,7 @@ func (c *Analytics) SetTransport(transport runtime.ClientTransport) {
 	c.Common.SetTransport(transport)
 	c.Dashboards.SetTransport(transport)
 	c.Detections.SetTransport(transport)
+	c.Reports.SetTransport(transport)
 	c.Sessions.SetTransport(transport)
 	c.Utils.SetTransport(transport)
 }

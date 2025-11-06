@@ -98,6 +98,10 @@ func (s *Server) configureRouter() {
 		analytics.GET("/detections", s.getDetections)
 		analytics.GET("/detections/stat", s.getDetectionsStat)
 
+		//reports
+		analytics.GET("/reports", s.getV1Reports)
+		analytics.GET("/reports/:hostname", s.getV1ReportsHostname)
+
 		//sessions
 		analytics.GET("/sessions", s.getSessions)
 

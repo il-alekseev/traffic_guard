@@ -489,6 +489,38 @@ definitions:
         description: message
         type: string
     type: object
+  models.ModelsAnomaliesListPage:
+    properties:
+      anomalies:
+        additionalProperties:
+          $ref: '#/definitions/models.ModelsAnomalyStat'
+        description: anomalies
+        type: object
+    type: object
+  models.ModelsAnomalyStat:
+    properties:
+      after_block:
+        description: after block
+        type: integer
+      before_block:
+        description: before block
+        type: integer
+      input:
+        description: input
+        type: integer
+      live_count:
+        description: live count
+        type: integer
+      output:
+        description: output
+        type: integer
+      pending:
+        description: pending
+        type: integer
+      requests:
+        description: requests
+        type: integer
+    type: object
   models.ModelsBusinessLog:
     properties:
       context:
@@ -573,6 +605,74 @@ definitions:
         description: retention duration
         type: integer
     type: object
+  models.ModelsDetectionReport:
+    properties:
+      all:
+        description: all
+        type: integer
+      allowed:
+        description: allowed
+        type: integer
+      blocked:
+        description: blocked
+        type: integer
+      unresolved:
+        description: unresolved
+        type: integer
+    type: object
+  models.ModelsDeviceAnalyticsPage:
+    properties:
+      all:
+        description: all
+        type: integer
+      allowed:
+        allOf:
+        - $ref: '#/definitions/models.ModelsRequestStat'
+        description: allowed
+      anomalies:
+        description: anomalies
+        type: integer
+      blocked:
+        allOf:
+        - $ref: '#/definitions/models.ModelsRequestStat'
+        description: blocked
+      blocks:
+        description: blocks
+        type: integer
+      pending:
+        allOf:
+        - $ref: '#/definitions/models.ModelsRequestStat'
+        description: pending
+      traffic:
+        allOf:
+        - $ref: '#/definitions/models.ModelsTrafficStat'
+        description: traffic
+    type: object
+  models.ModelsDeviceReport:
+    properties:
+      all:
+        description: all
+        type: integer
+      anomalies:
+        description: anomalies
+        type: integer
+      blocks:
+        description: blocks
+        type: integer
+      detections:
+        allOf:
+        - $ref: '#/definitions/models.ModelsDetectionReport'
+        description: detections
+      input:
+        description: input
+        type: integer
+      output:
+        description: output
+        type: integer
+      requests:
+        description: requests
+        type: integer
+    type: object
   models.ModelsDeviceRequestStat:
     properties:
       blocked:
@@ -589,6 +689,14 @@ definitions:
         description: status
         type: string
     type: object
+  models.ModelsDevicesAnalyticsPage:
+    properties:
+      analytics:
+        additionalProperties:
+          $ref: '#/definitions/models.ModelsDeviceReport'
+        description: analytics
+        type: object
+    type: object
   models.ModelsLogs:
     properties:
       data:
@@ -600,6 +708,23 @@ definitions:
         allOf:
         - $ref: '#/definitions/models.ModelsMeta'
         description: meta
+    type: object
+  models.ModelsMainActivityPage:
+    properties:
+      top_categories:
+        additionalProperties:
+          $ref: '#/definitions/models.ModelsRequestReport'
+        description: top categories
+        type: object
+      top_resources:
+        additionalProperties:
+          $ref: '#/definitions/models.ModelsResourceStat'
+        description: top resources
+        type: object
+      traffic:
+        allOf:
+        - $ref: '#/definitions/models.ModelsTrafficStat'
+        description: traffic
     type: object
   models.ModelsMeta:
     properties:
@@ -615,6 +740,98 @@ definitions:
       total:
         description: total
         type: integer
+    type: object
+  models.ModelsReport:
+    properties:
+      anomalies_list_page:
+        additionalProperties:
+          $ref: '#/definitions/models.ModelsAnomaliesListPage'
+        description: anomalies list page
+        type: object
+      device_analytics_page:
+        allOf:
+        - $ref: '#/definitions/models.ModelsDevicesAnalyticsPage'
+        description: device analytics page
+      from:
+        description: from
+        type: string
+      main_activity_page:
+        allOf:
+        - $ref: '#/definitions/models.ModelsMainActivityPage'
+        description: main activity page
+      to:
+        description: to
+        type: string
+      top_anomalies_page:
+        allOf:
+        - $ref: '#/definitions/models.ModelsTopAnomaliesPage'
+        description: top anomalies page
+      top_categories_page:
+        additionalProperties:
+          $ref: '#/definitions/models.ModelsTopCategoriesPage'
+        description: top categories page
+        type: object
+    type: object
+  models.ModelsReportForDevice:
+    properties:
+      anomalies_list_page:
+        additionalProperties:
+          $ref: '#/definitions/models.ModelsAnomalyStat'
+        description: anomalies list page
+        type: object
+      categories_page:
+        additionalProperties:
+          $ref: '#/definitions/models.ModelsTopCategory'
+        description: categories page
+        type: object
+      device_analytics_page:
+        allOf:
+        - $ref: '#/definitions/models.ModelsDeviceAnalyticsPage'
+        description: device analytics page
+      from:
+        description: from
+        type: string
+      host_name:
+        description: host name
+        type: string
+      to:
+        description: to
+        type: string
+    type: object
+  models.ModelsRequestReport:
+    properties:
+      after_block:
+        description: after block
+        type: integer
+      before_block:
+        description: before block
+        type: integer
+      pending:
+        description: pending
+        type: integer
+    type: object
+  models.ModelsRequestStat:
+    properties:
+      data:
+        description: data
+        items:
+          type: integer
+        type: array
+      time:
+        description: time
+        items:
+          type: string
+        type: array
+    type: object
+  models.ModelsResourceStat:
+    properties:
+      category:
+        description: category
+        type: string
+      stat:
+        allOf:
+        - $ref: '#/definitions/models.ModelsRequestReport'
+        description: stat
     type: object
   models.ModelsRole:
     properties:
@@ -641,6 +858,68 @@ definitions:
       refresh_token:
         description: refresh token
         type: string
+    type: object
+  models.ModelsTopAnomaliesPage:
+    properties:
+      anomalies:
+        additionalProperties:
+          $ref: '#/definitions/models.ModelsTopAnomaly'
+        description: anomalies
+        type: object
+    type: object
+  models.ModelsTopAnomaly:
+    properties:
+      all:
+        description: all
+        type: integer
+      anomalies:
+        description: anomalies
+        type: integer
+      blocks:
+        description: blocks
+        type: integer
+      detections:
+        allOf:
+        - $ref: '#/definitions/models.ModelsDetectionReport'
+        description: detections
+      input:
+        description: input
+        type: integer
+      output:
+        description: output
+        type: integer
+      requests:
+        description: requests
+        type: integer
+    type: object
+  models.ModelsTopCategoriesPage:
+    properties:
+      categories:
+        additionalProperties:
+          $ref: '#/definitions/models.ModelsTopCategory'
+        description: categories
+        type: object
+    type: object
+  models.ModelsTopCategory:
+    properties:
+      after_block:
+        description: after block
+        type: integer
+      before_block:
+        description: before block
+        type: integer
+      input:
+        description: input
+        type: integer
+      output:
+        description: output
+        type: integer
+      pending:
+        description: pending
+        type: integer
+      requests:
+        description: requests
+        type: integer
     type: object
   models.ModelsTrafficStat:
     properties:
@@ -1266,6 +1545,90 @@ paths:
       summary: Получить список имен устройств
       tags:
       - common
+  /v1/analytics/reports:
+    get:
+      consumes:
+      - application/json
+      description: Генерирует полный отчет по активности за указанный временной период,
+        включая аналитику по устройствам, категориям и аномалиям
+      parameters:
+      - default: now-24h
+        description: 'Начало временного диапазона (формат: now-24h, 2023-12-01T10:00:00Z)'
+        in: query
+        name: from
+        type: string
+      - default: now
+        description: 'Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)'
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Полный отчет по активности
+          schema:
+            $ref: '#/definitions/models.ModelsReport'
+        "400":
+          description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера при генерации отчета
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Создание отчета
+      tags:
+      - reports
+  /v1/analytics/reports/{hostname}:
+    get:
+      consumes:
+      - application/json
+      description: Генерирует детализированный отчет по конкретному сетевому устройству
+        за указанный временной период, включая статистику трафика, аномалии и категории
+        запросов
+      parameters:
+      - description: Имя сетевого устройства (хоста)
+        in: path
+        name: hostname
+        required: true
+        type: string
+      - default: now-24h
+        description: 'Начало временного диапазона (формат: now-24h, 2023-12-01T10:00:00Z)'
+        in: query
+        name: from
+        type: string
+      - default: now
+        description: 'Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)'
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Детализированный отчет по устройству
+          schema:
+            $ref: '#/definitions/models.ModelsReportForDevice'
+        "400":
+          description: Неверный формат параметров или устройство не найдено
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "404":
+          description: Устройство не найдено в базе данных
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера при генерации отчета
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Создание отчета по конкретному устройству
+      tags:
+      - reports
   /v1/analytics/sessions:
     get:
       consumes:
