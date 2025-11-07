@@ -50,7 +50,7 @@ const docTemplate = `{
             }
         },
         "/v1/analytics/dashboards/act": {
-            "get": {
+            "patch": {
                 "security": [
                     {
                         "BearerAuth": []

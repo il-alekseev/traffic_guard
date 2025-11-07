@@ -424,8 +424,8 @@ func (s *Server) getDashboardsTraffic(c *gin.Context) {
 // @Success 200 {object} models.DtoSuccessResponse "Действие успешно применено к домену"
 // @Failure 400 {object} models.DtoErrorResponse "Неверные параметры запроса"
 // @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера"
-// @Router /v1/analytics/dashboards/act [get]
-func (s *Server) getV1DashboardsAct(c *gin.Context) {
+// @Router /v1/analytics/dashboards/act [patch]
+func (s *Server) patchV1DashboardsAct(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
 	//authInfo, err := utils.GetAuthInfo(c)
 	//if err != nil {
@@ -437,7 +437,7 @@ func (s *Server) getV1DashboardsAct(c *gin.Context) {
 	action := c.DefaultQuery("action", "allow") // по умолчанию выдает последние 10 минут
 	path := c.Query("path")
 
-	resp, err := s.analyticsCL.Actions.GetAPIV1DetectionsAct(&actions.GetAPIV1DetectionsActParams{
+	resp, err := s.analyticsCL.Actions.PatchAPIV1DetectionsAct(&actions.PatchAPIV1DetectionsActParams{
 		Action: action,
 		Path:   path,
 	})

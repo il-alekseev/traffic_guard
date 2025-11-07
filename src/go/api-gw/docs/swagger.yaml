@@ -1059,7 +1059,7 @@ paths:
       tags:
       - common
   /v1/analytics/dashboards/act:
-    get:
+    patch:
       consumes:
       - application/json
       description: Устанавливает действие (разрешить/заблокировать) для указанного
