@@ -8,6 +8,7 @@ import (
 	"io"
 	nethttp "net/http"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
 
@@ -143,6 +144,20 @@ func (c *Client) setPreferredAgent(host, agent string) {
 	c.mu.Lock()
 	c.hostAgent[host] = agent
 	c.mu.Unlock()
+}
+
+func (c *Client) FetchWithCustomAgent(ctx context.Context, url, agent string) (string, string, error) {
+	trimmed := strings.TrimSpace(agent)
+	if trimmed == "" {
+		trimmed = DefaultUserAgent
+	}
+
+	body, err := c.fetchWithAgent(ctx, url, trimmed)
+	if err != nil {
+		return "", "", fmt.Errorf("user-agent %q: %w", trimmed, err)
+	}
+
+	return body, trimmed, nil
 }
 
 func (c *Client) clearPreferredAgent(host, failed string) {

@@ -3,12 +3,17 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"math"
+	"math/rand"
 	"net"
 	"net/url"
 	"runtime"
+	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"scrapper/internal/metrics"
 	"scrapper/internal/models"
@@ -18,6 +23,10 @@ import (
 type ContentStrategy interface {
 	Name() string
 	Fetch(ctx context.Context, url string) (models.ContentData, error)
+}
+
+type CustomAgentStrategy interface {
+	FetchWithUserAgent(ctx context.Context, url, userAgent string) (models.ContentData, error)
 }
 
 // DNSResolver resolves hostnames to IP addresses.
@@ -53,23 +62,233 @@ type Logger interface {
 	Error(msg string, args ...any)
 }
 
+const (
+	binaryProbeLimit          = 2048
+	scriptProbeLimit          = 2048
+	binaryEntropyThreshold    = 4.5
+	printableRatioThreshold   = 0.85
+	shortContentFallbackLimit = 150
+	maxUserAgentRetries       = 3
+)
+
+var (
+	disallowedURLExtensions = []struct {
+		suffix   string
+		category string
+	}{
+		{suffix: ".jpg", category: "image"},
+		{suffix: ".jpeg", category: "image"},
+		{suffix: ".png", category: "image"},
+		{suffix: ".gif", category: "image"},
+		{suffix: ".bmp", category: "image"},
+		{suffix: ".svg", category: "image"},
+		{suffix: ".webp", category: "image"},
+		{suffix: ".ico", category: "image"},
+		{suffix: ".mp4", category: "video"},
+		{suffix: ".mkv", category: "video"},
+		{suffix: ".avi", category: "video"},
+		{suffix: ".mov", category: "video"},
+		{suffix: ".wmv", category: "video"},
+		{suffix: ".flv", category: "video"},
+		{suffix: ".webm", category: "video"},
+		{suffix: ".mp3", category: "audio"},
+		{suffix: ".wav", category: "audio"},
+		{suffix: ".ogg", category: "audio"},
+		{suffix: ".m4a", category: "audio"},
+		{suffix: ".pdf", category: "document"},
+		{suffix: ".doc", category: "document"},
+		{suffix: ".docx", category: "document"},
+		{suffix: ".ppt", category: "document"},
+		{suffix: ".pptx", category: "document"},
+		{suffix: ".xls", category: "document"},
+		{suffix: ".xlsx", category: "document"},
+		{suffix: ".ods", category: "document"},
+		{suffix: ".odt", category: "document"},
+		{suffix: ".zip", category: "archive"},
+		{suffix: ".rar", category: "archive"},
+		{suffix: ".7z", category: "archive"},
+		{suffix: ".tar", category: "archive"},
+		{suffix: ".gz", category: "archive"},
+		{suffix: ".bz2", category: "archive"},
+		{suffix: ".iso", category: "archive"},
+		{suffix: ".js", category: "script"},
+		{suffix: ".css", category: "stylesheet"},
+		{suffix: ".map", category: "sourcemap"},
+		{suffix: ".exe", category: "binary"},
+		{suffix: ".dll", category: "binary"},
+		{suffix: ".bin", category: "binary"},
+		{suffix: ".apk", category: "binary"},
+		{suffix: ".deb", category: "binary"},
+		{suffix: ".rpm", category: "binary"},
+		{suffix: ".ttf", category: "font"},
+		{suffix: ".woff", category: "font"},
+		{suffix: ".woff2", category: "font"},
+		{suffix: ".eot", category: "font"},
+	}
+
+	disallowedHostPrefixes = []struct {
+		prefix  string
+		message string
+	}{
+		{prefix: "cdn.", message: "domain %s looks like CDN/static host; skipping"},
+		{prefix: "assets.", message: "domain %s looks like CDN/static host; skipping"},
+		{prefix: "static.", message: "domain %s looks like CDN/static host; skipping"},
+		{prefix: "media.", message: "domain %s serves media assets; skipping"},
+		{prefix: "files.", message: "domain %s serves files; skipping"},
+		{prefix: "uploads.", message: "domain %s looks like file storage; skipping"},
+		{prefix: "storage.", message: "domain %s looks like file storage; skipping"},
+		{prefix: "s3.", message: "domain %s looks like S3/CloudFront resource; skipping"},
+		{prefix: "download.", message: "domain %s is for downloads; skipping"},
+	}
+
+	disallowedHostFragments = []struct {
+		fragment string
+		message  string
+	}{
+		{fragment: ".s3.", message: "domain %s looks like S3/CloudFront resource; skipping"},
+		{fragment: ".cloudfront.", message: "domain %s looks like CDN/CloudFront resource; skipping"},
+		{fragment: ".storage.googleapis.com", message: "domain %s looks like GCS/S3 resource; skipping"},
+		{fragment: ".cdn.", message: "domain %s looks like CDN; skipping"},
+	}
+
+	disallowedPathFragments = []struct {
+		fragment string
+		message  string
+	}{
+		{fragment: "/download", message: "path contains \"%s\" and looks like file download"},
+		{fragment: "/attachment", message: "path contains \"%s\" and looks like attachment"},
+		{fragment: "/files/", message: "path contains \"%s\" and looks like file storage"},
+		{fragment: "/static/", message: "path contains \"%s\" and serves static assets"},
+		{fragment: "/assets/", message: "path contains \"%s\" and serves static assets"},
+		{fragment: "/media/", message: "path contains \"%s\" and serves media catalog"},
+		{fragment: "/uploads/", message: "path contains \"%s\" and serves uploaded files"},
+		{fragment: "/upload/", message: "path contains \"%s\" and serves uploaded files"},
+		{fragment: "/videos/", message: "path contains \"%s\" and serves video catalog"},
+		{fragment: "/images/", message: "path contains \"%s\" and serves image catalog"},
+		{fragment: "/thumbnails/", message: "path contains \"%s\" and serves thumbnails"},
+	}
+
+	disallowedQueryFragments = []struct {
+		fragment string
+		message  string
+	}{
+		{fragment: "download=", message: "query contains \"%s\" and requests file download"},
+		{fragment: "attachment=", message: "query contains \"%s\" and returns attachment"},
+		{fragment: "file=", message: "query contains \"%s\" and returns file"},
+		{fragment: "action=download", message: "query contains \"%s\" and forces download"},
+		{fragment: "mode=download", message: "query contains \"%s\" and forces download"},
+		{fragment: "type=download", message: "query contains \"%s\" and forces download"},
+		{fragment: "type=file", message: "query contains \"%s\" and returns file"},
+		{fragment: "format=pdf", message: "query contains \"%s\" and requests PDF"},
+		{fragment: "format=doc", message: "query contains \"%s\" and requests document"},
+		{fragment: "format=docx", message: "query contains \"%s\" and requests document"},
+		{fragment: "format=ppt", message: "query contains \"%s\" and requests presentation"},
+		{fragment: "format=pptx", message: "query contains \"%s\" and requests presentation"},
+		{fragment: "format=xls", message: "query contains \"%s\" and requests spreadsheet"},
+		{fragment: "format=xlsx", message: "query contains \"%s\" and requests spreadsheet"},
+		{fragment: "format=ods", message: "query contains \"%s\" and requests spreadsheet"},
+		{fragment: "format=odt", message: "query contains \"%s\" and requests document"},
+		{fragment: "format=zip", message: "query contains \"%s\" and requests archive"},
+		{fragment: "format=rar", message: "query contains \"%s\" and requests archive"},
+		{fragment: "format=7z", message: "query contains \"%s\" and requests archive"},
+		{fragment: "format=tar", message: "query contains \"%s\" and requests archive"},
+		{fragment: "format=gz", message: "query contains \"%s\" and requests archive"},
+		{fragment: "format=bz2", message: "query contains \"%s\" and requests archive"},
+		{fragment: "format=iso", message: "query contains \"%s\" and requests disk image"},
+	}
+
+	binarySignatures = []struct {
+		prefix  string
+		message string
+	}{
+		{prefix: "\x89PNG\r\n\x1a\n", message: "payload matches PNG signature"},
+		{prefix: "GIF87a", message: "payload matches GIF signature"},
+		{prefix: "GIF89a", message: "payload matches GIF signature"},
+		{prefix: "RIFF", message: "payload matches RIFF/WEBP or media container"},
+		{prefix: "ftyp", message: "payload matches MP4/ISO BMFF signature"},
+		{prefix: "moof", message: "payload matches fragmented MP4 signature"},
+		{prefix: "%PDF-", message: "payload matches PDF signature"},
+		{prefix: "PK\x03\x04", message: "payload matches ZIP/Office archive"},
+		{prefix: "\x1f\x8b\x08", message: "payload matches gzip stream"},
+		{prefix: "ID3", message: "payload matches MP3 signature"},
+		{prefix: "\x00\x00\x01\xba", message: "payload matches MPEG transport stream"},
+	}
+
+	scriptKeywords = []string{
+		"function ",
+		"function(",
+		"const ",
+		"let ",
+		"var ",
+		"(()=>",
+		"=>",
+		"window.",
+		"document.",
+		"export ",
+		"import ",
+		"return ",
+		"this.",
+		"prototype",
+		"object.",
+		"require(",
+		"class ",
+	}
+
+	scriptOperatorRunes = map[rune]struct{}{
+		'{': {},
+		'}': {},
+		'(': {},
+		')': {},
+		'[': {},
+		']': {},
+		';': {},
+		':': {},
+		',': {},
+		'.': {},
+		'+': {},
+		'-': {},
+		'*': {},
+		'/': {},
+		'=': {},
+		'!': {},
+		'>': {},
+		'<': {},
+		'&': {},
+		'|': {},
+	}
+	retryableStatusCodes = map[int]struct{}{
+		401: {},
+		403: {},
+		429: {},
+		451: {},
+	}
+)
+
 // ScrapeService orchestrates the scraping workflow across strategies and persistence.
 type ScrapeService struct {
-	strategies     []ContentStrategy
-	dnsResolver    DNSResolver
-	geoProvider    GeoIPProvider
-	cleaner        ContentCleaner
-	evaluator      QualityEvaluator
-	maxContentLen  int
-	repository     AttemptRepository
-	logger         Logger
-	workers        int
-	requestTimeout time.Duration
-	metrics        *metrics.Metrics
+	strategies          []ContentStrategy
+	archiveStrategies   []ContentStrategy
+	dnsResolver         DNSResolver
+	geoProvider         GeoIPProvider
+	cleaner             ContentCleaner
+	evaluator           QualityEvaluator
+	maxContentLen       int
+	repository          AttemptRepository
+	logger              Logger
+	workers             int
+	requestTimeout      time.Duration
+	metrics             *metrics.Metrics
+	antiBotDetector     *AntiBotDetector
+	shortContentLimit   int
+	stripJSON           bool
+	userAgents          []string
+	uaRand              *rand.Rand
+	randMu              sync.Mutex
+	maxUserAgentRetries int
 }
 
 // NewScrapeService wires the core dependencies and returns a configured ScrapeService.
-func NewScrapeService(strategies []ContentStrategy, dnsResolver DNSResolver, geoProvider GeoIPProvider, cleaner ContentCleaner, evaluator QualityEvaluator, maxContentLen int, repository AttemptRepository, logger Logger, workers int, requestTimeout time.Duration, metrics *metrics.Metrics) *ScrapeService {
+func NewScrapeService(strategies []ContentStrategy, archiveStrategies []ContentStrategy, dnsResolver DNSResolver, geoProvider GeoIPProvider, cleaner ContentCleaner, evaluator QualityEvaluator, maxContentLen int, repository AttemptRepository, logger Logger, workers int, requestTimeout time.Duration, metrics *metrics.Metrics, detector *AntiBotDetector, stripJSON bool, userAgents []string) *ScrapeService {
 	if len(strategies) == 0 {
 		panic("scrape service requires at least one content strategy")
 	}
@@ -82,17 +301,24 @@ func NewScrapeService(strategies []ContentStrategy, dnsResolver DNSResolver, geo
 	}
 
 	return &ScrapeService{
-		strategies:     strategies,
-		dnsResolver:    dnsResolver,
-		geoProvider:    geoProvider,
-		cleaner:        cleaner,
-		evaluator:      evaluator,
-		maxContentLen:  maxContentLen,
-		repository:     repository,
-		logger:         logger,
-		workers:        workers,
-		requestTimeout: requestTimeout,
-		metrics:        metrics,
+		strategies:          strategies,
+		archiveStrategies:   archiveStrategies,
+		dnsResolver:         dnsResolver,
+		geoProvider:         geoProvider,
+		cleaner:             cleaner,
+		evaluator:           evaluator,
+		maxContentLen:       maxContentLen,
+		repository:          repository,
+		logger:              logger,
+		workers:             workers,
+		requestTimeout:      requestTimeout,
+		metrics:             metrics,
+		antiBotDetector:     detector,
+		shortContentLimit:   shortContentFallbackLimit,
+		stripJSON:           stripJSON,
+		userAgents:          append([]string(nil), userAgents...),
+		uaRand:              rand.New(rand.NewSource(time.Now().UnixNano())),
+		maxUserAgentRetries: maxUserAgentRetries,
 	}
 }
 
@@ -303,6 +529,16 @@ func (s *ScrapeService) handle(parent context.Context, workerID int, rawURL stri
 		warnings = append(warnings, "no ip addresses found for host")
 	}
 
+	if reasons := shouldSkipURL(parsed); len(reasons) > 0 {
+		result.Status = models.StatusError
+		result.Failure = models.FailureRequirements
+		result.Error = strings.Join(reasons, "; ")
+		warnings = append(warnings, reasons...)
+		result.Warnings = append(result.Warnings, warnings...)
+		s.warn("url skipped due to disallowed resource", "worker_id", workerID, "host", host, "url", rawURL, "reasons", strings.Join(reasons, "; "))
+		return result
+	}
+
 	var (
 		bestAttempt    *models.ContentAttempt
 		bestEvaluation models.QualityEvaluation
@@ -310,7 +546,11 @@ func (s *ScrapeService) handle(parent context.Context, workerID int, rawURL stri
 	)
 	reason := models.FailureNone
 
-	for _, strategy := range s.strategies {
+	strategyQueue := append([]ContentStrategy(nil), s.strategies...)
+	archiveAdded := false
+
+	for idx := 0; idx < len(strategyQueue); idx++ {
+		strategy := strategyQueue[idx]
 		s.debug("strategy start", "worker_id", workerID, "host", host, "strategy", strategy.Name())
 		attempt := models.ContentAttempt{
 			URL:       rawURL,
@@ -320,6 +560,22 @@ func (s *ScrapeService) handle(parent context.Context, workerID int, rawURL stri
 
 		payload, fetchErr := strategy.Fetch(reqCtx, rawURL)
 		if fetchErr != nil {
+			if code, retryable := extractRetryableStatus(fetchErr); retryable {
+				if newPayload, ok := s.retryWithUserAgent(reqCtx, strategy, rawURL, ""); ok {
+					s.info("strategy retry due to http status", "worker_id", workerID, "host", host, "strategy", strategy.Name(), "status_code", code)
+					payload = newPayload
+					goto payloadLoop
+				}
+				if len(s.archiveStrategies) > 0 && !archiveAdded {
+					strategyQueue = append(strategyQueue, s.archiveStrategies...)
+					archiveAdded = true
+				}
+				warnings = append(warnings, fmt.Sprintf("strategy %s http status %d, archives scheduled", strategy.Name(), code))
+			} else if len(s.archiveStrategies) > 0 && !archiveAdded {
+				strategyQueue = append(strategyQueue, s.archiveStrategies...)
+				archiveAdded = true
+			}
+
 			attempt.Error = fetchErr.Error()
 			s.warn("strategy fetch failed", "worker_id", workerID, "host", host, "strategy", strategy.Name(), "error", fetchErr.Error())
 			if err := s.persistAttempt(reqCtx, attempt); err != nil {
@@ -330,6 +586,7 @@ func (s *ScrapeService) handle(parent context.Context, workerID int, rawURL stri
 			continue
 		}
 
+	payloadLoop:
 		attempt.Success = true
 		attempt.Content.RawHTML = payload.RawHTML
 		attempt.Content.Text = strings.TrimSpace(payload.Text)
@@ -365,12 +622,72 @@ func (s *ScrapeService) handle(parent context.Context, workerID int, rawURL stri
 				}
 				warnings = append(warnings, fmt.Sprintf("strategy %s cleaning empty output", strategy.Name()))
 				reason = models.FailureClean
+				if len(s.archiveStrategies) > 0 && !archiveAdded {
+					strategyQueue = append(strategyQueue, s.archiveStrategies...)
+					archiveAdded = true
+				}
 				continue
 			}
 
 			attempt.Content.Text = cleaned
 			if attempt.Content.RawHTML == "" {
 				attempt.Content.RawHTML = original
+			}
+		}
+
+		if s.stripJSON {
+			stripped, removed := stripJSONFragments(attempt.Content.Text)
+			if removed > 0 {
+				attempt.Content.Text = stripped
+				warnings = append(warnings, fmt.Sprintf("removed %d json fragments", removed))
+			}
+		}
+
+		if s.antiBotDetector != nil {
+			if phrase := s.antiBotDetector.Check(attempt.Content.Text); phrase != "" {
+				if newPayload, ok := s.retryWithUserAgent(reqCtx, strategy, rawURL, attempt.Content.UserAgent); ok {
+					s.info("anti-bot detected, retrying with different user agent", "worker_id", workerID, "host", host, "strategy", strategy.Name(), "phrase", phrase)
+					payload = newPayload
+					goto payloadLoop
+				}
+				attempt.Success = false
+				attempt.Error = "anti-bot content detected"
+				warning := fmt.Sprintf("anti-bot phrase detected (%s)", phrase)
+				s.warn("anti-bot content detected", "worker_id", workerID, "host", host, "strategy", strategy.Name(), "phrase", phrase)
+				if err := s.persistAttempt(reqCtx, attempt); err != nil {
+					warnings = append(warnings, fmt.Sprintf("persist attempt (%s): %v", attempt.Strategy, err))
+				}
+				warnings = append(warnings, warning)
+				reason = models.FailureRequirements
+				if len(s.archiveStrategies) > 0 && !archiveAdded {
+					strategyQueue = append(strategyQueue, s.archiveStrategies...)
+					archiveAdded = true
+				}
+				continue
+			}
+		}
+
+		if s.shortContentLimit > 0 {
+			runeCount := utf8.RuneCountInString(attempt.Content.Text)
+			if runeCount > 0 && runeCount < s.shortContentLimit {
+				if newPayload, ok := s.retryWithUserAgent(reqCtx, strategy, rawURL, attempt.Content.UserAgent); ok {
+					s.info("content too short, retrying with different user agent", "worker_id", workerID, "host", host, "strategy", strategy.Name(), "runes", runeCount)
+					payload = newPayload
+					goto payloadLoop
+				}
+				attempt.Success = false
+				attempt.Error = fmt.Sprintf("content too short (%d < %d characters)", runeCount, s.shortContentLimit)
+				s.warn("content too short, switching to archive strategies", "worker_id", workerID, "host", host, "strategy", strategy.Name(), "runes", runeCount)
+				if err := s.persistAttempt(reqCtx, attempt); err != nil {
+					warnings = append(warnings, fmt.Sprintf("persist attempt (%s): %v", attempt.Strategy, err))
+				}
+				warnings = append(warnings, fmt.Sprintf("strategy %s content too short (%d < %d); trying archive sources", strategy.Name(), runeCount, s.shortContentLimit))
+				reason = models.FailureRequirements
+				if len(s.archiveStrategies) > 0 && !archiveAdded {
+					strategyQueue = append(strategyQueue, s.archiveStrategies...)
+					archiveAdded = true
+				}
+				continue
 			}
 		}
 
@@ -390,11 +707,25 @@ func (s *ScrapeService) handle(parent context.Context, workerID int, rawURL stri
 		attempt.Metric = eval.Score
 		attempt.Accepted = eval.Accepted
 
+		validationReasons := detectInvalidContent(attempt.Content.RawHTML, attempt.Content.Text)
+		if len(validationReasons) > 0 {
+			attempt.Success = false
+			attempt.Accepted = false
+			attempt.Error = strings.Join(validationReasons, "; ")
+		}
+
 		if err := s.persistAttempt(reqCtx, attempt); err != nil {
 			warnings = append(warnings, fmt.Sprintf("persist attempt (%s): %v", attempt.Strategy, err))
 		}
 
-		if eval.Accepted {
+		if len(validationReasons) > 0 {
+			warnings = append(warnings, fmt.Sprintf("strategy %s rejected after validation: %s", strategy.Name(), strings.Join(validationReasons, "; ")))
+			s.warn("strategy payload rejected after validation", "worker_id", workerID, "host", host, "strategy", strategy.Name(), "user_agent", attempt.Content.UserAgent, "reasons", strings.Join(validationReasons, "; "))
+			reason = models.FailureRequirements
+			continue
+		}
+
+		if attempt.Accepted {
 			copy := attempt
 			bestAttempt = &copy
 			bestEvaluation = eval
@@ -405,6 +736,10 @@ func (s *ScrapeService) handle(parent context.Context, workerID int, rawURL stri
 		}
 
 		if attempt.Content.Text == "" {
+			if len(s.archiveStrategies) > 0 && !archiveAdded {
+				strategyQueue = append(strategyQueue, s.archiveStrategies...)
+				archiveAdded = true
+			}
 			continue
 		}
 
@@ -427,7 +762,7 @@ func (s *ScrapeService) handle(parent context.Context, workerID int, rawURL stri
 			warnings = append(warnings, "no textual content extracted")
 			result.Status = models.StatusError
 			reason = models.FailureEmpty
-		} else if accepted && len(warnings) == 0 {
+		} else if accepted {
 			result.Status = models.StatusOK
 		} else {
 			if !accepted {
@@ -587,4 +922,373 @@ func failureMessage(reason models.FailureReason) string {
 	default:
 		return ""
 	}
+}
+
+func shouldSkipURL(u *url.URL) []string {
+	if u == nil {
+		return nil
+	}
+
+	reasons := make([]string, 0, 4)
+
+	host := strings.ToLower(u.Hostname())
+	if host != "" {
+		for _, rule := range disallowedHostPrefixes {
+			if strings.HasPrefix(host, rule.prefix) {
+				reasons = append(reasons, fmt.Sprintf(rule.message, host))
+			}
+		}
+		for _, rule := range disallowedHostFragments {
+			if strings.Contains(host, rule.fragment) {
+				reasons = append(reasons, fmt.Sprintf(rule.message, host))
+			}
+		}
+	}
+
+	path := strings.ToLower(u.Path)
+	if path != "" {
+		leaf := path
+		if idx := strings.LastIndex(leaf, "/"); idx >= 0 {
+			leaf = leaf[idx+1:]
+		}
+		leaf = strings.TrimSpace(leaf)
+		if leaf != "" {
+			for _, item := range disallowedURLExtensions {
+				if strings.HasSuffix(leaf, item.suffix) {
+					reasons = append(reasons, fmt.Sprintf("resource with extension %s (%s) is not processed", item.suffix, item.category))
+				}
+			}
+		}
+
+		for _, rule := range disallowedPathFragments {
+			if strings.Contains(path, rule.fragment) {
+				reasons = append(reasons, fmt.Sprintf(rule.message, rule.fragment))
+			}
+		}
+	}
+
+	rawQuery := strings.ToLower(u.RawQuery)
+	if rawQuery != "" {
+		for _, rule := range disallowedQueryFragments {
+			if strings.Contains(rawQuery, rule.fragment) {
+				reasons = append(reasons, fmt.Sprintf(rule.message, rule.fragment))
+			}
+		}
+	}
+
+	if len(reasons) == 0 {
+		return nil
+	}
+
+	return reasons
+}
+
+func detectInvalidContent(rawHTML, text string) []string {
+	seen := make(map[string]struct{})
+	reasons := make([]string, 0, 2)
+
+	for _, candidate := range []string{rawHTML, text} {
+		if msg := detectBinaryPayload(candidate); msg != "" {
+			reason := fmt.Sprintf("binary payload detected: %s", msg)
+			if _, ok := seen[reason]; !ok {
+				seen[reason] = struct{}{}
+				reasons = append(reasons, reason)
+			}
+		}
+	}
+
+	if msg := detectScriptPayload(text); msg != "" {
+		reason := fmt.Sprintf("javascript payload detected: %s", msg)
+		if _, ok := seen[reason]; !ok {
+			seen[reason] = struct{}{}
+			reasons = append(reasons, reason)
+		}
+	}
+
+	if len(reasons) == 0 {
+		return nil
+	}
+
+	sort.Strings(reasons)
+	return reasons
+}
+
+func detectBinaryPayload(value string) string {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return ""
+	}
+
+	sample := trimmed
+	if len(sample) > binaryProbeLimit {
+		sample = sample[:binaryProbeLimit]
+	}
+
+	sampleBytes := []byte(sample)
+
+	for _, sig := range binarySignatures {
+		if strings.HasPrefix(sample, sig.prefix) {
+			return sig.message
+		}
+	}
+
+	nonPrintable := 0
+	total := len(sampleBytes)
+	for i := 0; i < len(sampleBytes); i++ {
+		b := sampleBytes[i]
+		if b == 0x00 {
+			return "content contains null bytes"
+		}
+		if b < 32 && b != '\n' && b != '\r' && b != '\t' {
+			nonPrintable++
+		}
+	}
+
+	if total > 0 {
+		ratio := float64(nonPrintable) / float64(total)
+		if ratio >= 0.03 {
+			return "content contains many non-printable bytes"
+		}
+
+		printableRatio := 1 - ratio
+		entropy := shannonEntropy(sampleBytes)
+		if entropy >= binaryEntropyThreshold && printableRatio <= printableRatioThreshold {
+			return fmt.Sprintf("content entropy %.2f bits/byte indicates binary payload", entropy)
+		}
+	}
+
+	return ""
+}
+
+func detectScriptPayload(text string) string {
+	trimmed := strings.TrimSpace(text)
+	if trimmed == "" {
+		return ""
+	}
+
+	runes := []rune(trimmed)
+	if len(runes) > scriptProbeLimit {
+		runes = runes[:scriptProbeLimit]
+	}
+	runeCount := len(runes)
+	if runeCount == 0 {
+		return ""
+	}
+
+	sample := strings.ToLower(string(runes))
+
+	keywordHits := 0
+	for _, kw := range scriptKeywords {
+		if strings.Contains(sample, kw) {
+			keywordHits++
+		}
+	}
+
+	if keywordHits == 0 {
+		return ""
+	}
+
+	operatorCount := 0
+	for _, r := range runes {
+		if _, ok := scriptOperatorRunes[r]; ok {
+			operatorCount++
+		}
+	}
+
+	operatorRatio := float64(operatorCount) / float64(runeCount)
+	if keywordHits >= 3 && operatorRatio >= 0.18 {
+		return fmt.Sprintf("%d script keywords and operator ratio %.2f", keywordHits, operatorRatio)
+	}
+
+	if keywordHits >= 6 {
+		return fmt.Sprintf("%d script keywords detected", keywordHits)
+	}
+
+	return ""
+}
+
+func stripJSONFragments(text string) (string, int) {
+	if text == "" {
+		return text, 0
+	}
+
+	runes := []rune(text)
+	var builder strings.Builder
+	builder.Grow(len(text))
+
+	removed := 0
+	length := len(runes)
+
+	for i := 0; i < length; {
+		r := runes[i]
+		if r == '{' || r == '[' {
+			start := i
+			depth := 1
+			i++
+			for i < length && depth > 0 {
+				switch runes[i] {
+				case '{', '[':
+					depth++
+				case '}':
+					if runes[start] == '{' {
+						depth--
+					}
+				case ']':
+					if runes[start] == '[' {
+						depth--
+					}
+				}
+				i++
+			}
+			fragment := string(runes[start:i])
+			if looksLikeJSONFragment(fragment) {
+				removed++
+				continue
+			}
+			builder.WriteString(fragment)
+			continue
+		}
+
+		builder.WriteRune(r)
+		i++
+	}
+
+	if removed == 0 {
+		return text, 0
+	}
+
+	return strings.TrimSpace(builder.String()), removed
+}
+
+func looksLikeJSONFragment(fragment string) bool {
+	trimmed := strings.TrimSpace(fragment)
+	if len(trimmed) < 120 {
+		return false
+	}
+	if trimmed[0] != '{' && trimmed[0] != '[' {
+		return false
+	}
+
+	colons := strings.Count(trimmed, ":")
+	quotes := strings.Count(trimmed, "\"")
+	if colons < 3 || quotes < 6 {
+		return false
+	}
+
+	return true
+}
+
+func (s *ScrapeService) retryWithUserAgent(ctx context.Context, strategy ContentStrategy, url string, currentUA string) (models.ContentData, bool) {
+	custom, ok := strategy.(CustomAgentStrategy)
+	if !ok || len(s.userAgents) == 0 || s.maxUserAgentRetries <= 0 {
+		return models.ContentData{}, false
+	}
+
+	exclude := make(map[string]struct{})
+	if trimmed := strings.TrimSpace(currentUA); trimmed != "" {
+		exclude[trimmed] = struct{}{}
+	}
+
+	candidates := s.randomUserAgents(exclude)
+	for _, ua := range candidates {
+		payload, err := custom.FetchWithUserAgent(ctx, url, ua)
+		if err != nil {
+			continue
+		}
+		return payload, true
+	}
+
+	return models.ContentData{}, false
+}
+
+func (s *ScrapeService) randomUserAgents(exclude map[string]struct{}) []string {
+	available := make([]string, 0, len(s.userAgents))
+	for _, ua := range s.userAgents {
+		trimmed := strings.TrimSpace(ua)
+		if trimmed == "" {
+			continue
+		}
+		if exclude != nil {
+			if _, ok := exclude[trimmed]; ok {
+				continue
+			}
+		}
+		available = append(available, trimmed)
+	}
+
+	if len(available) == 0 {
+		return nil
+	}
+
+	s.randMu.Lock()
+	s.uaRand.Shuffle(len(available), func(i, j int) {
+		available[i], available[j] = available[j], available[i]
+	})
+	s.randMu.Unlock()
+
+	if len(available) > s.maxUserAgentRetries {
+		available = available[:s.maxUserAgentRetries]
+	}
+
+	return available
+}
+
+func extractRetryableStatus(err error) (int, bool) {
+	code, ok := parseStatusCodeFromError(err)
+	if !ok {
+		return 0, false
+	}
+	if _, allowed := retryableStatusCodes[code]; !allowed {
+		return 0, false
+	}
+	return code, true
+}
+
+func parseStatusCodeFromError(err error) (int, bool) {
+	if err == nil {
+		return 0, false
+	}
+	const marker = "status code: "
+	msg := err.Error()
+	idx := strings.LastIndex(msg, marker)
+	if idx == -1 {
+		return 0, false
+	}
+	idx += len(marker)
+	if idx >= len(msg) {
+		return 0, false
+	}
+
+	end := idx
+	for end < len(msg) && msg[end] >= '0' && msg[end] <= '9' {
+		end++
+	}
+	if end == idx {
+		return 0, false
+	}
+
+	code, convErr := strconv.Atoi(msg[idx:end])
+	if convErr != nil {
+		return 0, false
+	}
+	return code, true
+}
+
+func shannonEntropy(data []byte) float64 {
+	if len(data) == 0 {
+		return 0
+	}
+
+	counts := make(map[byte]int, 32)
+	for _, b := range data {
+		counts[b]++
+	}
+
+	var entropy float64
+	total := float64(len(data))
+	for _, c := range counts {
+		p := float64(c) / total
+		entropy -= p * math.Log2(p)
+	}
+	return entropy
 }

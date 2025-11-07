@@ -1,19 +1,24 @@
 db_path: "data/ipinfo_lite.mmdb"
-workers: 10
+workers: 1000
 request_timeout: 15s
 content:
   strategies:
     - trafilatura
     - http
+  archive_strategies:
+    - wayback
+    - archive.today
   min_text_length: 200
   max_content_length: 50000
   user_agents_path: data/user_agents.txt
+  anti_bot_phrases_path: data/anti_bot_phrases.txt
+  strip_json_fragments: true
 logging:
   level: info
 kafka:
   brokers:
     - "kafka:9092"
-  group_id: "scraper-consumer_11"
+  group_id: "scraper-consumer_13"
   client_id: "scraper"
   input_topic: "url-processing-requests"
   metadata_topic: "url-metadata-results"

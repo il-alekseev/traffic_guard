@@ -1,0 +1,21 @@
+Вы не робот?
+Browser check...An additional check of your browser is being performed... Confirm that you are not a robot
+SmartCaptcha by Yandex Cloud
+Подтвердите, что запросы отправляли вы, а не робот
+Упс! В вашем браузере не включён JavaScript Для корректной работы сайта включите JavaScript
+JavaScript is disabled in your browser For proper website functioning, please enable JavaScript
+Checking your browser before accessing
+Cloudflare is checking your browser
+Please stand by, while we are checking your browser
+Attention Required! | Cloudflare
+Ray ID
+Checking if the site connection is secure
+This process is automatic. Your browser will redirect to your requested content shortly.
+hCaptcha checkbox
+Please enable cookies.
+Press and hold to confirm you are human
+Complete the security check to access this website
+Access denied | Error 1020
+recaptcha verification required
+I am not a robot
+To continue, please prove you are not a robot

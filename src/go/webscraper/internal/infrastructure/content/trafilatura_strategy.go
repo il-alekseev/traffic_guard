@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	nurl "net/url"
+	"strings"
 	"time"
 
 	trafilatura "github.com/markusmobius/go-trafilatura"
@@ -99,4 +100,11 @@ func (s *TrafilaturaStrategy) fetchWithAgent(ctx context.Context, url, agent str
 	}
 
 	return models.ContentData{Text: result.ContentText, UserAgent: agent}, nil
+}
+
+func (s *TrafilaturaStrategy) FetchWithUserAgent(ctx context.Context, url, agent string) (models.ContentData, error) {
+	if strings.TrimSpace(agent) == "" {
+		return models.ContentData{}, errors.New("empty user agent")
+	}
+	return s.fetchWithAgent(ctx, url, agent)
 }

@@ -40,6 +40,14 @@ func BuildContent(outcome models.RequestOutcome, contentID string) (models.Conte
 		return models.ContentMessage{}, false
 	}
 
+	if best.Status != models.StatusOK {
+		return models.ContentMessage{}, false
+	}
+
+	if best.Failure != models.FailureNone && best.Failure != "" {
+		return models.ContentMessage{}, false
+	}
+
 	contentMsg := models.ContentMessage{
 		RequestID:   outcome.Request.RequestID,
 		ContentID:   contentID,
