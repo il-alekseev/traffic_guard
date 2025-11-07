@@ -48,7 +48,7 @@
 </template>
 
 <script setup lang="ts">
-import ArrowIcon from '@/assets/img/full-arrow-down.svg';
+import ArrowIcon from '~/assets/img/full-arrow-down.svg';
 import type { StatItem } from '~/types/statistics';
 
 interface Props {

@@ -5,12 +5,12 @@ import type { ApiClient, ApiRequestOptions, ApiResponse } from '~/types/api'
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig();
   const apiBaseUrl = `${config.public.apiGateway.host}:${config.public.apiGateway.port}/api/v1`
-  const apiUserControlBaseUrl = `${config.public.apiUsers.host}:${config.public.apiUsers.port}/v1`
+  const apiUsersControlBaseUrl = `${config.public.apiUsers.host}:${config.public.apiUsers.port}/v1`
 
   const getFullUrl = (endpoint: string, params?: Record<string, string | number | boolean>) => {
     let url
     if (endpoint.startsWith('/auth') || endpoint.startsWith('/users')) {
-      url = `${apiUserControlBaseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`  
+      url = `${apiUsersControlBaseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`  
     } else {
       url = `${apiBaseUrl}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`
     }
@@ -94,6 +94,23 @@ export default defineNuxtPlugin((nuxtApp) => {
       })
       return handleResponse<T>(response).then(res => res.data)
     },
+
+    patch: async <T>(endpoint: string, data?: any, options: ApiRequestOptions = {}) => {
+      const { params, ...fetchOptions } = options
+      const response = await fetch(getFullUrl(endpoint, params), {
+        ...fetchOptions,
+        method: 'PATCH',
+        // credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          ...fetchOptions.headers
+        },
+        body: data ? JSON.stringify(data) : undefined
+      })
+      return handleResponse<T>(response).then(res => res.data)
+    },
+
 
     delete: async <T>(endpoint: string, options: ApiRequestOptions = {}) => {
       const { params, ...fetchOptions } = options

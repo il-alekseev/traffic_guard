@@ -7,9 +7,9 @@
     >
       <div class="category__info">
         <span class="category__number">{{ index + 1 }}</span>
-        <span class="category__name">{{ category.category }}</span>
+        <span class="category__name">{{ category.name }}</span>
       </div>
-      <span class="category__count">{{ category.count }}</span>
+      <span class="category__count">{{ category.access_count }}</span>
     </div>
   </div>
 </template>

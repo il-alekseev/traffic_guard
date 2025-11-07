@@ -33,6 +33,7 @@
           id="login"
           name="login"
           label="Логин"
+          :showRequiredLabel="true"
           v-model="form.login"
           :error="errors.login"
         />
@@ -41,6 +42,7 @@
           id="last_name"
           name="last_name"
           label="Фамилия"
+          :showRequiredLabel="true"
           v-model="form.last_name"
           :error="errors.last_name"
         />
@@ -49,6 +51,7 @@
           id="first_name"
           name="first_name"
           label="Имя"
+          :showRequiredLabel="true"
           v-model="form.first_name"
           :error="errors.first_name"
         />
@@ -58,6 +61,7 @@
           :required="false"
           name="patronymic"
           label="Отчество"
+          :showRequiredLabel="true"
           v-model="form.patronymic"
           :error="errors.patronymic"
         />
@@ -77,10 +81,28 @@
           </p>
         </div>
 
+        <div v-if="form.role.id === 'CA'" class="base-form-field">
+          <label for="device" class="base-label">NGFW</label>
+          <Dropdown
+            :search="true"
+            :localSearch="true"
+            id="device"
+            :items="allowedDevices"
+            searchPlaceholder="Поиск..."
+            v-model="form.device"
+            :selectedTextClass="'ngfw-bagde'"
+            :selectedTextStyle="{
+              backgroundColor: generateColor(form.device.id).background,
+              color: generateColor(form.device.id).color
+            }"
+          />
+        </div>
+
         <BaseInput
           id="email"
           name="email"
           label="Email"
+          :showRequiredLabel="true"
           type="email"
           v-model="form.email"
           :error="errors.email"
@@ -140,16 +162,21 @@
 </template>
 
 <script setup lang="ts">
+import { useDevicesStore } from '~/stores/devices';
+import { useDeviceColors } from '~/composables/useDeviceColors';
 import { useUsersControlStore } from '~/stores/usersControl';
-import { useNotificationStore } from '@/stores/notification';
+import { useNotificationStore } from '~/stores/notification';
 import { useUserStore } from "~/stores/user";
 import type { User, UserForm } from '~/types/user';
 import type { DropdownItem } from '~/types/dropdown';
-import { getTempPassword } from '~/helpers';
+import { getOnlyDeviceName, getOnlyRole, getRoleDisplayName, getTempPassword } from '~/helpers';
 import BaseInput from '~/components/ui/BaseInput.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
 import BaseAlert from '~/components/ui/BaseAlert.vue';
 import Dropdown from '~/components/ui/Dropdown.vue';
+
+
+const { generateColor } = useDeviceColors();
 
 const emit = defineEmits<{
   close: [];
@@ -181,12 +208,30 @@ const loadingResetPass = ref(false);
 const loadingDelete = ref(false);
 const error = ref('');
 
+const deviceStore = useDevicesStore();
+const allowedDevices = computed<DropdownItem[]>(() => {
+  const devices = deviceStore.devices;
+  if (!devices) return [];
+  const result = devices.map((device) => {
+    return {
+      id: device,
+      name: device
+    }
+  })
+  return result;
+})
+
+
 const form = reactive<UserForm>({
   login: '',
   first_name: '',
   last_name: '',
   patronymic: '',
   role: {
+    id: '',
+    name: '',
+  },
+  device: {
     id: '',
     name: '',
   },
@@ -312,13 +357,14 @@ const createUser = async () => {
 
   try {
     const password = getTempPassword();
+    const fullRole = form.role.id === 'SA' ? form.role.id : form.role.id + '-' + form.device.id
 
     const data: createUserDTO = {
       login: form.login.trim(),
       first_name: form.first_name.trim(),
       last_name: form.last_name.trim(),
       patronymic: form.patronymic.trim(),
-      role: form.role.id,
+      role: fullRole,
       email: form.email.trim(),
       password: password,
     }
@@ -402,13 +448,18 @@ const submitForm = () => {
 const initForm = async () => {
   if (props.userData === null) return;
 
+  const onlyRole = getOnlyRole(props.userData.role);
+  const onlyDevice = getOnlyDeviceName(props.userData.role)
+
   form.login = props.userData.login || '';
   form.email = props.userData.email || '';
   form.first_name = props.userData.first_name || '';
   form.last_name = props.userData.last_name || '';
   form.patronymic = props.userData.patronymic || '';
-  form.role.id = props.userData.role || '';
-  form.role.name = props.userData.role || '';
+  form.role.id = onlyRole;
+  form.role.name = getRoleDisplayName(onlyRole) || '';
+  form.device.id = onlyDevice || '';
+  form.device.name = onlyDevice || '';
 }
 
 onMounted(() => {

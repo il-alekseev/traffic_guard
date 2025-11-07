@@ -1,6 +1,6 @@
 <template>
   <div class="base-form-field">
-    <label :for="id" class="base-label">{{ label }} <span class="not-requires-msg" v-if="props.required === false">необязательно</span></label>
+    <label :for="id" class="base-label">{{ label }} <span class="requires-msg" v-if="props.required === true && props.showRequiredLabel">Обязательное поле</span></label>
     <div v-if="type === 'password'" class="base-password-container">
       <input
         :required="props.required"
@@ -70,6 +70,10 @@ const props = defineProps({
     type: String,
     required: true
   },
+  showRequiredLabel: {
+    type: Boolean,
+    default: false
+  },
   modelValue: {
     type: [String, Number],
     default: ''
@@ -129,6 +133,8 @@ const togglePassword = () => {
   font-weight: 500;
   line-height: 1.5rem;
   color: #3F3F46;
+  display: flex;
+  gap: 0.375rem;
 }
 
 .base-input {
@@ -192,10 +198,13 @@ const togglePassword = () => {
   color: #71717A;
 }
 
-.not-requires-msg {
-  color: #71717A;
-  font-size: 1rem;
-  line-height: 1.25rem;
+.requires-msg {
+  color: #4A5565;
+  font-size: 0.75rem;
+  line-height: 1rem;
   font-weight: 400;
+  padding: 0.25rem 0.5rem;
+  border-radius: 33554400px;
+  background-color: #F3F4F6;
 }
 </style>

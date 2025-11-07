@@ -67,7 +67,7 @@ import BaseInput from '~/components/ui/BaseInput.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
 import BaseAlert from '~/components/ui/BaseAlert.vue';
 import { useUserStore } from '~/stores/user';
-import { useNotificationStore } from '@/stores/notification';
+import { useNotificationStore } from '~/stores/notification';
 
 const emit = defineEmits(['success', 'close']);
 

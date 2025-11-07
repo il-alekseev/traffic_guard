@@ -1,8 +1,8 @@
 import type { Categories } from "./categories";
 
 export interface DashboardCategory {
-  category: Categories;
-  count: number;
+  name: Categories;
+  access_count: number;
 }
 
 export type TopCategories = DashboardCategory[];
@@ -36,11 +36,29 @@ export interface DashboardTrafficLegend {
   }
 }
 
+export type DashboardRequestsType = 'blocked' | 'allowed' | 'before_block' | 'pending';
+
+export interface DashboardRequestObj {
+  count: number;
+  data: {
+    Data: number[];
+    Time: string[];
+  },
+  type: DashboardRequestsType;
+}
+
+export interface DashboardRequests {
+  blocked: DashboardRequestObj | null;
+  allowed: DashboardRequestObj | null;
+  before_block: DashboardRequestObj | null;
+  pending: DashboardRequestObj | null;
+}
+
 export interface DashboardState {
   topCategories: TopCategories | null;
   topDetections: TopDetections | null;
   trafic: DashboardTraffic | null
-  requests: null,
+  requests: DashboardRequests,
   anomalies: null,
   events: null,
   proh_activity: null,

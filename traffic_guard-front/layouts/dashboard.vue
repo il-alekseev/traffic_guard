@@ -17,16 +17,16 @@
 
 <script setup lang="ts">
 import { useUserStore } from '~/stores/user';
-import { useDevicesControlStore } from '~/stores/devicesControl';
-import { useCategoriesControlStore } from '~/stores/categoriesControl';
+import { useDevicesStore } from '~/stores/devices';
+import { useCategoriesStore } from '~/stores/categories';
 import {navigateTo} from "#app";
 import NotificationToasts from "~/components/ui/NotificationToasts.vue";
 import SidebarComponent from "~/components/dashboard/SidebarComponent.vue";
 import HeaderComponent from "~/components/dashboard/HeaderComponent.vue";
 
 const userStore = useUserStore();
-const deviceControlStore = useDevicesControlStore();
-const categoriesControlStroe = useCategoriesControlStore();
+const devicesStore = useDevicesStore();
+const categoriesStore = useCategoriesStore();
 
 const checkUser = async () => {
   if (!userStore.user) {
@@ -38,14 +38,14 @@ const checkUser = async () => {
 }
 
 const checkDevices = async () => {
-  if (!deviceControlStore.devices) {
-    await deviceControlStore.fetchDevices();
+  if (!devicesStore.devices) {
+    await devicesStore.fetchDevices();
   }
 }
 
 const checkCategories = async () => {
-  if (!categoriesControlStroe.categories) {
-    await categoriesControlStroe.fetchCategories();
+  if (!categoriesStore.categories) {
+    await categoriesStore.fetchCategories();
   }
 }
 

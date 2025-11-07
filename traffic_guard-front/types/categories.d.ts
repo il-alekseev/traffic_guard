@@ -1,3 +1,14 @@
+import { Categories } from "./categories";
+
+
+export interface CategoriesState {
+  categories: Categories[] | null;
+}
+
+export interface DeviceontrolActions {
+  fetchCategories(): Promise<Categories[]>
+}
+
 export type Categories =
   | 'Неизвестный класс'
   | 'Агрессия, расизм, терроризм'

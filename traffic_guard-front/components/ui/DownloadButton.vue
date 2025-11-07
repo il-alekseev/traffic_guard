@@ -28,5 +28,6 @@ import DownloadIcon from '~/assets/img/download.svg';
   width: 20px;
   height: 20px;
   object-fit: contain;
+  color: #A1A1AA;
 }
 </style>

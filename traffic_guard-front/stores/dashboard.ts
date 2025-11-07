@@ -3,7 +3,7 @@ import { useNuxtApp } from "#app";
 import type { defaultResponse } from "~/types/api";
 import { useUserStore } from "./user";
 import { getTokenHeaders } from "~/helpers";
-import type { DashboardState, DashboardTraffic, TopCategories, TopDetections } from "~/types/dashboard";
+import type { DashboardRequestObj, DashboardRequests, DashboardRequestsType, DashboardState, DashboardTraffic, TopCategories, TopDetections } from "~/types/dashboard";
 
 
 export const useDashboardStore = defineStore("dashboard", {
@@ -12,7 +12,12 @@ export const useDashboardStore = defineStore("dashboard", {
         topCategories: null,
         topDetections: null,
         trafic: null,
-        requests: null,
+        requests: {
+          allowed: null,
+          blocked: null,
+          before_block: null,
+          pending: null
+        },
         anomalies: null,
         events: null,
         proh_activity: null,
@@ -58,35 +63,12 @@ export const useDashboardStore = defineStore("dashboard", {
 
         const result = await $api.get<TopCategories>('/dashboards/top-categories', {
           params,
-          // ...getTokenHeaders(token)
+          ...getTokenHeaders(token)
         });
 
 
         if (result) {
           this.topCategories = result;
-          const data: TopCategories = [
-            {
-              category: 'Агрессия, расизм, терроризм',
-              count: 3044
-            },
-            {
-              category: 'Наркотики',
-              count: 2450
-            },
-            {
-              category: 'Порнография и секс',
-              count: 1300
-            },
-            {
-              category: 'Торренты и P2P-сети',
-              count: 1199
-            },
-            {
-              category: 'Прокси и анонимайзеры',
-              count: 485
-            },
-          ];
-          this.topCategories = data;
           return result;
         } else {
           throw new Error("Не удалось получить топ категорий");
@@ -135,39 +117,6 @@ export const useDashboardStore = defineStore("dashboard", {
 
         if (result) {
           this.topDetections = result;
-          const data = [
-            {
-              domain: "twitter",
-              requests_after: 600,
-              requests_all: 1000,
-              requests_before: 400
-            },
-            {
-              domain: "youtube",
-              requests_after: 123,
-              requests_all: 443,
-              requests_before: 320
-            },
-            {
-              domain: "facebook",
-              requests_after: 190,
-              requests_all: 200,
-              requests_before: 10
-            },
-            {
-              domain: "telegram",
-              requests_after: 302,
-              requests_all: 512,
-              requests_before: 210
-            },
-            {
-              domain: "discord",
-              requests_after: 9,
-              requests_all: 10,
-              requests_before: 1
-            },
-          ];
-          this.topDetections = data;
           return result;
         } else {
           throw new Error("Не удалось получить топ выявлений");
@@ -221,8 +170,97 @@ export const useDashboardStore = defineStore("dashboard", {
           throw new Error("Не удалось получить статистику трафика");
         }
       } catch (error: any) {
-        throw new Error(error.message || "Ошибка при получении статистику трафика");
+        throw new Error(error.message || "Ошибка при получении статистики трафика");
       }
     },
+
+    async fetchRequest(from: string = 'now-10m', to: string = 'now', request_type: DashboardRequestsType = 'allowed', count: number = 10, hostname?: string): Promise<DashboardRequestObj> {
+      const userStore = useUserStore();
+      try {
+        await userStore.ensureValidToken();
+      } catch {
+        userStore.clearToken();
+        throw new Error(
+          "Не удалось получить статистику запросов. Пользователь неавторизован",
+        );
+      }
+
+      const token = useCookie('auth_token').value;
+
+      if (!token) {
+        userStore.clearToken();
+        throw new Error(
+          "Не удалось получить статистику запросов. Пользователь неавторизован",
+        );
+      }
+
+      try {
+        const { $api } = useNuxtApp();
+
+        const params: Record<string, string | number> = {
+          from,
+          to,
+          count,
+          request_type,
+          ...(hostname ? { hostname } : {}),
+        };
+
+        const result = await $api.get<DashboardRequestObj>('/dashboards/requests', {
+          params,
+          ...getTokenHeaders(token)
+        });
+
+
+        if (result) {
+          if (request_type === 'allowed') {
+            this.requests.allowed = result;
+          } else if (request_type === 'blocked') {
+            this.requests.blocked = result;
+          } else if (request_type === 'before_block') {
+            this.requests.before_block = result
+          } else if (request_type === 'pending') {
+            this.requests.pending = result;
+          }
+          return result;
+        } else {
+          throw new Error("Не удалось получить статистику запросов");
+        }
+      } catch (error: any) {
+        throw new Error(error.message || "Ошибка при получении статистики запросов");
+      }
+    },
+
+    async fetchRequests(from: string = 'now-10m', to: string = 'now', count: number = 10, hostname?: string): Promise<DashboardRequests> {
+      const userStore = useUserStore();
+      try {
+        await userStore.ensureValidToken();
+      } catch {
+        userStore.clearToken();
+        throw new Error(
+          "Не удалось получить статистику запросов. Пользователь неавторизован",
+        );
+      }
+
+      const token = useCookie('auth_token').value;
+
+      if (!token) {
+        userStore.clearToken();
+        throw new Error(
+          "Не удалось получить статистику запросов. Пользователь неавторизован",
+        );
+      }
+
+      try {
+        await Promise.all([
+          this.fetchRequest(from, to, 'allowed', count, hostname),
+          this.fetchRequest(from, to, 'blocked', count, hostname),
+          this.fetchRequest(from, to, 'before_block', count, hostname),
+          this.fetchRequest(from, to, 'pending', count, hostname),
+        ]);
+        return this.requests;
+      } catch (error: any) {
+        throw new Error(error.message || "Ошибка при получении статистики запросов");
+      }
+    }
   },
 });

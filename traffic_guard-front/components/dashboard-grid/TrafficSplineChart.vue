@@ -3,7 +3,7 @@
     <ClientOnly>
       <VueApexCharts
         type="area"
-        height="133"
+        :height="props.graphHeight"
         :options="chartOptions"
         :series="series"
       />
@@ -18,6 +18,7 @@ import type { DashboardTraffic } from '~/types/dashboard';
 
 const props = defineProps<{
   trafficData?: DashboardTraffic
+  graphHeight: string
 }>()
 
 const safeData = computed(() => ({
@@ -47,7 +48,7 @@ const formatCompactNumber = (val: number, locale: string = 'ru'): string => {
 const chartOptions = computed<ApexOptions>(() => ({
   chart: {
     type: 'area',
-    height: '133px',
+    height: props.graphHeight,
     toolbar: { show: false },
     zoom: { enabled: false },
     locales: [{

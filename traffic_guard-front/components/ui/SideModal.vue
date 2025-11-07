@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import CrossIcon from '@/assets/img/cross.svg'
+import CrossIcon from '~/assets/img/cross.svg'
 
 defineProps<{
   modelValue: boolean

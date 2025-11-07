@@ -14,7 +14,7 @@
         </span>
         <span class="resource-card__date">
           {{
-            new Date(item.last_access_datetime).toLocaleString('ru-RU', {
+            new Date(item.categorized_at).toLocaleString('ru-RU', {
               day: '2-digit',
               month: '2-digit',
               year: 'numeric',
@@ -35,7 +35,7 @@
       <div class="resource-card__label">Host</div>
       <div class="resource-card__host">
         <div v-if="item.location !== 'private'" class="resource-card__flag-icon-block">
-          <EmojiFlag :code="item.location.toLowerCase()" />
+          <EmojiFlag :code="item.location.substring(0, 2).toLowerCase()" />
         </div>
         <span class="resource-card__description resource-card__description-location">{{ item.location }}</span>
         <a :href="`https://${item.ip}`" class="resource-card__ip">{{ item.ip }}</a>
@@ -48,20 +48,20 @@
             color: deviceColors.color
           }"
         >
-          {{ item.host_name }}
+          {{ item.hostname || 'Неизвестно' }}
         </span>
         <span class="resource-card__requests">
-          Количество обращений: <strong>{{ item.access_count }}</strong>
+          Количество обращений: <strong>{{ item.request_count }}</strong>
         </span>
       </div>
     </div>
 
     <div class="resource-card__footer">
-      <div :class="['resource-card__status', `resource-card__status--${item.decision || ''}`]">
+      <div :class="['resource-card__status', `resource-card__status--`]">
         <span class="resource-card__status-dot"></span>
-        {{ getStatusType(item.decision) }}
+        {{ item.action }}
       </div>
-      <div v-if="item.action === ''" class="resource-card__actions">
+      <div v-if="item.action === 'Не решено'" class="resource-card__actions">
         <BaseButton
           type="button"
           variant="primary"
@@ -80,23 +80,24 @@
         </BaseButton>
       </div>
       <div v-else-if="item.action === 'Разрешено'" class="resource-card__blocked">
-        Доступ разерешен
+        Доступ разрешен
       </div>
       <div v-else-if="item.action === 'Заблокировано'" class="resource-card__blocked">
         Заблокировано
       </div>
       <div v-else>
+        Неизвестно
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { getModificatorByCategory, getStatusType } from '~/helpers';
+import { getModificatorByCategory } from '~/helpers';
 import BaseButton from '~/components/ui/BaseButton.vue';
 import EmojiFlag from "~/components/ui/EmojiFlag.vue"
 import { useDeviceColors } from '~/composables/useDeviceColors';
-import type { Detection } from '~/types/detectionsControl';
+import type { Detection } from '~/types/detections';
 import DetectionsIcon from "~/assets/img/detections.svg"
 
 
@@ -112,12 +113,14 @@ defineEmits<{
 }>()
 
 const { generateColor } = useDeviceColors();
-const deviceColors = generateColor(props.item.host_name);
+const deviceColors = generateColor(props.item.hostname);
 
 </script>
 
 <style scoped lang="scss">
 .resource-card {
+  max-width: 512px;
+  width: 100%;
   background: #ffffff;
   border-radius: 28px;
   padding: 1.25rem;
@@ -160,6 +163,10 @@ const deviceColors = generateColor(props.item.host_name);
     font-size: 1rem;
     line-height: 1.5rem;
     color: #3F3F46;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   &__label {
@@ -297,16 +304,6 @@ const deviceColors = generateColor(props.item.host_name);
     line-height: 1rem;
     font-weight: 500;
     text-transform: uppercase;
-
-    &--ngfw-1 {
-      background: #DCFCE7;
-      color: #008236;
-    }
-
-    &--ngfw-2 {
-      background: #DBEAFE;
-      color: #1447E6;
-    }
   }
 
   &__requests {

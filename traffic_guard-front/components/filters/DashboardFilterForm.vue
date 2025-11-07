@@ -55,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { useDevicesControlStore } from '~/stores/devicesControl';
+import { useDevicesStore } from '~/stores/devices';
 import { useDeviceColors } from '~/composables/useDeviceColors';
 import type { DropdownItem } from '~/types/dropdown';
 import BaseButton from '~/components/ui/BaseButton.vue';
@@ -74,7 +74,7 @@ const props = defineProps<{
 
 const { generateColor } = useDeviceColors();
 
-const deviceControlStore = useDevicesControlStore();
+const deviceStore = useDevicesStore();
 
 const loading = ref(false);
 const error = ref('');
@@ -91,7 +91,7 @@ const form = reactive<DashboardFilter>({
 });
 
 const allowedDevices = computed<DropdownItem[]>(() => {
-  const devices = deviceControlStore.devices;
+  const devices = deviceStore.devices;
   if (!devices) return [];
   const result = devices.map((device) => {
     return {

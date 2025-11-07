@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { useNotificationStore } from '@/stores/notification'
+import { useNotificationStore } from '~/stores/notification'
 import CheckIcon from "~/assets/img/check.svg";
 
 

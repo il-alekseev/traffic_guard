@@ -82,8 +82,8 @@
 <script setup lang="ts">
 import { getModificatorByCategory } from '~/helpers';
 import { useDeviceColors } from '~/composables/useDeviceColors';
-import { useDevicesControlStore } from '~/stores/devicesControl';
-import { useCategoriesControlStore } from '~/stores/categoriesControl';
+import { useDevicesStore } from '~/stores/devices';
+import { useCategoriesStore } from '~/stores/categories';
 import type { DropdownItem } from '~/types/dropdown';
 import BaseButton from '~/components/ui/BaseButton.vue';
 import BaseAlert from '~/components/ui/BaseAlert.vue';
@@ -102,8 +102,8 @@ const props = defineProps<{
 
 
 const { generateColor } = useDeviceColors();
-const deviceControlStore = useDevicesControlStore();
-const categoriesControlStroe = useCategoriesControlStore()
+const devicesStore = useDevicesStore();
+const categoriesStore = useCategoriesStore()
 
 const loading = ref(false);
 const error = ref('');
@@ -150,7 +150,7 @@ const allowedStatus = ref<DropdownItem[]>([
 ]);
 
 const allowedCategories = computed<DropdownItem[]>(() => {
-  const categories = categoriesControlStroe.categories;
+  const categories = categoriesStore.categories;
   if (!categories) return [];
   const result = categories.map((category) => {
     return {
@@ -163,7 +163,7 @@ const allowedCategories = computed<DropdownItem[]>(() => {
 
 
 const allowedDevices = computed<DropdownItem[]>(() => {
-  const devices = deviceControlStore.devices;
+  const devices = devicesStore.devices;
   if (!devices) return [];
   const result = devices.map((device) => {
     return {

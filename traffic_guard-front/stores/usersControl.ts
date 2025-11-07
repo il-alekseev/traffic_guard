@@ -6,7 +6,7 @@ import type { UsersControlState } from "~/types/usersControl";
 import type { defaultResponse } from "~/types/api";
 import { useUserStore } from "./user";
 
-export const useUsersControlStore = defineStore("userControl", {
+export const useUsersControlStore = defineStore("usersControl", {
   state: (): UsersControlState => {
     return {
       users: null,

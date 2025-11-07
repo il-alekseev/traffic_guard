@@ -2,12 +2,12 @@
   <span>{{ emojiFlag(code) }}</span>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const props = defineProps({
   code: { type: String, required: true }
 })
 
-const emojiFlag = (code) => {
+const emojiFlag = (code: string) => {
   return code
     .toUpperCase()
     .replace(/./g, char =>

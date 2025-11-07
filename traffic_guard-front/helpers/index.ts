@@ -1,5 +1,5 @@
-import type { SessionStatus, SessionTypes } from "~/types/sessionControl";
-import type { StatusType } from "~/types/detectionsControl";
+import type { SessionStatus, SessionTypes } from "~/types/session";
+import type { ActionType } from "~/types/detections";
 import type { Categories } from "~/types/categories";
 
 export const getTokenHeaders = (token: string): {
@@ -118,42 +118,16 @@ export function getModificatorByCategory(category: Categories): string {
   return categoryMap[category] || 'unknown';
 }
 
-export function getStatusType(status: StatusType): string {
-  switch (status) {
-    case 'blocked':
-      return 'Заблокировано'
-    case 'blocking':
-      return 'Рекомендуется блокировка'
-    case 'verification':
-      return 'Требуется проверка'
-    default:
-      return 'Неизвестно'
-  }
-}
-
 export function getBadgeClassByStatus(status: SessionStatus): string {
   switch (status) {
-    case ('allowed'):
+    case ('Разрешен'):
       return 'session-status-badge_greeen'
-    case ('blocked'):
+    case ('Запрещен'):
       return 'session-status-badge_red'
-    case ('waiting'):
+    case ('Ожидает'):
       return 'session-status-badge_yellow'
     default:
       return 'session-status-badge_yellow'
-  }
-}
-
-export function getStatusText(status: SessionStatus): string {
-  switch (status) {
-    case ('allowed'):
-      return 'Разрешен'
-    case ('blocked'):
-      return 'Запрещён'
-    case ('waiting'):
-      return 'Ожидает'
-    default:
-      return ''
   }
 }
 
@@ -214,10 +188,10 @@ export function isCategory(value: unknown): value is Categories {
 }
 
 const SESSION_STATUSES_LIST = [
-  "allowed",
-  "blocked",
-  "waiting",
-  "anomaly"
+  "Разрешен",
+  "Запрещен",
+  "Ожидает",
+  "Аномалия"
 ]
 
 export function isSessionStatus(value: unknown): value is SessionStatus {
@@ -225,11 +199,65 @@ export function isSessionStatus(value: unknown): value is SessionStatus {
 }
 
 const SESSION_TYPES_LIST = [
-  "Фаервол",
-  "VPN",
-  "Аномалия"
+  "Разрешен",
+  "Запрещен",
+  "VPN"
 ]
 
 export function isSessionTypes(value: unknown): value is SessionTypes {
   return SESSION_TYPES_LIST.includes(value as SessionTypes);
 }
+
+export const calculatePercent = (value: number, total: number): string => {
+  if (total === 0) return "0%";
+  
+  const percent = (value / total) * 100;
+  
+  if (percent > 0 && percent < 1) {
+    return "<1%";
+  }
+  
+  return `${Math.round(percent)}%`;
+};
+
+export const formatTraffic = (bytes: number): string => {
+  if (bytes >= 1000000) {
+    return `${(bytes / 1000000).toFixed(0)}M`;
+  }
+  if (bytes >= 1000) {
+    return `${(bytes / 1000).toFixed(0)}k`;
+  }
+  return `${bytes}`;
+};
+
+export const getRoleDisplayName = (role: string): string => {
+  const onlyRole = getOnlyRole(role);
+
+  const roles: Record<string, string> = {
+    'SA': 'Системный администратор',
+    'CA': 'Администратор узла NGFW',
+  };
+  return roles[onlyRole] || role;
+};
+
+export const getOnlyRole = (role: string): string => {
+  const [onlyRole] = role?.split('-', 1);
+  return onlyRole;
+};
+
+export const getOnlyDeviceName = (role: string): string => {
+  if (role === 'SA') {
+    return ''
+  }
+  return role.split("-")[1];
+};
+
+export function makeUTCDate(year: number, month: number, day: number): Date {
+  return new Date(Date.UTC(year, month, day))
+}
+
+export const isValidDateString = (val: string | null | undefined) => {
+  if (!val || typeof val !== 'string') return false;
+  const d = new Date(val);
+  return !isNaN(d.getTime());
+};

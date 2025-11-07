@@ -25,6 +25,11 @@ export interface ApiClient {
     data?: any,
     options?: ApiRequestOptions,
   ) => Promise<T>;
+  patch: <T = any>(
+    endpoint: string,
+    data?: any,
+    options?: ApiRequestOptions,
+  ) => Promise<T>;
   delete: <T = any>(
     endpoint: string,
     options?: ApiRequestOptions,

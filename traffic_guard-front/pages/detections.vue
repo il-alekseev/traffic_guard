@@ -42,8 +42,8 @@
         <ResourceCard
           v-for="resource in detections"
           :item="resource"
-          @confirm="handleConfirm(resource.id)"
-          @reject="handleReject(resource.id)"
+          @confirm="handleConfirm(resource)"
+          @reject="handleReject(resource)"
         />
       </div>
       <div v-if="fetchDetectionsError == '' && detections.length > 0" class="detections__footer">
@@ -100,8 +100,8 @@
 
 <script setup lang="ts">
 import { definePageMeta } from '#imports';
-import type { Detection, DetectionStats, DetectionTable } from '~/types/detectionsControl';
-import { useDetectionsControlStore } from '~/stores/detectionsControl';
+import type { Detection, DetectionStats, DetectionTable } from '~/types/detections';
+import { useDetectionsStore } from '~/stores/detections';
 import type { StatItem } from '~/types/statistics';
 import StatsComponent from '~/components/data-display/StatsComponent.vue';
 import ResourceCard from '~/components/resource-cards/ResourceCard.vue';
@@ -113,7 +113,8 @@ import FilterForm, { type DetectionsFilter } from '~/components/filters/Detectio
 import ReloadIcon from "~/assets/img/reload.svg"
 import FilterIcon from "~/assets/img/filter-icon.svg"
 import ArrowLeftIcon from "~/assets/img/arrow-left.svg"
-import { getCurrentDateWithOffset, isCategory } from '~/helpers';
+import { getCurrentDateWithOffset, isCategory, isValidDateString } from '~/helpers';
+import type { Categories } from '~/types/categories';
 
 
 definePageMeta({
@@ -124,7 +125,7 @@ definePageMeta({
 const route = useRoute();
 const router = useRouter();
 
-const detectionControlStore = useDetectionsControlStore();
+const detectionsStore = useDetectionsStore();
 
 const loadingStats = ref(true);
 const fetchStatsError = ref('');
@@ -258,19 +259,20 @@ const fetchDetections = async () => {
   fetchDetectionsError.value = '';
 
   try {
-    const result: DetectionTable = await detectionControlStore.fetchDetections(
+    const result: DetectionTable = await detectionsStore.fetchDetections(
       dateRange.value.from?.toISOString(),
       dateRange.value.to?.toISOString(),
       currentPage.value,
       itemsPerPage.value,
       statusFilter.value,
-      isCategory(categoryFilter.value) ? categoryFilter.value : undefined,
+      isCategory(categoryFilter.value) ? categoryFilter.value as Categories : undefined,
       deviceFilter.value
     );
 
     if (result) {
       detections.value = result.data;
       tableMetaData.value = result.meta;
+      loadingCardActs.value = detections.value.map(() => false)
     } else {
       detections.value = [];
     }
@@ -299,8 +301,8 @@ const fetchDetectionStats = async () => {
 
   try {
     const [currentResult, oldResult] = await Promise.all([
-      detectionControlStore.fetchDetectionStats(from.toISOString(), to.toISOString()),
-      detectionControlStore.fetchDetectionStats(oldFrom.toISOString(), oldTo.toISOString())
+      detectionsStore.fetchDetectionStats(from.toISOString(), to.toISOString()),
+      detectionsStore.fetchDetectionStats(oldFrom.toISOString(), oldTo.toISOString())
     ]);
 
     detectionStats.value.current = currentResult || null;
@@ -359,8 +361,17 @@ const initFiltersFromUrl = () => {
   statusFilter.value = query.status != null ? String(query.status) : undefined;
   categoryFilter.value = query.category != null ? String(query.category) : undefined;
   deviceFilter.value = query.device != null ? String(query.device) : undefined;
-  dateRange.value.from = typeof query.from === 'string' ? new Date(query.from) : getCurrentDateWithOffset(-1, 'd');
-  dateRange.value.to = typeof query.to === 'string' ? new Date(query.to) : getCurrentDateWithOffset();
+
+  const fromStr = typeof query.from === 'string' ? query.from : null;
+  const toStr = typeof query.to === 'string' ? query.to : null;
+  
+  dateRange.value.from = isValidDateString(fromStr)
+    ? new Date(fromStr!)
+    : getCurrentDateWithOffset(-1, 'd');
+
+  dateRange.value.to = isValidDateString(toStr)
+    ? new Date(toStr!)
+    : getCurrentDateWithOffset();
 };
 
 const updateUrlParams = () => {
@@ -422,12 +433,48 @@ const dateRange = ref<{ from: Date | null; to: Date | null }>({
   to: getCurrentDateWithOffset()
 })
 
-const handleConfirm = (id: number) => {
-  console.log('Подтверждено:', id)
+const loadingCardActs = ref<boolean[]>([])
+
+const handleConfirm = async (item: Detection) => {
+  console.log('handleConfirm', item);
+  const itemIndex = detections.value.findIndex((d) => d.domain === item.domain);
+  console.log('itemIndex', itemIndex);
+  if (itemIndex === -1) return;
+
+  if (loadingCardActs.value[itemIndex]) return;
+
+  loadingCardActs.value[itemIndex] = true;
+
+  try {
+    const res = await detectionsStore.actForDetection('allow', item.domain);
+    if (res ) {
+      item.action = 'Разрешено';
+    }
+  } catch (error: any) {
+    console.log('error: ', error)
+  } finally {
+    loadingCardActs.value[itemIndex] = false;
+  }
 }
 
-const handleReject = (id: number) => {
-  console.log('Отклонено:', id)
+const handleReject = async (item: Detection) => {
+  const itemIndex = detections.value.findIndex((d) => d.id === item.id);
+  if (itemIndex !== -1) return;
+
+  if (loadingCardActs.value[itemIndex]) return;
+
+  loadingCardActs.value[itemIndex] = true;
+
+  try {
+    const res = await detectionsStore.actForDetection('allow', item.domain);
+    if (res ) {
+      item.action = 'Заблокировано';
+    }
+  } catch (error: any) {
+    console.log('error: ', error)
+  } finally {
+    loadingCardActs.value[itemIndex] = false;
+  }
 }
 
 watch(dateRange, () => {
@@ -459,17 +506,9 @@ watch(dateRange, () => {
 
 .resources-grid {
   margin-top: 1.5rem;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
-  gap: 1.5rem;
-  
-  @media (max-width: 1200px) {
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  }
-  
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .detections__filter-button {

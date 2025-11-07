@@ -1,35 +1,39 @@
 <template>
   <div class="report-page welcome-page">
     <div class="welcome-content">
-      <div class="logo-container">
-        <div class="company-logo">
-          <img v-if="logoUrl" :src="logoUrl" alt="Company Logo" />
-          <div v-else class="logo-placeholder">LOGO</div>
+      <div class="logo">
+        <div class="logo__icon">
+          <AlternativeLogoIcon />
+        </div>
+        <div class="logo__text">
+          Fazenda
         </div>
       </div>
       
-      <h1 class="report-title">Отчет о запрещенных ресурсах</h1>
+      <h1 class="title">Отчёт за период</h1>
       
-      <div class="report-info">
-        <div class="info-block">
-          <span class="info-label">Период:</span>
-          <span class="info-value">{{ dateRange }}</span>
+      <div class="info">
+        <div class="info__block">
+          <!-- <span class="info__label">Период:</span> -->
+          <span class="info__value">{{ dateRange }}</span>
         </div>
         
-        <div class="info-block">
-          <span class="info-label">Дата формирования:</span>
-          <span class="info-value">{{ generatedDate }}</span>
-        </div>
+        <!-- <div class="info__block">
+          <span class="info__label">Дата формирования:</span>
+          <span class="info__value">{{ generatedDate }}</span>
+        </div> -->
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import AlternativeLogoIcon from "~/assets/img/alternative-logo.svg"
+
+
 interface Props {
-  logoUrl?: string
   dateRange: string
-  generatedDate: string
+  generatedDate?: string
 }
 
 defineProps<Props>()
@@ -39,13 +43,16 @@ defineProps<Props>()
 .report-page {
   width: 297mm;
   height: 210mm;
-  background: white;
+  background: #FFFFFF;
   padding: 40px;
   box-sizing: border-box;
   position: relative;
 }
 
 .welcome-page {
+  background: #2563EB;
+  color: #FFFFFF;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -56,61 +63,62 @@ defineProps<Props>()
   max-width: 600px;
 }
 
-.logo-container {
-  margin-bottom: 60px;
+.logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.company-logo img {
-  max-width: 200px;
-  height: auto;
-}
-
-.logo-placeholder {
-  width: 200px;
-  height: 80px;
-  background: #003366;
-  color: white;
+.logo__icon {
+  max-width: 67px;
+  max-height: 67px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
-  font-weight: bold;
-  margin: 0 auto;
-  border-radius: 8px;
 }
 
-.report-title {
-  font-size: 36px;
-  font-weight: bold;
-  color: #1a1a1a;
-  margin-bottom: 60px;
-  line-height: 1.3;
+.logo__icon svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
-.report-info {
+.logo__text {
+  font-weight: 400;
+  color: #FFFFFF;
+  font-size: 48px;
+  line-height: 100%;
+}
+
+.title {
+  font-size: 72px;
+  line-height: 100%;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.info {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-.info-block {
+.info__block {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 20px;
-  background: #f5f5f5;
-  border-radius: 8px;
 }
 
-.info-label {
+.info__label {
   font-size: 14px;
-  color: #666;
+  color: #FFFFFF;
   font-weight: 500;
 }
 
-.info-value {
+.info__value {
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 100%;
   font-size: 20px;
-  color: #1a1a1a;
-  font-weight: 600;
+  color: #FFFFFF;;
 }
 </style>

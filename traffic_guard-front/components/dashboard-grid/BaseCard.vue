@@ -6,10 +6,10 @@
         Подробнее
       </NuxtLink>
       <div v-if="props.legend" class="chart-legend">
-      <div v-for="(item, key) in props.legend" :key="key" class="legend__item">
-        <div class="legend__dot" :style="{ backgroundColor: item.color }"></div>
-        <div class="legend__name">{{ item.name }}</div>
-      </div>
+        <div v-for="(item, key) in props.legend" :key="key" class="legend__item">
+          <div class="legend__dot" :style="{ backgroundColor: item.color }"></div>
+          <div class="legend__name">{{ item.name }}</div>
+        </div>
       </div>
     </div>
     
@@ -40,7 +40,6 @@ const props = defineProps<{
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  height: fit-content;
 }
 
 .card__header {

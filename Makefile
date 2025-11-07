@@ -22,10 +22,10 @@ cert-gen:
 .PHONY: deploy
 deploy:
 	@echo "Create Data Directories..."
-	if [ ! -d "./deploy/postgres_log/data" ]; then \
-		mkdir ./deploy/postgres_log/data; \
-		chmod 777 ./deploy/postgres_log/data; \
-	fi
+# 	if [ ! -d "./deploy/postgres_log/data" ]; then \
+# 		mkdir ./deploy/postgres_log/data; \
+# 		chmod 777 ./deploy/postgres_log/data; \
+# 	fi
 	if [ ! -d "./deploy/postgres_config/data" ]; then \
 		mkdir ./deploy/postgres_config/data; \
 		chmod 777 ./deploy/postgres_config/data; \

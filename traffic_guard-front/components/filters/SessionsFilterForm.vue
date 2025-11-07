@@ -95,14 +95,14 @@
 <script setup lang="ts">
 import { getModificatorByCategory, getBadgeClassByStatus } from '~/helpers';
 import { useDeviceColors } from '~/composables/useDeviceColors';
-import { useDevicesControlStore } from '~/stores/devicesControl';
-import { useCategoriesControlStore } from '~/stores/categoriesControl';
+import { useDevicesStore } from '~/stores/devices';
+import { useCategoriesStore } from '~/stores/categories';
 import type { DropdownItem } from '~/types/dropdown';
 import BaseButton from '~/components/ui/BaseButton.vue';
 import BaseAlert from '~/components/ui/BaseAlert.vue';
 import Dropdown from '~/components/ui/Dropdown.vue';
 import type { Categories } from '~/types/categories';
-import type { SessionStatus } from '~/types/sessionControl';
+import type { SessionStatus } from '~/types/session';
 
 
 const emit = defineEmits<{
@@ -116,8 +116,8 @@ const props = defineProps<{
 
 
 const { generateColor } = useDeviceColors();
-const deviceControlStore = useDevicesControlStore();
-const categoriesControlStore = useCategoriesControlStore()
+const devicesStore = useDevicesStore();
+const categoriesStore = useCategoriesStore()
 
 const loading = ref(false);
 const error = ref('');
@@ -155,25 +155,25 @@ const allowedStatus = ref<DropdownItem[]>([
     name: 'Все',
   },
   {
-    id: 'allowed',
+    id: 'Разрешен',
     name: 'Разрешен',
   },
   {
-    id: 'blocked',
+    id: 'Запрещен',
     name: 'Запрещен',
   },
   {
-    id: 'waiting',
+    id: 'Ожидает',
     name: 'Ожидает',
   },
   {
-    id: 'anomaly',
+    id: 'Аномалия',
     name: 'Аномалия',
   },
 ]);
 
 const allowedCategories = computed<DropdownItem[]>(() => {
-  const categories = categoriesControlStore.categories;
+  const categories = categoriesStore.categories;
   if (!categories) return [];
   const result = categories.map((category) => {
     return {
@@ -190,21 +190,21 @@ const allowedTypes = ref<DropdownItem[]>([
     name: 'Все',
   },
   {
-    id: 'Фаервол',
-    name: 'Фаервол',
+    id: 'Разрешен',
+    name: 'Разрешен',
+  },
+  {
+    id: 'Запрещен',
+    name: 'Запрещен',
   },
   {
     id: 'VPN',
     name: 'VPN',
   },
-  {
-    id: 'Аномалия',
-    name: 'Аномалия',
-  },
 ]);
 
 const allowedDevices = computed<DropdownItem[]>(() => {
-  const devices = deviceControlStore.devices;
+  const devices = devicesStore.devices;
   if (!devices) return [];
   const result = devices.map((device) => {
     return {

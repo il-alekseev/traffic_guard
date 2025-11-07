@@ -34,10 +34,10 @@
     >
       <template #cell-status="{ value }">
         <span :class="getBadgeClassByStatus(value)">
-          {{ getStatusText(value) }}
+          {{ value }}
         </span>
       </template>
-      <template #cell-host_name="{ value }">
+      <template #cell-hostname="{ value }">
         <span
           class="sessions__table-cell__badge"
           :style="{
@@ -45,11 +45,11 @@
             color: generateColor(value).color
           }"
         >
-          {{ value }}
+          {{ value || 'Неизвестно' }}
         </span>
       </template>
       <template #cell-url="{ value }">
-        <span class="sessions__table-cell-url">{{ value }}</span>
+        <span class="sessions__table-cell-url">{{ value || '-' }}</span>
       </template>
       <template #cell-type="{ value }">
         <span class="sessions__table-cell-type">{{ value }}</span>
@@ -90,9 +90,9 @@
 
 <script setup lang="ts">
 import {definePageMeta} from '#imports';
-import type { Session, SessionOrderType, SessionStatus, SessionTable } from '~/types/sessionControl';
-import { useSessionsControlStore } from '~/stores/sessionControl';
-import { getBadgeClassByStatus, getStatusText, getNgfwBadgeClass, getCurrentDateWithOffset, isCategory, isSessionStatus, isSessionTypes } from '~/helpers/index';
+import type { Session, SessionOrderType, SessionStatus, SessionTable } from '~/types/session';
+import { useSessionsStore } from '~/stores/session';
+import { getBadgeClassByStatus, getNgfwBadgeClass, getCurrentDateWithOffset, isCategory, isSessionStatus, isSessionTypes, isValidDateString } from '~/helpers/index';
 import DatePicker from '~/components/ui/DatePicker.vue';
 import BaseSearch from '~/components/ui/BaseSearch.vue';
 import FilterButton from '~/components/ui/FilterButton.vue';
@@ -103,6 +103,7 @@ import FilterForm, { type SessionFilter } from '~/components/filters/SessionsFil
 import { useDeviceColors } from '~/composables/useDeviceColors';
 import ContextMenuDotsIcon from '~/assets/img/context-menu-btn.svg';
 import type { OrderDir } from '~/types/otherTypes';
+import type { Categories } from '~/types/categories';
 
 
 definePageMeta({
@@ -118,7 +119,7 @@ const { generateColor } = useDeviceColors();
 const route = useRoute();
 const router = useRouter();
 
-const sessionsControlStore = useSessionsControlStore();
+const sessionsStore = useSessionsStore();
 
 const dateRange = ref<{ from: Date | null; to: Date | null }>({
   from: getCurrentDateWithOffset(-1, 'd'),
@@ -133,7 +134,7 @@ const columns = [
   { key: 'status', label: 'Статус' },
   { key: 'url', label: 'URL' },
   { key: 'dst_ip', label: 'IP' },
-  { key: 'host_name', label: 'NGFW' },
+  { key: 'hostname', label: 'NGFW' },
   { key: 'src_ip', label: 'IP SRC' },
   { key: 'type', label: 'Тип сессии' },
   { key: 'category', label: 'Категория' },
@@ -156,7 +157,7 @@ const fetchSessions = async () => {
   fetchError.value = '';
 
   try {
-    const result: SessionTable = await sessionsControlStore.fetchSessions(
+    const result: SessionTable = await sessionsStore.fetchSessions(
       dateRange.value.from?.toISOString(),
       dateRange.value.to?.toISOString(),
       currentPage.value,
@@ -165,7 +166,7 @@ const fetchSessions = async () => {
       ORDER_DIR,
       searchQuery.value,
       isSessionStatus(statusFilter.value) ? statusFilter.value : undefined ,
-      isCategory(categoryFilter.value) ? categoryFilter.value : undefined,
+      isCategory(categoryFilter.value) ? categoryFilter.value as Categories : undefined,
       isSessionTypes(typesFilter.value) ? typesFilter.value : undefined,
       deviceFilter.value
     );
@@ -216,7 +217,7 @@ const filtersData = computed<SessionFilter | null>(() => {
   }
 
   return {
-    status: { id: status, name: getStatusText(status as SessionStatus) },
+    status: { id: status, name: status },
     category: { id: category, name: category },
     types: { id: types, name: types },
     device: { id: device, name: device },
@@ -229,12 +230,21 @@ const initFiltersFromUrl = () => {
   currentPage.value = Number(query.page) || 1;
   itemsPerPage.value = Number(query.per_page) || 11;
   searchQuery.value = typeof query.search === 'string' ? query.search : '';
-  dateRange.value.from = typeof query.from === 'string' ? new Date(query.from) : getCurrentDateWithOffset(-1, 'd');
-  dateRange.value.to = typeof query.to === 'string' ? new Date(query.to) : getCurrentDateWithOffset();
   statusFilter.value = query.status != null ? String(query.status) : undefined;
   categoryFilter.value = query.category != null ? String(query.category) : undefined;
   typesFilter.value = query.types != null ? String(query.types) : undefined;
   deviceFilter.value = query.device != null ? String(query.device) : undefined;
+
+  const fromStr = typeof query.from === 'string' ? query.from : null;
+  const toStr = typeof query.to === 'string' ? query.to : null;
+  
+  dateRange.value.from = isValidDateString(fromStr)
+    ? new Date(fromStr!)
+    : getCurrentDateWithOffset(-1, 'd');
+
+  dateRange.value.to = isValidDateString(toStr)
+    ? new Date(toStr!)
+    : getCurrentDateWithOffset();
 };
 
 const updateUrlParams = () => {
@@ -376,7 +386,7 @@ watch(dateRange, () => {
 :deep(.sessions__table-column-dst_ip) {
   width: 10%;
 }
-:deep(.sessions__table-column-host_name) {
+:deep(.sessions__table-column-hostname) {
   width: 13%;
 }
 :deep(.sessions__table-column-src_ip) {

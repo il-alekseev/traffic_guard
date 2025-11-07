@@ -133,6 +133,10 @@ const calculatePercentage = (detection: DashboardDetection, type: 'before' | 'af
   line-height: 1.25rem;
   font-weight: 400;
   color: #2563EB;
+  width: 140px;
+  margin-right: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .detections__bar {

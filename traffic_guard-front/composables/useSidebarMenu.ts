@@ -1,15 +1,15 @@
 // @ts-ignore
-import HouseIcon from '@/assets/img/home.svg?component';
+import HouseIcon from '~/assets/img/home.svg?component';
 // @ts-ignore
-import NetworkShield from '@/assets/img/security-shield.svg?component';
+import NetworkShield from '~/assets/img/security-shield.svg?component';
 // @ts-ignore
-import ChartRose from '@/assets/img/chart-rose.svg?component';
+import ChartRose from '~/assets/img/chart-rose.svg?component';
 // @ts-ignore
-import CodeIcon from '@/assets/img/code.svg?component';
+import CodeIcon from '~/assets/img/code.svg?component';
 // @ts-ignore
-import UsersGroup from '@/assets/img/user-group.svg?component';
+import UsersGroup from '~/assets/img/user-group.svg?component';
 // @ts-ignore
-import LogsIcon from '@/assets/img/logs.svg?component';
+import LogsIcon from '~/assets/img/logs.svg?component';
 
 
 export function useSidebarMenu() {

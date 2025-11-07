@@ -27,6 +27,7 @@ export interface UserForm {
   last_name: string;
   patronymic: string;
   role: DropdownItem;
+  device: DropdownItem;
   email: string;
 }
 

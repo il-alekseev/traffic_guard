@@ -80,7 +80,7 @@
 import type { DropdownItem } from '~/types/dropdown';
 import CaretDownIcon from '~/assets/img/caret-down.svg'
 import CheckIcon from '~/assets/img/check.svg'
-import CrossIcon from '@/assets/img/cross.svg'
+import CrossIcon from '~/assets/img/cross.svg'
 import type { StyleValue } from 'vue';
 
 
