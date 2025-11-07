@@ -27,7 +27,7 @@ import (
 // @Failure 401 {object} models.DtoErrorResponse
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/contexts [get]
+// @Router /api/v1/contexts [get]
 func (s *Server) getContexts(c *gin.Context) {
 	page, err := strconv.ParseInt(c.Query("page"), 10, 64)
 	if err != nil {
@@ -87,7 +87,7 @@ func (s *Server) getContexts(c *gin.Context) {
 // @Failure 401 {object} models.DtoErrorResponse
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/contexts [post]
+// @Router /api/v1/contexts [post]
 func (s *Server) createContext(c *gin.Context) {
 	var req models.DtoCreateContextRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -136,7 +136,7 @@ func (s *Server) createContext(c *gin.Context) {
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 404 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/contexts/{context_id} [get]
+// @Router /api/v1/contexts/{context_id} [get]
 func (s *Server) getContextByID(c *gin.Context) {
 	id := c.Param("context_id")
 	if id == "" {
@@ -183,7 +183,7 @@ func (s *Server) getContextByID(c *gin.Context) {
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 404 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/contexts/{context_id} [delete]
+// @Router /api/v1/contexts/{context_id} [delete]
 func (s *Server) deleteContext(c *gin.Context) {
 	id := c.Param("context_id")
 	if id == "" {
@@ -228,7 +228,7 @@ func (s *Server) deleteContext(c *gin.Context) {
 // @Failure 401 {object} models.DtoErrorResponse
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/contexts/count [get]
+// @Router /api/v1/contexts/count [get]
 func (s *Server) getContextsCount(c *gin.Context) {
 	authInfo, err := utils.GetAuthInfo(c)
 	if err != nil {
@@ -269,7 +269,7 @@ func (s *Server) getContextsCount(c *gin.Context) {
 // @Failure 401 {object} models.DtoErrorResponse
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/contexts/{context_id} [put]
+// @Router /api/v1/contexts/{context_id} [put]
 func (s *Server) updateContextByID(c *gin.Context) {
 	id := c.Param("context_id")
 	if id == "" {
@@ -319,7 +319,7 @@ func (s *Server) updateContextByID(c *gin.Context) {
 // @Failure 401 {object} models.DtoErrorResponse
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/contexts/free-ports [get]
+// @Router /api/v1/contexts/free-ports [get]
 func (s *Server) getFreePorts(c *gin.Context) {
 	authInfo, err := utils.GetAuthInfo(c)
 	if err != nil {

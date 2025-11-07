@@ -1037,7 +1037,7 @@ info:
   title: API Gw
   version: "1.0"
 paths:
-  /v1/analytics/categories:
+  /api/v1/analytics/categories:
     get:
       description: Возвращает список всех уникальных категорий контента из системы
       produces:
@@ -1058,7 +1058,7 @@ paths:
       summary: Получение списка категорий контента
       tags:
       - common
-  /v1/analytics/dashboards/act:
+  /api/v1/analytics/dashboards/act:
     patch:
       consumes:
       - application/json
@@ -1099,7 +1099,7 @@ paths:
       summary: Выполнение действия над доменом
       tags:
       - actions
-  /v1/analytics/dashboards/anomalies:
+  /api/v1/analytics/dashboards/anomalies:
     get:
       description: Получение статистики об аномалиях за указанный период
       parameters:
@@ -1137,7 +1137,7 @@ paths:
       summary: Получение информации об аномалиях
       tags:
       - dashboards
-  /v1/analytics/dashboards/devices:
+  /api/v1/analytics/dashboards/devices:
     get:
       description: Получение агрегированной статистики по сетевым узлам за указанный
         период
@@ -1178,7 +1178,7 @@ paths:
       summary: Получение статистики по устройствам
       tags:
       - dashboards
-  /v1/analytics/dashboards/requests:
+  /api/v1/analytics/dashboards/requests:
     get:
       consumes:
       - application/json
@@ -1234,7 +1234,7 @@ paths:
       summary: Получение статистики запросов
       tags:
       - dashboards
-  /v1/analytics/dashboards/top-categories:
+  /api/v1/analytics/dashboards/top-categories:
     get:
       consumes:
       - application/json
@@ -1292,7 +1292,7 @@ paths:
       summary: Получение списка самых запрашиваемых категорий
       tags:
       - dashboards
-  /v1/analytics/dashboards/top-unresolved_detections:
+  /api/v1/analytics/dashboards/top-unresolved_detections:
     get:
       consumes:
       - application/json
@@ -1341,7 +1341,7 @@ paths:
       summary: Получение списка топ нерешенных выявлений
       tags:
       - dashboards
-  /v1/analytics/dashboards/traffic:
+  /api/v1/analytics/dashboards/traffic:
     get:
       consumes:
       - application/json
@@ -1390,7 +1390,7 @@ paths:
       summary: Получение статистики трафика
       tags:
       - dashboards
-  /v1/analytics/detections:
+  /api/v1/analytics/detections:
     get:
       consumes:
       - application/json
@@ -1488,7 +1488,7 @@ paths:
       summary: Получение списка выявлений
       tags:
       - detections
-  /v1/analytics/detections/stat:
+  /api/v1/analytics/detections/stat:
     get:
       consumes:
       - application/json
@@ -1564,7 +1564,7 @@ paths:
       summary: Получение статистики по выявлениям
       tags:
       - detections
-  /v1/analytics/devices:
+  /api/v1/analytics/devices:
     get:
       consumes:
       - application/json
@@ -1587,7 +1587,7 @@ paths:
       summary: Получить список имен устройств
       tags:
       - common
-  /v1/analytics/reports:
+  /api/v1/analytics/reports:
     get:
       consumes:
       - application/json
@@ -1624,7 +1624,7 @@ paths:
       summary: Создание отчета
       tags:
       - reports
-  /v1/analytics/reports/{hostname}:
+  /api/v1/analytics/reports/{hostname}:
     get:
       consumes:
       - application/json
@@ -1671,7 +1671,7 @@ paths:
       summary: Создание отчета по конкретному устройству
       tags:
       - reports
-  /v1/analytics/sessions:
+  /api/v1/analytics/sessions:
     get:
       consumes:
       - application/json
@@ -1803,7 +1803,7 @@ paths:
       summary: Получение списка сессий
       tags:
       - sessions
-  /v1/auth/refresh:
+  /api/v1/auth/refresh:
     post:
       description: Для успешного обновления токена пользователю необходимо передать
         валидный токен OAuth в заголовке Authorization и refresh-токен в заголовке
@@ -1838,7 +1838,7 @@ paths:
       summary: Обновление токена
       tags:
       - auth
-  /v1/auth/sign-in:
+  /api/v1/auth/sign-in:
     post:
       consumes:
       - application/json
@@ -1877,7 +1877,7 @@ paths:
       summary: Авторизация пользователя в системе
       tags:
       - auth
-  /v1/auth/sign-out:
+  /api/v1/auth/sign-out:
     post:
       description: Для успешного завершения запроса пользователю необходимо передать
         валидный токен OAuth в заголовке Authorization и refresh-токен в заголовке
@@ -1914,7 +1914,7 @@ paths:
       summary: Выход пользователя из системы
       tags:
       - auth
-  /v1/contexts:
+  /api/v1/contexts:
     get:
       consumes:
       - application/json
@@ -2018,7 +2018,7 @@ paths:
       summary: Добавление нового контекста в систему
       tags:
       - contexts
-  /v1/contexts/{context_id}:
+  /api/v1/contexts/{context_id}:
     delete:
       consumes:
       - application/json
@@ -2147,7 +2147,7 @@ paths:
       summary: Обновление контекста по его идентификатору
       tags:
       - contexts
-  /v1/contexts/count:
+  /api/v1/contexts/count:
     get:
       consumes:
       - application/json
@@ -2180,7 +2180,7 @@ paths:
       summary: Получение числа всех контекстов системы
       tags:
       - contexts
-  /v1/contexts/free-ports:
+  /api/v1/contexts/free-ports:
     get:
       description: Выводит массив портов доступных для получения логов от МЭ
       produces:
@@ -2211,51 +2211,19 @@ paths:
       summary: Получение списка свободных портов
       tags:
       - contexts
-  /v1/logs:
+  /api/v1/logs:
     get:
-      description: Получение бизнес логов с возможностью фильтрации и пагинации
-      parameters:
-      - default: 1
-        description: Номер страницы с 1
-        in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Колличесвто отображаемых элементов на странице
-        in: query
-        name: limit
-        type: integer
-      - description: Фильтр по роли
-        in: query
-        name: role
-        type: string
-      - description: Фильтр по contextID
-        in: query
-        name: contextID
-        type: string
-      - description: фильтр по username/entity/description
-        in: query
-        name: search
-        type: string
       responses:
         "200":
           description: Отфильтрованные логи
           schema:
-            $ref: '#/definitions/models.ModelsLogs'
-        "400":
-          description: query params is not valid
-          schema:
-            $ref: '#/definitions/models.ModelsAPIError'
-        "500":
-          description: internal error
-          schema:
-            $ref: '#/definitions/models.ModelsAPIError'
+            $ref: '#/definitions/models.DtoSuccessResponse'
       security:
       - BearerAuth: []
-      summary: Получение бизнес логов
+      summary: Проверка состояния сервера
       tags:
-      - logs
-  /v1/roles:
+      - healthcheck
+  /api/v1/roles:
     get:
       description: Возвращает список ролей с возможностью пагинации и фильтрации по
         названию
@@ -2300,14 +2268,14 @@ paths:
       summary: Получение списка ролей с пагинацией и фильтрацией
       tags:
       - roles
-  /v1/roles/count:
+  /api/v1/roles/count:
     get:
       description: Получение числа всех ролей системы.
       responses:
         "200":
           description: Количество ролей
           schema:
-            type: integer
+            $ref: '#/definitions/models.DtoCountResponse'
         "400":
           description: Bad Request
           schema:
@@ -2329,7 +2297,7 @@ paths:
       summary: Получение числа всех ролей системы
       tags:
       - roles
-  /v1/users:
+  /api/v1/users:
     get:
       description: Возвращает список пользователей с возможностью пагинации и фильтрации
         по ролям
@@ -2429,7 +2397,7 @@ paths:
       summary: Создание нового пользователя
       tags:
       - users
-  /v1/users/{userId}:
+  /api/v1/users/{userId}:
     delete:
       description: Запрос для удаления существущего пользователя из систему.
       parameters:
@@ -2552,7 +2520,7 @@ paths:
       summary: Обновление информации о пользователе системы
       tags:
       - users
-  /v1/users/{userId}/pass/otp:
+  /api/v1/users/{userId}/pass/otp:
     put:
       consumes:
       - application/json
@@ -2599,7 +2567,7 @@ paths:
       summary: Сброс пользовательского пароля
       tags:
       - users
-  /v1/users/{userId}/roles:
+  /api/v1/users/{userId}/roles:
     delete:
       consumes:
       - application/json
@@ -2694,7 +2662,7 @@ paths:
       tags:
       - users
       - roles
-  /v1/users/count:
+  /api/v1/users/count:
     get:
       description: Получение числа всех пользователей системы.
       responses:
@@ -2723,7 +2691,7 @@ paths:
       summary: Получение числа всех пользователей системы
       tags:
       - users
-  /v1/users/count-by-role:
+  /api/v1/users/count-by-role:
     get:
       description: Получение информации сколько в системе SA, CA и CO
       responses:
@@ -2752,7 +2720,7 @@ paths:
       summary: Получение информации о числе пользователй по ролям
       tags:
       - users
-  /v1/users/profile:
+  /api/v1/users/profile:
     get:
       description: Получение информации об авторизованном в системе пользователе
       responses:
@@ -2781,7 +2749,7 @@ paths:
       summary: Получение информации о текущем пользователе
       tags:
       - users
-  /v1/users/profile/pass:
+  /api/v1/users/profile/pass:
     put:
       consumes:
       - application/json
