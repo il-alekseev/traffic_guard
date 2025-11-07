@@ -58,20 +58,20 @@ func Run(cfg *config.Config) {
 	logger := *cslogger.NewColorLogger()
 	//logger := *slog.Default()
 
-	logger.InfoContext(ctx, "dashboard service", wsl.Info("Creating DB connection"))
+	logger.InfoContext(ctx, "analytics service", wsl.Info("Creating DB connection"))
 
 	dsnETL := getDSN(cfg.ETL.Host, cfg.ETL.User, cfg.ETL.Pass,
 		cfg.ETL.DBName, cfg.ETL.Port, cfg.ETL.SSLMode)
 	db, err := createConnection(ctx, dsnETL, cfg.ETL.PoolMax, logger, false, models.Session{})
 	if err != nil {
-		logger.ErrorContext(ctx, "dashboard service", wsl.String("create db connection error", err.Error()))
+		logger.ErrorContext(ctx, "analytics service", wsl.String("create db connection error", err.Error()))
 		return
 	}
 	dsnMetrics := getDSN(cfg.Metrics.Host, cfg.Metrics.User, cfg.Metrics.Pass,
 		cfg.Metrics.DBName, cfg.Metrics.Port, cfg.Metrics.SSLMode)
 	mdb, err := createConnection(ctx, dsnMetrics, cfg.Metrics.PoolMax, logger, false, models.StatsJSON{})
 	if err != nil {
-		logger.ErrorContext(ctx, "dashboard service", wsl.String("create mdb connection error", err.Error()))
+		logger.ErrorContext(ctx, "analytics service", wsl.String("create mdb connection error", err.Error()))
 		return
 	}
 	u := usecase.New(db, mdb, logger)
@@ -80,7 +80,7 @@ func Run(cfg *config.Config) {
 
 	go func() {
 		if err := server.Start(); err != nil && err != http.ErrServerClosed {
-			logger.ErrorContext(ctx, "dashboard service", wsl.Err(err))
+			logger.ErrorContext(ctx, "analytics service", wsl.Err(err))
 		}
 	}()
 	// Создаем канал для получения сигналов
@@ -92,9 +92,9 @@ func Run(cfg *config.Config) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := server.Stop(ctx); err != nil {
-		logger.ErrorContext(ctx, "dashboard service", wsl.Err(err))
+		logger.ErrorContext(ctx, "analytics service", wsl.Err(err))
 	}
 	server.Stop(ctx)
-	logger.Info("dashboard http server stopped")
+	logger.Info("analytics http server stopped")
 
 }

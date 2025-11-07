@@ -69,6 +69,12 @@ type GetAPIV1DashboardsAnomaliesParams struct {
 	*/
 	From *string
 
+	/* Hostname.
+
+	   Фильтр по имени хоста
+	*/
+	Hostname *string
+
 	/* To.
 
 	   Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)
@@ -155,6 +161,17 @@ func (o *GetAPIV1DashboardsAnomaliesParams) SetFrom(from *string) {
 	o.From = from
 }
 
+// WithHostname adds the hostname to the get API v1 dashboards anomalies params
+func (o *GetAPIV1DashboardsAnomaliesParams) WithHostname(hostname *string) *GetAPIV1DashboardsAnomaliesParams {
+	o.SetHostname(hostname)
+	return o
+}
+
+// SetHostname adds the hostname to the get API v1 dashboards anomalies params
+func (o *GetAPIV1DashboardsAnomaliesParams) SetHostname(hostname *string) {
+	o.Hostname = hostname
+}
+
 // WithTo adds the to to the get API v1 dashboards anomalies params
 func (o *GetAPIV1DashboardsAnomaliesParams) WithTo(to *string) *GetAPIV1DashboardsAnomaliesParams {
 	o.SetTo(to)
@@ -186,6 +203,23 @@ func (o *GetAPIV1DashboardsAnomaliesParams) WriteToRequest(r runtime.ClientReque
 		if qFrom != "" {
 
 			if err := r.SetQueryParam("from", qFrom); err != nil {
+				return err
+			}
+		}
+	}
+
+	if o.Hostname != nil {
+
+		// query param hostname
+		var qrHostname string
+
+		if o.Hostname != nil {
+			qrHostname = *o.Hostname
+		}
+		qHostname := qrHostname
+		if qHostname != "" {
+
+			if err := r.SetQueryParam("hostname", qHostname); err != nil {
 				return err
 			}
 		}

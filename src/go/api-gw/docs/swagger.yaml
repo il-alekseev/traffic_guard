@@ -106,8 +106,8 @@ definitions:
       domain:
         description: domain
         type: string
-      host_name:
-        description: host name
+      hostname:
+        description: hostname
         type: string
       ip:
         description: ip
@@ -171,8 +171,8 @@ definitions:
           type: array
         description: data
         type: object
-      host_names_count:
-        description: host names count
+      hostnames_count:
+        description: hostnames count
         type: integer
     type: object
   models.DtoGetDetectionsResponse:
@@ -303,8 +303,8 @@ definitions:
       dst_port:
         description: dst port
         type: integer
-      host_name:
-        description: host name
+      hostname:
+        description: hostname
         type: string
       id:
         description: id
@@ -489,37 +489,34 @@ definitions:
         description: message
         type: string
     type: object
-  models.ModelsAnomaliesListPage:
+  models.ModelsAnomalyBlockStat:
     properties:
+      all:
+        description: all
+        type: integer
       anomalies:
-        additionalProperties:
-          $ref: '#/definitions/models.ModelsAnomalyStat'
         description: anomalies
-        type: object
+        type: integer
+      blocks:
+        description: blocks
+        type: integer
     type: object
-  models.ModelsAnomalyStat:
+  models.ModelsAnomalyReport:
     properties:
-      after_block:
-        description: after block
-        type: integer
-      before_block:
-        description: before block
-        type: integer
-      input:
-        description: input
-        type: integer
       live_count:
         description: live count
         type: integer
-      output:
-        description: output
-        type: integer
-      pending:
-        description: pending
-        type: integer
-      requests:
-        description: requests
-        type: integer
+      stat:
+        allOf:
+        - $ref: '#/definitions/models.ModelsRequestReport'
+        description: stat
+      traffic:
+        allOf:
+        - $ref: '#/definitions/models.ModelsTraffic'
+        description: traffic
+      url:
+        description: url
+        type: string
     type: object
   models.ModelsBusinessLog:
     properties:
@@ -557,6 +554,16 @@ definitions:
       user_role:
         description: SA, CA
         type: string
+    type: object
+  models.ModelsCategoryStat:
+    properties:
+      category:
+        description: category
+        type: string
+      stat:
+        allOf:
+        - $ref: '#/definitions/models.ModelsRequestReport'
+        description: stat
     type: object
   models.ModelsContext:
     properties:
@@ -622,56 +629,71 @@ definitions:
     type: object
   models.ModelsDeviceAnalyticsPage:
     properties:
-      all:
-        description: all
-        type: integer
-      allowed:
+      anomaly_block_stat:
         allOf:
-        - $ref: '#/definitions/models.ModelsRequestStat'
-        description: allowed
-      anomalies:
-        description: anomalies
-        type: integer
-      blocked:
+        - $ref: '#/definitions/models.ModelsAnomalyBlockStat'
+        description: anomaly block stat
+      requests_analytics:
         allOf:
-        - $ref: '#/definitions/models.ModelsRequestStat'
-        description: blocked
-      blocks:
-        description: blocks
-        type: integer
-      pending:
-        allOf:
-        - $ref: '#/definitions/models.ModelsRequestStat'
-        description: pending
+        - $ref: '#/definitions/models.ModelsRequestsAnalytics'
+        description: requests analytics
       traffic:
         allOf:
-        - $ref: '#/definitions/models.ModelsTrafficStat'
+        - $ref: '#/definitions/models.ModelsTrafficStatData'
         description: traffic
     type: object
-  models.ModelsDeviceReport:
+  models.ModelsDeviceAnomaly:
     properties:
-      all:
-        description: all
-        type: integer
-      anomalies:
-        description: anomalies
-        type: integer
-      blocks:
-        description: blocks
-        type: integer
+      anomaly_stat:
+        description: anomaly stat
+        items:
+          $ref: '#/definitions/models.ModelsAnomalyReport'
+        type: array
+      hostname:
+        description: hostname
+        type: string
+    type: object
+  models.ModelsDeviceAnomalyAnalytics:
+    properties:
+      anomaly_block_stat:
+        allOf:
+        - $ref: '#/definitions/models.ModelsAnomalyBlockStat'
+        description: anomaly block stat
       detections:
         allOf:
         - $ref: '#/definitions/models.ModelsDetectionReport'
         description: detections
-      input:
-        description: input
-        type: integer
-      output:
-        description: output
-        type: integer
+      hostname:
+        description: hostname
+        type: string
       requests:
         description: requests
         type: integer
+      traffic:
+        allOf:
+        - $ref: '#/definitions/models.ModelsTraffic'
+        description: traffic
+    type: object
+  models.ModelsDeviceReport:
+    properties:
+      anomaly_block_stat:
+        allOf:
+        - $ref: '#/definitions/models.ModelsAnomalyBlockStat'
+        description: anomaly block stat
+      detections:
+        allOf:
+        - $ref: '#/definitions/models.ModelsDetectionReport'
+        description: detections
+      hostname:
+        description: hostname
+        type: string
+      requests:
+        description: requests
+        type: integer
+      traffic:
+        allOf:
+        - $ref: '#/definitions/models.ModelsTraffic'
+        description: traffic
     type: object
   models.ModelsDeviceRequestStat:
     properties:
@@ -692,10 +714,18 @@ definitions:
   models.ModelsDevicesAnalyticsPage:
     properties:
       analytics:
-        additionalProperties:
-          $ref: '#/definitions/models.ModelsDeviceReport'
         description: analytics
-        type: object
+        items:
+          $ref: '#/definitions/models.ModelsDeviceReport'
+        type: array
+    type: object
+  models.ModelsDevicesAnomaliesListPage:
+    properties:
+      anomalies:
+        description: anomalies
+        items:
+          $ref: '#/definitions/models.ModelsDeviceAnomaly'
+        type: array
     type: object
   models.ModelsLogs:
     properties:
@@ -712,18 +742,18 @@ definitions:
   models.ModelsMainActivityPage:
     properties:
       top_categories:
-        additionalProperties:
-          $ref: '#/definitions/models.ModelsRequestReport'
         description: top categories
-        type: object
+        items:
+          $ref: '#/definitions/models.ModelsCategoryStat'
+        type: array
       top_resources:
-        additionalProperties:
-          $ref: '#/definitions/models.ModelsResourceStat'
         description: top resources
-        type: object
+        items:
+          $ref: '#/definitions/models.ModelsResourceStat'
+        type: array
       traffic:
         allOf:
-        - $ref: '#/definitions/models.ModelsTrafficStat'
+        - $ref: '#/definitions/models.ModelsTrafficStatData'
         description: traffic
     type: object
   models.ModelsMeta:
@@ -744,10 +774,9 @@ definitions:
   models.ModelsReport:
     properties:
       anomalies_list_page:
-        additionalProperties:
-          $ref: '#/definitions/models.ModelsAnomaliesListPage'
+        allOf:
+        - $ref: '#/definitions/models.ModelsDevicesAnomaliesListPage'
         description: anomalies list page
-        type: object
       device_analytics_page:
         allOf:
         - $ref: '#/definitions/models.ModelsDevicesAnalyticsPage'
@@ -767,23 +796,20 @@ definitions:
         - $ref: '#/definitions/models.ModelsTopAnomaliesPage'
         description: top anomalies page
       top_categories_page:
-        additionalProperties:
-          $ref: '#/definitions/models.ModelsTopCategoriesPage'
+        allOf:
+        - $ref: '#/definitions/models.ModelsTopCategoriesPage'
         description: top categories page
-        type: object
     type: object
   models.ModelsReportForDevice:
     properties:
       anomalies_list_page:
-        additionalProperties:
-          $ref: '#/definitions/models.ModelsAnomalyStat'
+        allOf:
+        - $ref: '#/definitions/models.ModelsTopAnomaliesPage'
         description: anomalies list page
-        type: object
       categories_page:
-        additionalProperties:
-          $ref: '#/definitions/models.ModelsTopCategory'
+        allOf:
+        - $ref: '#/definitions/models.ModelsTopCategoriesPage'
         description: categories page
-        type: object
       device_analytics_page:
         allOf:
         - $ref: '#/definitions/models.ModelsDeviceAnalyticsPage'
@@ -791,8 +817,8 @@ definitions:
       from:
         description: from
         type: string
-      host_name:
-        description: host name
+      hostname:
+        description: hostname
         type: string
       to:
         description: to
@@ -803,6 +829,9 @@ definitions:
       after_block:
         description: after block
         type: integer
+      all:
+        description: all
+        type: integer
       before_block:
         description: before block
         type: integer
@@ -810,8 +839,11 @@ definitions:
         description: pending
         type: integer
     type: object
-  models.ModelsRequestStat:
+  models.ModelsRequestStatData:
     properties:
+      count:
+        description: count
+        type: integer
       data:
         description: data
         items:
@@ -823,10 +855,30 @@ definitions:
           type: string
         type: array
     type: object
+  models.ModelsRequestsAnalytics:
+    properties:
+      allowed:
+        allOf:
+        - $ref: '#/definitions/models.ModelsRequestStatData'
+        description: allowed
+      blocked:
+        allOf:
+        - $ref: '#/definitions/models.ModelsRequestStatData'
+        description: blocked
+      pending:
+        allOf:
+        - $ref: '#/definitions/models.ModelsRequestStatData'
+        description: pending
+    type: object
   models.ModelsResourceStat:
     properties:
-      category:
-        description: category
+      categories:
+        description: categories
+        items:
+          type: string
+        type: array
+      resource:
+        description: resource
         type: string
       stat:
         allOf:
@@ -861,64 +913,41 @@ definitions:
     type: object
   models.ModelsTopAnomaliesPage:
     properties:
-      anomalies:
-        additionalProperties:
-          $ref: '#/definitions/models.ModelsTopAnomaly'
-        description: anomalies
-        type: object
-    type: object
-  models.ModelsTopAnomaly:
-    properties:
-      all:
-        description: all
-        type: integer
-      anomalies:
-        description: anomalies
-        type: integer
-      blocks:
-        description: blocks
-        type: integer
-      detections:
-        allOf:
-        - $ref: '#/definitions/models.ModelsDetectionReport'
-        description: detections
-      input:
-        description: input
-        type: integer
-      output:
-        description: output
-        type: integer
-      requests:
-        description: requests
-        type: integer
+      device_anomaly:
+        description: device anomaly
+        items:
+          $ref: '#/definitions/models.ModelsDeviceAnomalyAnalytics'
+        type: array
     type: object
   models.ModelsTopCategoriesPage:
     properties:
       categories:
-        additionalProperties:
-          $ref: '#/definitions/models.ModelsTopCategory'
         description: categories
-        type: object
+        items:
+          $ref: '#/definitions/models.ModelsTopCategory'
+        type: array
     type: object
   models.ModelsTopCategory:
     properties:
-      after_block:
-        description: after block
-        type: integer
-      before_block:
-        description: before block
-        type: integer
+      category:
+        description: category
+        type: string
+      stat:
+        allOf:
+        - $ref: '#/definitions/models.ModelsRequestReport'
+        description: stat
+      traffic:
+        allOf:
+        - $ref: '#/definitions/models.ModelsTraffic'
+        description: traffic
+    type: object
+  models.ModelsTraffic:
+    properties:
       input:
         description: input
         type: integer
       output:
         description: output
-        type: integer
-      pending:
-        description: pending
-        type: integer
-      requests:
-        description: requests
         type: integer
     type: object
   models.ModelsTrafficStat:
@@ -938,6 +967,16 @@ definitions:
         items:
           type: string
         type: array
+    type: object
+  models.ModelsTrafficStatData:
+    properties:
+      count:
+        description: count
+        type: integer
+      data:
+        allOf:
+        - $ref: '#/definitions/models.ModelsTrafficStat'
+        description: data
     type: object
   models.ModelsUser:
     properties:
@@ -1000,7 +1039,7 @@ info:
 paths:
   /v1/analytics/categories:
     get:
-      description: Получение списка всех категорий контента
+      description: Возвращает список всех уникальных категорий контента из системы
       produces:
       - application/json
       responses:
@@ -1020,7 +1059,7 @@ paths:
       tags:
       - common
   /v1/analytics/dashboards/act:
-    get:
+    patch:
       consumes:
       - application/json
       description: Устанавливает действие (разрешить/заблокировать) для указанного
@@ -1062,8 +1101,7 @@ paths:
       - actions
   /v1/analytics/dashboards/anomalies:
     get:
-      description: Получение списка обнаруженных аномалий в сетевом трафике за указанный
-        период
+      description: Получение статистики об аномалиях за указанный период
       parameters:
       - default: now-10m
         description: 'Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)'
@@ -1074,6 +1112,10 @@ paths:
         description: 'Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)'
         in: query
         name: to
+        type: string
+      - description: Фильтр по имени хоста
+        in: query
+        name: hostname
         type: string
       produces:
       - application/json
@@ -1215,9 +1257,9 @@ paths:
         type: string
       - description: Фильтр по типу сессии
         enum:
-        - '"Разрешен"'
-        - '"Заблокирован"'
-        - '"VPN"'
+        - Разрешен
+        - Заблокирован
+        - VPN
         in: query
         name: type
         type: string
@@ -1247,7 +1289,7 @@ paths:
             $ref: '#/definitions/models.DtoErrorResponse'
       security:
       - BearerAuth: []
-      summary: Получить топ категорий сессий
+      summary: Получение списка самых запрашиваемых категорий
       tags:
       - dashboards
   /v1/analytics/dashboards/top-unresolved_detections:
@@ -1722,7 +1764,7 @@ paths:
         - status
         - url
         - proto
-        - host_name
+        - hostname
         - src_ip
         - src_country
         - username
@@ -1758,7 +1800,7 @@ paths:
             $ref: '#/definitions/models.DtoErrorResponse'
       security:
       - BearerAuth: []
-      summary: Получить список сессий
+      summary: Получение списка сессий
       tags:
       - sessions
   /v1/auth/refresh:

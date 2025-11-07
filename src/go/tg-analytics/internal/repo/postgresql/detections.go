@@ -1,4 +1,4 @@
-package postresql
+package postgresql
 
 import (
 	"context"
@@ -7,6 +7,9 @@ import (
 	models "tg-an/internal/models"
 	pkg "tg-an/pkg/models"
 	"tg-an/pkg/trparser"
+	"time"
+
+	"gorm.io/gorm"
 )
 
 // GetTopDetections возвращает список детекций с пагинацией
@@ -23,7 +26,7 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 			domains.path as domain,
 			domains.categorized_at as categorized_at,
 			COUNT(*) as request_count,
-			devices.host_name,
+			devices.hostname,
 			categories.name as category,
 			categories.name as description,
 			COALESCE(actions.action, '%s') as action
@@ -41,7 +44,7 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 
 	// Применяем фильтры
 	if f.HostName != "" {
-		query = query.Where("devices.host_name = ?", f.HostName)
+		query = query.Where("devices.hostname = ?", f.HostName)
 	}
 	if f.TopCategory != "" {
 		query = query.Where("categories.name = ?", f.TopCategory)
@@ -60,7 +63,7 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 	// Группируем по уникальным детекциям
 	query = query.Group(fmt.Sprintf(`
     domains.ip, domains.port, domains.country, domains.path, domains.categorized_at,
-    devices.host_name, categories.name, COALESCE(actions.action, '%s')
+    devices.hostname, categories.name, COALESCE(actions.action, '%s')
 `, pkg.ActionTypeUnresolved.String()))
 	// Получаем общее количество записей (до пагинации)
 	if err := query.Count(&total).Error; err != nil {
@@ -105,7 +108,7 @@ func (r *RepoPG) GetDetectionStat(ctx context.Context, tr *trparser.TimeRange, f
 
 	// Применяем фильтры
 	if f.HostName != "" {
-		query = query.Where("devices.host_name = ?", f.HostName)
+		query = query.Where("devices.hostname = ?", f.HostName)
 	}
 	if f.TopCategory != "" {
 		query = query.Where("categories.name = ?", f.TopCategory)
@@ -131,4 +134,48 @@ func (r *RepoPG) GetDetectionStat(ctx context.Context, tr *trparser.TimeRange, f
 	// Вычисляем неразрешенны
 	result.Unresolved = result.Detected - result.Allowed - result.Denied
 	return result, nil
+}
+
+func (r *RepoPG) Act(ctx context.Context, action, path string) error {
+	return r.db.GetDB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Находим домен по пути
+		var domain models.Domain
+		err := tx.Where("path = ?", path).First(&domain).Error
+		if err != nil {
+			return fmt.Errorf("failed to find domain with path %s: %w", path, err)
+		}
+		// Проверяем, есть ли уже действия для домена
+		if domain.ActionID != 0 {
+			return fmt.Errorf("domain already acted")
+		}
+		// Получаем общее количество записей action
+		var count int64
+		if err := tx.Model(&models.Action{}).Count(&count).Error; err != nil {
+			return fmt.Errorf("failed to count actions: %w", err)
+		}
+		// Cоздаем действие
+		var actionRecord = models.Action{
+			ID:        uint(count + 1),
+			Action:    action,
+			CreatedAt: time.Now(),
+			// TODO: добавить пользователя
+			CreatedBy: "user",
+		}
+		if err := tx.Create(&actionRecord).Error; err != nil {
+			return fmt.Errorf("failed to create action: %w", err)
+		}
+		// Обновляем домен
+		result := tx.Model(&models.Domain{}).
+			Where("id = ?", domain.ID).
+			Update("action_id", actionRecord.ID)
+
+		if result.Error != nil {
+			return fmt.Errorf("failed to update domain action: %w", result.Error)
+		}
+
+		if result.RowsAffected == 0 {
+			return fmt.Errorf("no domain was updated")
+		}
+		return nil
+	})
 }

@@ -111,6 +111,26 @@ func (uc *UseCase) getDevice(ctx context.Context, log models.IdsLog) (*models.De
 		return nil, fmt.Errorf("failed to create device: %w", err)
 	}
 
+	// Создание групп и ролей в keycloak
+	authInfo, err := uc.getServiceAuthInfo(ctx)
+	if err != nil {
+		uc.l.WarnContext(ctx, "failed to get service auth, device created without keycloak roles",
+			slog.String("device", log.Hostname),
+			slog.String("error", err.Error()))
+		// Продолжаем без ролей в Keycloak
+		return &device, nil
+	}
+	// Проверяем, создавалась ли уже роль для данного сетевого узла
+	roleExists, err := uc.hasDeviceInRoles(&authInfo, log.Hostname)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get roles for device: %w", err)
+	}
+	// Если не создавалась, то создаем
+	if !roleExists {
+		if err = uc.addRolesToKeyCloak(ctx, &authInfo, log.Hostname); err != nil {
+			return nil, fmt.Errorf("failed to create role for device: %w", err)
+		}
+	}
 	uc.l.InfoContext(ctx, "created new device", slog.String("device name", log.Hostname))
 
 	// Получаем созданное устройство
@@ -214,9 +234,10 @@ func (uc *UseCase) handleExistingDomainWithURL(ctx context.Context, log models.I
 // createURLForDomain создает новый URL для домена
 func (uc *UseCase) createURLForDomain(ctx context.Context, log models.IdsLog, domain *models.Domain, urlInfo utils.URLInfo) (*models.Domain, *models.URL, error) {
 	newURL := models.URL{
-		Path:     urlInfo.URL,
-		Proto:    urlInfo.Proto,
-		DomainID: domain.ID,
+		Path:      urlInfo.URL,
+		Proto:     urlInfo.Proto,
+		DomainID:  domain.ID,
+		IDSLogsAt: log.Timestamp,
 	}
 
 	// Проверяем списки и отправляем в Kafka при необходимости
@@ -230,7 +251,7 @@ func (uc *UseCase) createURLForDomain(ctx context.Context, log models.IdsLog, do
 		ts := time.Now()
 		uuid := uuid.New()
 		newURL.RequestID = uuid
-		newURL.PutKafkaDateTime = ts
+		newURL.PutKafkaAt = ts
 
 		req := models.AnalysisRequest{
 			RequestID: newURL.RequestID,
@@ -289,6 +310,7 @@ func (uc *UseCase) createNewDomainAndURL(ctx context.Context, log models.IdsLog,
 		Proto:     urlInfo.Proto,
 		DomainID:  domain.ID,
 		RequestID: uuid.New(),
+		IDSLogsAt: log.Timestamp,
 	}
 	// Создаем запрос для Kafka
 	ts := time.Now()
@@ -303,7 +325,7 @@ func (uc *UseCase) createNewDomainAndURL(ctx context.Context, log models.IdsLog,
 		},
 		Timestamp: ts,
 	}
-	newURL.PutKafkaDateTime = ts
+	newURL.PutKafkaAt = ts
 	// Сохраняем в БД
 	if err := uc.q.CreateURL(ctx, newURL); err != nil {
 		return nil, nil, fmt.Errorf("failed to create new URL: %w", err)
@@ -372,6 +394,7 @@ func (uc *UseCase) createDomainWithAnalysis(ctx context.Context, log models.IdsL
 	newURL := models.URL{
 		DomainID:  createdDomain.ID,
 		RequestID: uuid.New(),
+		IDSLogsAt: log.Timestamp,
 	}
 	// Создаем запрос в Kafka
 	ts := time.Now()
@@ -386,7 +409,7 @@ func (uc *UseCase) createDomainWithAnalysis(ctx context.Context, log models.IdsL
 		Timestamp: ts,
 	}
 	// Сохраняем URL в БД
-	newURL.PutKafkaDateTime = ts
+	newURL.PutKafkaAt = ts
 	if err := uc.q.CreateURL(ctx, newURL); err != nil {
 		return nil, nil, fmt.Errorf("failed to create URL: %w", err)
 	}

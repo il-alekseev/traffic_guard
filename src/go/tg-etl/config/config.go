@@ -18,6 +18,7 @@ type (
 		ETL           `yaml:"etl_postgres"`
 		EtlController `yaml:"etl_controller"`
 		Kafka         `yaml:"kafka"`
+		UserControl   `yaml:"usercontrol"`
 	}
 	// App -.
 	App struct {
@@ -73,6 +74,13 @@ type (
 		URLTopic      string `yaml:"url_topic" env:"ETL_KAFKA_URL_TOPIC"`
 		MetadataTopic string `yaml:"metadata_topic" env:"ETL_KAFKA_METADATA_TOPIC"`
 		MLTopic       string `yaml:"ml_topic" env:"ETL_KAFKA_ML_TOPIC"`
+	}
+
+	// UserControl - параметры UserControl сервиса
+	UserControl struct {
+		Proto string `env-required:"true" yaml:"proto" env:"ETL_USERCONTROL_PROTO"`
+		Host  string `env-required:"true" yaml:"host" env:"ETL_USERCONTROL_HOST"`
+		Port  string `env-required:"true" yaml:"port" env:"ETL_USERCONTROL_PORT"`
 	}
 )
 

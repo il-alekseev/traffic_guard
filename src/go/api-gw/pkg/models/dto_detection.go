@@ -32,8 +32,8 @@ type DtoDetection struct {
 	// domain
 	Domain string `json:"domain,omitempty"`
 
-	// host name
-	HostName string `json:"host_name,omitempty"`
+	// hostname
+	Hostname string `json:"hostname,omitempty"`
 
 	// ip
 	IP string `json:"ip,omitempty"`

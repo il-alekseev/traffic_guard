@@ -22,6 +22,9 @@ import (
 	"tg-etl/pkg/cslogger"
 	"tg-etl/pkg/pgorm"
 	"tg-etl/pkg/slogger/wsl"
+	"tg-etl/pkg/usercontrol"
+
+	httptransport "github.com/go-openapi/runtime/client"
 )
 
 func getDSN(host, user, pass, dbname, port, sslmode string) string {
@@ -135,8 +138,18 @@ func Run(cfg *config.Config) {
 	// Инициализация QueryUsecase для работы с базами с поддержкой m-cashe
 	q := q.New(cfg, dbKSU, dbETL, logger)
 
+	// Инициализация клиента usercontrol
+	userCl := usercontrol.New(
+		httptransport.New(
+			cfg.UserControl.Host+":"+cfg.UserControl.Port,
+			"/",
+			[]string{cfg.UserControl.Proto},
+		),
+		nil,
+	)
+
 	//Инициализация ProcessorUsecase для обработки данных
-	p, err := usecase.New(cfg, q, kc, logger)
+	p, err := usecase.New(cfg, q, kc, logger, userCl)
 	if err != nil {
 		logger.ErrorContext(ctx, "ETL service", wsl.String("failed to create usecase", err.Error()))
 		return

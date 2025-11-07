@@ -1,4 +1,4 @@
-package postresql
+package postgresql
 
 import (
 	"context"
@@ -10,8 +10,6 @@ import (
 	"tg-an/pkg/slogger/wsl"
 	"tg-an/pkg/trparser"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 // GetTopCategories возвращает топ категорий по количеству доступов
@@ -32,7 +30,7 @@ func (r *RepoPG) GetTopCategories(ctx context.Context, tr *trparser.TimeRange, f
 	// Применяем фильтр по hostname
 	if f.HostName != "" {
 		query = query.Joins("JOIN devices ON sessions.device_id = devices.id").
-			Where("devices.host_name = ?", f.HostName)
+			Where("devices.hostname = ?", f.HostName)
 	}
 
 	// Применяем фильтр по типу сессии
@@ -88,7 +86,7 @@ func (r *RepoPG) GetRequestStat(ctx context.Context, tr *trparser.TimeRange, hos
 	// Применяем фильтр по hostname
 	if hostname != "" {
 		query = query.Joins("JOIN devices ON sessions.device_id = devices.id").
-			Where("devices.host_name = ?", hostname)
+			Where("devices.hostname = ?", hostname)
 	}
 
 	rt, err := models.ParseRequestStatus(requestType)
@@ -143,7 +141,7 @@ func (r *RepoPG) GetTopUnresolvedDetections(ctx context.Context, tr *trparser.Ti
 	// Применяем фильтр по hostname
 	if hostName != "" {
 		query = query.Joins("JOIN devices ON sessions.device_id = devices.id").
-			Where("devices.host_name = ?", hostName)
+			Where("devices.hostname = ?", hostName)
 	}
 
 	err := query.
@@ -204,7 +202,7 @@ func (r *RepoPG) GetDeviceStat(ctx context.Context, tr *trparser.TimeRange, coun
 			sessions.status,
 			urls.path,
 			urls.proto,
-			devices.host_name,
+			devices.hostname,
 			sources.ip as src_ip,
 			sources.country as src_country,
 			sources.username,
@@ -239,20 +237,38 @@ func (r *RepoPG) GetDeviceStat(ctx context.Context, tr *trparser.TimeRange, coun
 	return result, nil
 }
 
-func (r *RepoPG) GetAnomalies(ctx context.Context, tr *trparser.TimeRange) (dto.GetAnomaliesResponse, error) {
+func (r *RepoPG) GetAnomalies(ctx context.Context, tr *trparser.TimeRange, hostname string) (dto.GetAnomaliesResponse, error) {
 	var result = dto.GetAnomaliesResponse{
 		Data: make(map[string][]string),
 	}
-	// Получем список хостов
+
+	// Получаем список хостов
 	hostnames, err := r.GetDevices(ctx)
 	if err != nil {
 		return result, fmt.Errorf("failed to get devices: %w", err)
 	}
+
+	// Если указан конкретный hostname, проверяем его существование
+	if hostname != "" {
+		found := false
+		for _, h := range hostnames {
+			if h == hostname {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return result, fmt.Errorf("hostname '%s' not found", hostname)
+		}
+		hostnames = []string{hostname} // Работаем только с указанным хостом
+	}
+
 	result.HostNamesCount = uint(len(hostnames))
+
+	// Инициализируем данные для хостов
 	for _, h := range hostnames {
 		result.Data[h] = []string{}
 	}
-
 	// Получаем число заблокированных ресурсов (доменов)
 	var blockedDomainsCount int64
 	if err := r.db.GetDB().WithContext(ctx).Table("sessions").
@@ -278,7 +294,7 @@ func (r *RepoPG) GetAnomalies(ctx context.Context, tr *trparser.TimeRange) (dto.
 			Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
 			Joins("LEFT JOIN devices ON sessions.device_id = devices.id").
 			Where("sessions.status = ?", status.StatusAnomaly.String()).
-			Where("devices.host_name = ?", hostname).
+			Where("devices.hostname = ?", hostname).
 			Where("sessions.datetime_utc BETWEEN ? AND ?", tr.From, tr.To).
 			Pluck("domains.path", &blockedDomains).Error
 
@@ -296,48 +312,4 @@ func (r *RepoPG) GetAnomalies(ctx context.Context, tr *trparser.TimeRange) (dto.
 	}
 
 	return result, nil
-}
-
-func (r *RepoPG) Act(ctx context.Context, action, path string) error {
-	return r.db.GetDB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		// Находим домен по пути
-		var domain models.Domain
-		err := tx.Where("path = ?", path).First(&domain).Error
-		if err != nil {
-			return fmt.Errorf("failed to find domain with path %s: %w", path, err)
-		}
-		// Проверяем, есть ли уже действия для домена
-		if domain.ActionID != 0 {
-			return fmt.Errorf("domain already acted")
-		}
-		// Получаем общее количество записей action
-		var count int64
-		if err := tx.Model(&models.Action{}).Count(&count).Error; err != nil {
-			return fmt.Errorf("failed to count actions: %w", err)
-		}
-		// Cоздаем действие
-		var actionRecord = models.Action{
-			ID:        uint(count + 1),
-			Action:    action,
-			CreatedAt: time.Now(),
-			// TODO: добавить пользователя
-			CreatedBy: "user",
-		}
-		if err := tx.Create(&actionRecord).Error; err != nil {
-			return fmt.Errorf("failed to create action: %w", err)
-		}
-		// Обновляем домен
-		result := tx.Model(&models.Domain{}).
-			Where("id = ?", domain.ID).
-			Update("action_id", actionRecord.ID)
-
-		if result.Error != nil {
-			return fmt.Errorf("failed to update domain action: %w", result.Error)
-		}
-
-		if result.RowsAffected == 0 {
-			return fmt.Errorf("no domain was updated")
-		}
-		return nil
-	})
 }

@@ -95,3 +95,7 @@ func (uc *QueryUseCase) invalidateUrlCache(url *models.URL) {
 
 	uc.c.Delete("url:all")
 }
+
+func (uc *QueryUseCase) UpdateURLByRequestID(ctx context.Context, requestID uuid.UUID, newURL models.URL) error {
+	return uc.etlDB.UpdateURLByRequestID(ctx, requestID, newURL)
+}

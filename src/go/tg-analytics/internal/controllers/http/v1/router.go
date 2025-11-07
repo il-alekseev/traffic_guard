@@ -42,6 +42,7 @@ func (s *Server) configureRouter() {
 		{
 			detections.GET("/", s.GetDetections)
 			detections.GET("/stat", s.GetDetectionStat)
+			detections.PATCH("/act", s.Act)
 		}
 		// Вкладка Отыеты
 		reports := v1.Group("/reports")

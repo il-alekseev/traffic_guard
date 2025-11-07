@@ -7,11 +7,11 @@ package models
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // ModelsTopAnomaliesPage models top anomalies page
@@ -19,15 +19,15 @@ import (
 // swagger:model models.TopAnomaliesPage
 type ModelsTopAnomaliesPage struct {
 
-	// anomalies
-	Anomalies map[string]ModelsTopAnomaly `json:"anomalies,omitempty"`
+	// device anomaly
+	DeviceAnomaly []*ModelsDeviceAnomalyAnalytics `json:"device_anomaly"`
 }
 
 // Validate validates this models top anomalies page
 func (m *ModelsTopAnomaliesPage) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateAnomalies(formats); err != nil {
+	if err := m.validateDeviceAnomaly(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -37,22 +37,22 @@ func (m *ModelsTopAnomaliesPage) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *ModelsTopAnomaliesPage) validateAnomalies(formats strfmt.Registry) error {
-	if swag.IsZero(m.Anomalies) { // not required
+func (m *ModelsTopAnomaliesPage) validateDeviceAnomaly(formats strfmt.Registry) error {
+	if swag.IsZero(m.DeviceAnomaly) { // not required
 		return nil
 	}
 
-	for k := range m.Anomalies {
-
-		if err := validate.Required("anomalies"+"."+k, "body", m.Anomalies[k]); err != nil {
-			return err
+	for i := 0; i < len(m.DeviceAnomaly); i++ {
+		if swag.IsZero(m.DeviceAnomaly[i]) { // not required
+			continue
 		}
-		if val, ok := m.Anomalies[k]; ok {
-			if err := val.Validate(formats); err != nil {
+
+		if m.DeviceAnomaly[i] != nil {
+			if err := m.DeviceAnomaly[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("anomalies" + "." + k)
+					return ve.ValidateName("device_anomaly" + "." + strconv.Itoa(i))
 				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("anomalies" + "." + k)
+					return ce.ValidateName("device_anomaly" + "." + strconv.Itoa(i))
 				}
 				return err
 			}
@@ -67,7 +67,7 @@ func (m *ModelsTopAnomaliesPage) validateAnomalies(formats strfmt.Registry) erro
 func (m *ModelsTopAnomaliesPage) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.contextValidateAnomalies(ctx, formats); err != nil {
+	if err := m.contextValidateDeviceAnomaly(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -77,12 +77,22 @@ func (m *ModelsTopAnomaliesPage) ContextValidate(ctx context.Context, formats st
 	return nil
 }
 
-func (m *ModelsTopAnomaliesPage) contextValidateAnomalies(ctx context.Context, formats strfmt.Registry) error {
+func (m *ModelsTopAnomaliesPage) contextValidateDeviceAnomaly(ctx context.Context, formats strfmt.Registry) error {
 
-	for k := range m.Anomalies {
+	for i := 0; i < len(m.DeviceAnomaly); i++ {
 
-		if val, ok := m.Anomalies[k]; ok {
-			if err := val.ContextValidate(ctx, formats); err != nil {
+		if m.DeviceAnomaly[i] != nil {
+
+			if swag.IsZero(m.DeviceAnomaly[i]) { // not required
+				return nil
+			}
+
+			if err := m.DeviceAnomaly[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("device_anomaly" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("device_anomaly" + "." + strconv.Itoa(i))
+				}
 				return err
 			}
 		}

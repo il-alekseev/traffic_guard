@@ -18,39 +18,60 @@ import (
 // swagger:model models.DeviceReport
 type ModelsDeviceReport struct {
 
-	// all
-	All int64 `json:"all,omitempty"`
-
-	// anomalies
-	Anomalies int64 `json:"anomalies,omitempty"`
-
-	// blocks
-	Blocks int64 `json:"blocks,omitempty"`
+	// anomaly block stat
+	AnomalyBlockStat *ModelsAnomalyBlockStat `json:"anomaly_block_stat,omitempty"`
 
 	// detections
 	Detections *ModelsDetectionReport `json:"detections,omitempty"`
 
-	// input
-	Input int64 `json:"input,omitempty"`
-
-	// output
-	Output int64 `json:"output,omitempty"`
+	// hostname
+	Hostname string `json:"hostname,omitempty"`
 
 	// requests
 	Requests int64 `json:"requests,omitempty"`
+
+	// traffic
+	Traffic *ModelsTraffic `json:"traffic,omitempty"`
 }
 
 // Validate validates this models device report
 func (m *ModelsDeviceReport) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateAnomalyBlockStat(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateDetections(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateTraffic(formats); err != nil {
 		res = append(res, err)
 	}
 
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *ModelsDeviceReport) validateAnomalyBlockStat(formats strfmt.Registry) error {
+	if swag.IsZero(m.AnomalyBlockStat) { // not required
+		return nil
+	}
+
+	if m.AnomalyBlockStat != nil {
+		if err := m.AnomalyBlockStat.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("anomaly_block_stat")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("anomaly_block_stat")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -73,17 +94,65 @@ func (m *ModelsDeviceReport) validateDetections(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *ModelsDeviceReport) validateTraffic(formats strfmt.Registry) error {
+	if swag.IsZero(m.Traffic) { // not required
+		return nil
+	}
+
+	if m.Traffic != nil {
+		if err := m.Traffic.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("traffic")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("traffic")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
 // ContextValidate validate this models device report based on the context it is used
 func (m *ModelsDeviceReport) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.contextValidateAnomalyBlockStat(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.contextValidateDetections(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateTraffic(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *ModelsDeviceReport) contextValidateAnomalyBlockStat(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.AnomalyBlockStat != nil {
+
+		if swag.IsZero(m.AnomalyBlockStat) { // not required
+			return nil
+		}
+
+		if err := m.AnomalyBlockStat.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("anomaly_block_stat")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("anomaly_block_stat")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -100,6 +169,27 @@ func (m *ModelsDeviceReport) contextValidateDetections(ctx context.Context, form
 				return ve.ValidateName("detections")
 			} else if ce, ok := err.(*errors.CompositeError); ok {
 				return ce.ValidateName("detections")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *ModelsDeviceReport) contextValidateTraffic(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Traffic != nil {
+
+		if swag.IsZero(m.Traffic) { // not required
+			return nil
+		}
+
+		if err := m.Traffic.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("traffic")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("traffic")
 			}
 			return err
 		}

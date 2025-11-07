@@ -7,16 +7,17 @@ import (
 	"api-gateway/pkg/analytics/detections"
 	"api-gateway/pkg/analytics/reports"
 	"api-gateway/pkg/analytics/sessions"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 //---------------------common---------------------
 
 // getCategories -
 // @Summary Получение списка категорий контента
-// @Description Получение списка всех категорий контента
+// @Description Возвращает список всех уникальных категорий контента из системы
 // @Tags common
 // @Produce json
 // @Security BearerAuth
@@ -81,12 +82,13 @@ func (s *Server) getDevices(c *gin.Context) {
 
 // getV1DashboardsAnomalies -
 // @Summary Получение информации об аномалиях
-// @Description Получение списка обнаруженных аномалий в сетевом трафике за указанный период
+// @Description Получение статистики об аномалиях за указанный период
 // @Tags dashboards
 // @Produce application/json
 // @Security BearerAuth
 // @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)" default(now-10m)
 // @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)" default(now)
+// @Param hostname query string false "Фильтр по имени хоста"
 // @Success 200 {object} models.DtoGetAnomaliesResponse "Список обнаруженных аномалий"
 // @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера"
@@ -102,10 +104,12 @@ func (s *Server) getV1DashboardsAnomalies(c *gin.Context) {
 	//Парсим входные данные
 	from := c.DefaultQuery("from", "now-10m")
 	to := c.DefaultQuery("to", "now")
+	hostname := c.Query("hostname")
 
 	resp, err := s.analyticsCL.Dashboards.GetAPIV1DashboardsAnomalies(&dashboards.GetAPIV1DashboardsAnomaliesParams{
-		From: &from,
-		To:   &to,
+		From:     &from,
+		To:       &to,
+		Hostname: &hostname,
 	})
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
@@ -234,7 +238,7 @@ func (s *Server) getDashboardsRequests(c *gin.Context) {
 }
 
 // getDashboardsTopCategories -
-// @Summary Получить топ категорий сессий
+// @Summary Получение списка самых запрашиваемых категорий
 // @Description Возвращает наиболее часто встречаемые категории в сессиях с возможностью фильтрации
 // @Tags dashboards
 // @Accept json
@@ -243,7 +247,7 @@ func (s *Server) getDashboardsRequests(c *gin.Context) {
 // @Param from query string false "Начало временного диапазона" default(now-24h)
 // @Param to query string false "Конец временного диапазона" default(now)
 // @Param hostname query string false "Фильтр по имени хоста"
-// @Param type query string false "Фильтр по типу сессии" Enums("Разрешен", "Заблокирован", "VPN")
+// @Param type query string false "Фильтр по типу сессии" Enums(Разрешен, Заблокирован, VPN)
 // @Param count query int false "Количество возвращаемых категорий" default(5) minimum(1) maximum(50)
 // @Success 200 {array} models.DtoCategory
 // @Failure 400 {object} models.DtoErrorResponse
@@ -420,8 +424,8 @@ func (s *Server) getDashboardsTraffic(c *gin.Context) {
 // @Success 200 {object} models.DtoSuccessResponse "Действие успешно применено к домену"
 // @Failure 400 {object} models.DtoErrorResponse "Неверные параметры запроса"
 // @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера"
-// @Router /v1/analytics/dashboards/act [get]
-func (s *Server) getV1DashboardsAct(c *gin.Context) {
+// @Router /v1/analytics/dashboards/act [patch]
+func (s *Server) patchV1DashboardsAct(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
 	//authInfo, err := utils.GetAuthInfo(c)
 	//if err != nil {
@@ -433,7 +437,7 @@ func (s *Server) getV1DashboardsAct(c *gin.Context) {
 	action := c.DefaultQuery("action", "allow") // по умолчанию выдает последние 10 минут
 	path := c.Query("path")
 
-	resp, err := s.analyticsCL.Actions.GetAPIV1DashbordsAct(&actions.GetAPIV1DashbordsActParams{
+	resp, err := s.analyticsCL.Actions.PatchAPIV1DetectionsAct(&actions.PatchAPIV1DetectionsActParams{
 		Action: action,
 		Path:   path,
 	})
@@ -443,7 +447,7 @@ func (s *Server) getV1DashboardsAct(c *gin.Context) {
 			return
 		}
 
-		s.ErrorResponse(c, http.StatusBadRequest, "Actions.GetAPIV1DashbordsAct", err)
+		s.ErrorResponse(c, http.StatusBadRequest, "Actions.GetAPIV1DetectionsAct", err)
 		return
 	}
 
@@ -667,7 +671,7 @@ func (s *Server) getV1ReportsHostname(c *gin.Context) {
 //---------------------sessions---------------------
 
 // getSessions -
-// @Summary Получить список сессий
+// @Summary Получение списка сессий
 // @Description Возвращает список сессий с возможностью фильтрации, поиска, сортировки и пагинации
 // @Tags sessions
 // @Accept json
@@ -681,7 +685,7 @@ func (s *Server) getV1ReportsHostname(c *gin.Context) {
 // @Param search query string false "Поиск по URL или имени пользователя"
 // @Param page query int false "Номер страницы" default(1) minimum(1)
 // @Param limit query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
-// @Param order_by query string false "Поле для сортировки" default(datetime_utc) Enums(id, datetime_utc, type, status, url, proto, host_name, src_ip, src_country, username, dst_ip, dst_port, dst_country, category)
+// @Param order_by query string false "Поле для сортировки" default(datetime_utc) Enums(id, datetime_utc, type, status, url, proto, hostname, src_ip, src_country, username, dst_ip, dst_port, dst_country, category)
 // @Param order_dir query string false "Направление сортировки (asc/desc)" default(desc) Enums(asc, desc)
 // @Success 200 {object} models.DtoGetSessionsResponse "Успешный ответ"
 // @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров"

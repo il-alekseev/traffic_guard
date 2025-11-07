@@ -73,7 +73,7 @@ func (r *GetSessionsRequest) Validate() error {
 	}
 
 	// Валидация сортировки
-	allowedOrderFields := []string{"id", "datetime_utc", "type", "status", "url", "proto", "host_name", "src_ip", "src_country", "username", "dst_ip", "dst_port", "dst_country", "category", ""}
+	allowedOrderFields := []string{"id", "datetime_utc", "type", "status", "url", "proto", "hostname", "src_ip", "src_country", "username", "dst_ip", "dst_port", "dst_country", "category", ""}
 	if !contains(allowedOrderFields, r.OrderBy) {
 		return fmt.Errorf("invalid order_by field")
 	}

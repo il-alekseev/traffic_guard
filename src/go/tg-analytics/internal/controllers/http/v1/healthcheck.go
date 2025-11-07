@@ -12,7 +12,7 @@ import (
 // @Tags utils
 // @Produce json
 // @Success 200 {object} dto.SuccessResponse
-// @Router /v1/healthcheck [get]
+// @Router /api/v1/healthcheck [get]
 func (s *Server) Healthcheck(c *gin.Context) {
 	response := dto.SuccessResponse{
 		Message: "ready",

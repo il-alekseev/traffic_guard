@@ -46,6 +46,6 @@ type DeviceStatResponse struct {
 
 type GetAnomaliesResponse struct {
 	BlockedResoursesCount uint                `json:"blocked_resourses_count"`
-	HostNamesCount        uint                `json:"host_names_count"`
+	HostNamesCount        uint                `json:"hostnames_count"`
 	Data                  map[string][]string `json:"data"`
 }

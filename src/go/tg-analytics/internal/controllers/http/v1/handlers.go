@@ -40,7 +40,7 @@ func (s *Server) Version(c *gin.Context) {
 // @Param search query string false "Поиск по URL или имени пользователя"
 // @Param page query int false "Номер страницы" default(1) minimum(1)
 // @Param limit query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
-// @Param order_by query string false "Поле для сортировки" default(datetime_utc) Enums(id, datetime_utc, type, status, url, proto, host_name, src_ip, src_country, username, dst_ip, dst_port, dst_country, category)
+// @Param order_by query string false "Поле для сортировки" default(datetime_utc) Enums(id, datetime_utc, type, status, url, proto, hostname, src_ip, src_country, username, dst_ip, dst_port, dst_country, category)
 // @Param order_dir query string false "Направление сортировки (asc/desc)" default(desc) Enums(asc, desc)
 // @Success 200 {object} dto.GetSessionsResponse "Успешный ответ"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
@@ -559,6 +559,7 @@ func (s *Server) GetDeviceStat(c *gin.Context) {
 // @Produce application/json
 // @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)" default(now-10m)
 // @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)" default(now)
+// @Param hostname query string false "Фильтр по имени хоста"
 // @Success 200 {object} dto.GetAnomaliesResponse "Статистика обнаруженных аномалий"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
@@ -590,7 +591,7 @@ func (s *Server) GetAnomalies(c *gin.Context) {
 		return
 	}
 	// Получаем данные из usecase
-	response, err := s.u.GetAnomalies(c, timeRange)
+	response, err := s.u.GetAnomalies(c, timeRange, req.HostName)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Ошибка при получении статистики сетевых узлов",
@@ -610,7 +611,7 @@ func (s *Server) GetAnomalies(c *gin.Context) {
 // @Success 200 {object} dto.SuccessResponse "Действие успешно применено к домену"
 // @Failure 400 {object} dto.ErrorResponse "Неверные параметры запроса"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
-// @Router /api/v1/dashbords/act [get]
+// @Router /api/v1/detections/act [patch]
 func (s *Server) Act(c *gin.Context) {
 	// Валидация запроса
 	var req validation.ActRequest
@@ -627,7 +628,7 @@ func (s *Server) Act(c *gin.Context) {
 		})
 		return
 	}
-	err := s.u.Act(c, req.Path, req.Action)
+	err := s.u.Act(c, req.Action, req.Path)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Ошибка при установке значения действия к домену",

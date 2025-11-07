@@ -7,11 +7,11 @@ package models
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // ModelsMainActivityPage models main activity page
@@ -20,13 +20,13 @@ import (
 type ModelsMainActivityPage struct {
 
 	// top categories
-	TopCategories map[string]ModelsRequestReport `json:"top_categories,omitempty"`
+	TopCategories []*ModelsCategoryStat `json:"top_categories"`
 
 	// top resources
-	TopResources map[string]ModelsResourceStat `json:"top_resources,omitempty"`
+	TopResources []*ModelsResourceStat `json:"top_resources"`
 
 	// traffic
-	Traffic *ModelsTrafficStat `json:"traffic,omitempty"`
+	Traffic *ModelsTrafficStatData `json:"traffic,omitempty"`
 }
 
 // Validate validates this models main activity page
@@ -56,17 +56,17 @@ func (m *ModelsMainActivityPage) validateTopCategories(formats strfmt.Registry) 
 		return nil
 	}
 
-	for k := range m.TopCategories {
-
-		if err := validate.Required("top_categories"+"."+k, "body", m.TopCategories[k]); err != nil {
-			return err
+	for i := 0; i < len(m.TopCategories); i++ {
+		if swag.IsZero(m.TopCategories[i]) { // not required
+			continue
 		}
-		if val, ok := m.TopCategories[k]; ok {
-			if err := val.Validate(formats); err != nil {
+
+		if m.TopCategories[i] != nil {
+			if err := m.TopCategories[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("top_categories" + "." + k)
+					return ve.ValidateName("top_categories" + "." + strconv.Itoa(i))
 				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("top_categories" + "." + k)
+					return ce.ValidateName("top_categories" + "." + strconv.Itoa(i))
 				}
 				return err
 			}
@@ -82,17 +82,17 @@ func (m *ModelsMainActivityPage) validateTopResources(formats strfmt.Registry) e
 		return nil
 	}
 
-	for k := range m.TopResources {
-
-		if err := validate.Required("top_resources"+"."+k, "body", m.TopResources[k]); err != nil {
-			return err
+	for i := 0; i < len(m.TopResources); i++ {
+		if swag.IsZero(m.TopResources[i]) { // not required
+			continue
 		}
-		if val, ok := m.TopResources[k]; ok {
-			if err := val.Validate(formats); err != nil {
+
+		if m.TopResources[i] != nil {
+			if err := m.TopResources[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("top_resources" + "." + k)
+					return ve.ValidateName("top_resources" + "." + strconv.Itoa(i))
 				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("top_resources" + "." + k)
+					return ce.ValidateName("top_resources" + "." + strconv.Itoa(i))
 				}
 				return err
 			}
@@ -146,10 +146,20 @@ func (m *ModelsMainActivityPage) ContextValidate(ctx context.Context, formats st
 
 func (m *ModelsMainActivityPage) contextValidateTopCategories(ctx context.Context, formats strfmt.Registry) error {
 
-	for k := range m.TopCategories {
+	for i := 0; i < len(m.TopCategories); i++ {
 
-		if val, ok := m.TopCategories[k]; ok {
-			if err := val.ContextValidate(ctx, formats); err != nil {
+		if m.TopCategories[i] != nil {
+
+			if swag.IsZero(m.TopCategories[i]) { // not required
+				return nil
+			}
+
+			if err := m.TopCategories[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("top_categories" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("top_categories" + "." + strconv.Itoa(i))
+				}
 				return err
 			}
 		}
@@ -161,10 +171,20 @@ func (m *ModelsMainActivityPage) contextValidateTopCategories(ctx context.Contex
 
 func (m *ModelsMainActivityPage) contextValidateTopResources(ctx context.Context, formats strfmt.Registry) error {
 
-	for k := range m.TopResources {
+	for i := 0; i < len(m.TopResources); i++ {
 
-		if val, ok := m.TopResources[k]; ok {
-			if err := val.ContextValidate(ctx, formats); err != nil {
+		if m.TopResources[i] != nil {
+
+			if swag.IsZero(m.TopResources[i]) { // not required
+				return nil
+			}
+
+			if err := m.TopResources[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("top_resources" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("top_resources" + "." + strconv.Itoa(i))
+				}
 				return err
 			}
 		}

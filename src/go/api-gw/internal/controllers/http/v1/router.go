@@ -12,7 +12,8 @@ func (s *Server) configureRouter() {
 	// Swagger endpoint
 	s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	s.router.GET("/v1/healthcheck", s.healthcheck)
+	s.router.GET("/api/v1/healthcheck", s.healthcheck)
+	//s.router.GET("/api/v1/version", s.version)
 
 	// Global middleware
 	s.router.Use(middleware.CorsMiddleware())
@@ -92,7 +93,7 @@ func (s *Server) configureRouter() {
 		analytics.GET("/dashboards/traffic", s.getDashboardsTraffic)
 
 		//actions
-		analytics.GET("/dashboards/act", s.getV1DashboardsAct)
+		analytics.PATCH("/dashboards/act", s.patchV1DashboardsAct)
 
 		//detections
 		analytics.GET("/detections", s.getDetections)

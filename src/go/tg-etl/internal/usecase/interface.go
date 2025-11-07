@@ -90,6 +90,7 @@ type URLUseCase interface {
 	CreateURL(ctx context.Context, url models.URL) error
 	GetURLByPath(ctx context.Context, path string) (*models.URL, error)
 	GetURLByPathDomain(ctx context.Context, path string, id uint) (*models.URL, error)
+	UpdateURLByRequestID(ctx context.Context, requestID uuid.UUID, newURL models.URL) error
 }
 
 // Работа с последним обработанным логом

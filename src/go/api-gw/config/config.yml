@@ -15,17 +15,17 @@ logger:
 
 usercontrol:
   proto: "http"
-  host: "127.0.0.1"
+  host: "192.168.130.112"
   port: "8002"
 
 ctxcontrol:
   proto: "http"
-  host: "127.0.0.1"
+  host: "192.168.130.112"
   port: "8003"  
 
 blog_serv:
   proto: "http"
-  host: "127.0.0.1"
+  host: "192.168.130.112"
   port: "8004"
 
 analytics:

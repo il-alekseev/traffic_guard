@@ -18,8 +18,11 @@ import (
 // swagger:model models.ResourceStat
 type ModelsResourceStat struct {
 
-	// category
-	Category string `json:"category,omitempty"`
+	// categories
+	Categories []string `json:"categories"`
+
+	// resource
+	Resource string `json:"resource,omitempty"`
 
 	// stat
 	Stat *ModelsRequestReport `json:"stat,omitempty"`

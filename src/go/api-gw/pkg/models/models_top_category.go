@@ -8,6 +8,7 @@ package models
 import (
 	"context"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
@@ -17,32 +18,129 @@ import (
 // swagger:model models.TopCategory
 type ModelsTopCategory struct {
 
-	// after block
-	AfterBlock int64 `json:"after_block,omitempty"`
+	// category
+	Category string `json:"category,omitempty"`
 
-	// before block
-	BeforeBlock int64 `json:"before_block,omitempty"`
+	// stat
+	Stat *ModelsRequestReport `json:"stat,omitempty"`
 
-	// input
-	Input int64 `json:"input,omitempty"`
-
-	// output
-	Output int64 `json:"output,omitempty"`
-
-	// pending
-	Pending int64 `json:"pending,omitempty"`
-
-	// requests
-	Requests int64 `json:"requests,omitempty"`
+	// traffic
+	Traffic *ModelsTraffic `json:"traffic,omitempty"`
 }
 
 // Validate validates this models top category
 func (m *ModelsTopCategory) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateStat(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateTraffic(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }
 
-// ContextValidate validates this models top category based on context it is used
+func (m *ModelsTopCategory) validateStat(formats strfmt.Registry) error {
+	if swag.IsZero(m.Stat) { // not required
+		return nil
+	}
+
+	if m.Stat != nil {
+		if err := m.Stat.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("stat")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("stat")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *ModelsTopCategory) validateTraffic(formats strfmt.Registry) error {
+	if swag.IsZero(m.Traffic) { // not required
+		return nil
+	}
+
+	if m.Traffic != nil {
+		if err := m.Traffic.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("traffic")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("traffic")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this models top category based on the context it is used
 func (m *ModelsTopCategory) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateStat(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateTraffic(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *ModelsTopCategory) contextValidateStat(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Stat != nil {
+
+		if swag.IsZero(m.Stat) { // not required
+			return nil
+		}
+
+		if err := m.Stat.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("stat")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("stat")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *ModelsTopCategory) contextValidateTraffic(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Traffic != nil {
+
+		if swag.IsZero(m.Traffic) { // not required
+			return nil
+		}
+
+		if err := m.Traffic.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("traffic")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("traffic")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 
