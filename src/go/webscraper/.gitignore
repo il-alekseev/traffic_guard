@@ -1,0 +1,32 @@
+# Build outputs
+bin/
+dist/
+
+# Coverage reports
+coverage/
+*.out
+*.coverprofile
+profile.cov
+
+# Runtime and temporary files
+tmp/
+*.log
+.cache/
+
+# Logs directory (keep placeholder)
+logs/
+!logs/.gitkeep
+
+# Local environment overrides
+.env.*
+!.env
+!.env.example
+config/*.local.yaml
+config/*.override.yaml
+
+# Tooling directories
+.idea/
+.vscode/
+
+# OS-generated files
+.DS_Store

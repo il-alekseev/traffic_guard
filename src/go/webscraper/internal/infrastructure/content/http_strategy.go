@@ -3,8 +3,8 @@ package content
 import (
 	"context"
 
-	"scrapper/internal/domain"
 	"scrapper/internal/infrastructure/httpclient"
+	"scrapper/internal/models"
 )
 
 type HTTPStrategy struct {
@@ -19,11 +19,19 @@ func (s *HTTPStrategy) Name() string {
 	return "http"
 }
 
-func (s *HTTPStrategy) Fetch(ctx context.Context, url string) (domain.ContentData, error) {
-	body, err := s.client.Fetch(ctx, url)
+func (s *HTTPStrategy) Fetch(ctx context.Context, url string) (models.ContentData, error) {
+	body, agent, err := s.client.Fetch(ctx, url)
 	if err != nil {
-		return domain.ContentData{}, err
+		return models.ContentData{}, err
 	}
 
-	return domain.ContentData{RawHTML: body}, nil
+	return models.ContentData{RawHTML: body, UserAgent: agent}, nil
+}
+
+func (s *HTTPStrategy) FetchWithUserAgent(ctx context.Context, url, agent string) (models.ContentData, error) {
+	body, usedAgent, err := s.client.FetchWithCustomAgent(ctx, url, agent)
+	if err != nil {
+		return models.ContentData{}, err
+	}
+	return models.ContentData{RawHTML: body, UserAgent: usedAgent}, nil
 }

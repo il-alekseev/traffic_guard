@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"scrapper/config"
 	"scrapper/internal/bootstrap"
@@ -33,21 +35,16 @@ func run() error {
 		return fmt.Errorf("load config: %w", err)
 	}
 
-	if options.Override {
-		cfg.InputPath = ""
-	}
+	config.ApplyEnvOverrides(cfg)
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
 	params := bootstrap.Params{
 		Config: cfg,
-		URLs:   options.URLs,
-		Stdout: os.Stdout,
-		Stdin:  os.Stdin,
 	}
 
-	if err := bootstrap.Run(context.Background(), params); err != nil {
-		if errors.Is(err, bootstrap.ErrNoURLs) {
-			return fmt.Errorf("no urls provided: configure input_path or pass urls")
-		}
+	if err := bootstrap.Run(ctx, params); err != nil {
 		return err
 	}
 

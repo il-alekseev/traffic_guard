@@ -1,52 +1,69 @@
 package logging
 
 import (
-	"log"
+	"log/slog"
 	"os"
-	"path/filepath"
-	"sync"
+	"strings"
 )
 
-// Logger wraps a standard logger with file output and synchronization for concurrent writes.
+// Logger wraps slog.Logger providing convenience helpers for structured output.
 type Logger struct {
-	mu sync.Mutex
-	l  *log.Logger
-	f  *os.File
+	base *slog.Logger
 }
 
-// NewFileLogger creates (and ensures directories for) a file-backed logger.
-func NewFileLogger(path string) (*Logger, error) {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return nil, err
+// New creates a stdout logger with the provided level (debug/info/warn/error).
+func New(level string) *Logger {
+	var lvl slog.Level
+	switch strings.ToLower(strings.TrimSpace(level)) {
+	case "debug":
+		lvl = slog.LevelDebug
+	case "warn", "warning":
+		lvl = slog.LevelWarn
+	case "error":
+		lvl = slog.LevelError
+	default:
+		lvl = slog.LevelInfo
 	}
 
-	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
-	if err != nil {
-		return nil, err
-	}
+	handler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: lvl,
+	})
 
-	logger := log.New(file, "", log.LstdFlags|log.LUTC)
-
-	return &Logger{
-		l: logger,
-		f: file,
-	}, nil
+	return &Logger{base: slog.New(handler)}
 }
 
-// Close closes the underlying file handle.
-func (l *Logger) Close() error {
-	if l == nil || l.f == nil {
-		return nil
+// With returns a child logger with the given attributes bound.
+func (l *Logger) With(args ...any) *Logger {
+	if l == nil || l.base == nil {
+		return l
 	}
-	return l.f.Close()
+	return &Logger{base: l.base.With(args...)}
 }
 
-// Logf writes a formatted message in a thread-safe manner.
-func (l *Logger) Logf(format string, args ...interface{}) {
-	if l == nil || l.l == nil {
+func (l *Logger) Debug(msg string, args ...any) {
+	if l == nil || l.base == nil {
 		return
 	}
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	l.l.Printf(format, args...)
+	l.base.Debug(msg, args...)
+}
+
+func (l *Logger) Info(msg string, args ...any) {
+	if l == nil || l.base == nil {
+		return
+	}
+	l.base.Info(msg, args...)
+}
+
+func (l *Logger) Warn(msg string, args ...any) {
+	if l == nil || l.base == nil {
+		return
+	}
+	l.base.Warn(msg, args...)
+}
+
+func (l *Logger) Error(msg string, args ...any) {
+	if l == nil || l.base == nil {
+		return
+	}
+	l.base.Error(msg, args...)
 }
