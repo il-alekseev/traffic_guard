@@ -1,5 +1,5 @@
 db_path: "data/ipinfo_lite.mmdb"
-workers: 1000
+workers: 10000
 request_timeout: 15s
 content:
   strategies:
@@ -18,7 +18,7 @@ logging:
 kafka:
   brokers:
     - "kafka:9092"
-  group_id: "scraper-consumer_13"
+  group_id: "scraper-consumer_11"
   client_id: "scraper"
   input_topic: "url-processing-requests"
   metadata_topic: "url-metadata-results"
