@@ -9,7 +9,7 @@ import (
 
 type RepoPGInterface interface {
 	// Common
-	GetDevices(ctx context.Context) ([]string, error)
+	GetDevices(ctx context.Context, hostname string) ([]string, error)
 	GetContentCategories(ctx context.Context) ([]string, error)
 	// Sessions
 	GetSessions(ctx context.Context, tr *trparser.TimeRange, f models.SessionFilter, search string, p models.Pagination, s models.Sorting) ([]dto.Session, int64, error)
@@ -17,13 +17,13 @@ type RepoPGInterface interface {
 	GetTopCategories(ctx context.Context, tr *trparser.TimeRange, f models.CategoryFilter, count int) ([]dto.Category, error)
 	GetRequestStat(ctx context.Context, tr *trparser.TimeRange, hostname, requestType string, count uint) (models.RequestStat, error)
 	GetTopUnresolvedDetections(ctx context.Context, tr *trparser.TimeRange, hostName string, count int) ([]dto.UnresolvedDetection, error)
-	GetDeviceStat(ctx context.Context, tr *trparser.TimeRange, count uint) (dto.DeviceStatResponse, error)
+	GetDeviceStat(ctx context.Context, tr *trparser.TimeRange, hostname string, count uint) (dto.DeviceStatResponse, error)
 	GetAnomalies(ctx context.Context, tr *trparser.TimeRange, hostname string) (dto.GetAnomaliesResponse, error)
 	// Detections
 	GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, action string, p models.Pagination) ([]dto.Detection, int64, error)
 	GetDetectionStat(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter) (dto.DetectionStat, error)
 	// Actions
-	Act(ctx context.Context, action, path string) error
+	Act(ctx context.Context, username, action, path string) error
 	// Reports
 	GetCategories(ctx context.Context, tr *trparser.TimeRange) ([]models.CategoryStat, error)
 	GetResourses(ctx context.Context, tr *trparser.TimeRange) ([]models.ResourceStat, error)

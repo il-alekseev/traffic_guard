@@ -39,9 +39,9 @@ type TrafficStatResponse struct {
 }
 
 type DeviceStatResponse struct {
-	Time  []time.Time                         `json:"time"`
-	Data  map[string]models.DeviceRequestStat `json:"data"`
-	Count uint                                `json:"count"`
+	Time  []time.Time                `json:"time"`
+	Data  []models.DeviceRequestStat `json:"data"`
+	Count uint                       `json:"count"`
 }
 
 type GetAnomaliesResponse struct {

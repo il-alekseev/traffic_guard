@@ -143,7 +143,7 @@ func (r *RepoPG) GetDetectionStat(ctx context.Context, tr *trparser.TimeRange, f
 	return result, nil
 }
 
-func (r *RepoPG) Act(ctx context.Context, action, path string) error {
+func (r *RepoPG) Act(ctx context.Context, username, action, path string) error {
 	return r.db.GetDB().WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// Находим домен по пути
 		var domain models.Domain
@@ -171,8 +171,7 @@ func (r *RepoPG) Act(ctx context.Context, action, path string) error {
 			ID:        uint(count + 1),
 			Action:    detectionType.String(),
 			CreatedAt: time.Now(),
-			// TODO: добавить пользователя
-			CreatedBy: "user",
+			CreatedBy: username,
 		}
 		if err := tx.Create(&actionRecord).Error; err != nil {
 			return fmt.Errorf("failed to create action: %w", err)

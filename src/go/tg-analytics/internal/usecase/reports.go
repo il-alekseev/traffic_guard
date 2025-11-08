@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func (u *Usecase) CreateReport(ctx context.Context, tr *trparser.TimeRange) (models.Report, error) {
+func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange) (models.Report, error) {
 	method := "CreateReport"
 	u.l.InfoContext(ctx,
 		method,
@@ -153,7 +153,7 @@ func (u *Usecase) CreateReport(ctx context.Context, tr *trparser.TimeRange) (mod
 	return report, nil
 }
 
-func (u *Usecase) CreateReportForDevice(ctx context.Context, tr *trparser.TimeRange, hostname string) (models.ReportForDevice, error) {
+func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, hostname string) (models.ReportForDevice, error) {
 	method := "CreateReportForDevice"
 	u.l.InfoContext(ctx,
 		method,

@@ -46,9 +46,9 @@ definitions:
       count:
         type: integer
       data:
-        additionalProperties:
+        items:
           $ref: '#/definitions/models.DeviceRequestStat'
-        type: object
+        type: array
       time:
         items:
           type: string
@@ -267,6 +267,8 @@ definitions:
         items:
           type: integer
         type: array
+      hostname:
+        type: string
       pending:
         items:
           type: integer
@@ -513,6 +515,8 @@ paths:
           description: Внутренняя ошибка сервера
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Получение информации об аномалиях
       tags:
       - dashboards
@@ -552,6 +556,8 @@ paths:
           description: Внутренняя ошибка сервера
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Получение статистики по устройствам
       tags:
       - dashboards
@@ -606,6 +612,8 @@ paths:
           description: Внутренняя ошибка сервера
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Получение статистики запросов
       tags:
       - dashboards
@@ -662,6 +670,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Получение списка самых запрашиваемых категорий
       tags:
       - dashboards
@@ -709,6 +719,8 @@ paths:
           description: Внутренняя ошибка сервера
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Получение списка топ нерешенных выявлений
       tags:
       - dashboards
@@ -756,6 +768,8 @@ paths:
           description: Внутренняя ошибка сервера при получении статистики
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Получение статистики трафика
       tags:
       - dashboards
@@ -852,6 +866,8 @@ paths:
           description: Внутренняя ошибка сервера
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Получение списка выявлений
       tags:
       - detections
@@ -887,10 +903,16 @@ paths:
           description: Неверные параметры запроса
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Недостаточно прав для выполнения действия
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
         "500":
           description: Внутренняя ошибка сервера
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Выполнение действия над доменом
       tags:
       - actions
@@ -965,6 +987,8 @@ paths:
           description: Ошибка при получении статистики выявлений
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Получение статистики по выявлениям
       tags:
       - detections
@@ -988,7 +1012,9 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Полуечение списка имен устройств
+      security:
+      - BearerAuth: []
+      summary: Получение списка имен устройств
       tags:
       - common
   /api/v1/healthcheck:
@@ -1036,6 +1062,8 @@ paths:
           description: Внутренняя ошибка сервера при генерации отчета
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Создание отчета
       tags:
       - reports
@@ -1073,6 +1101,10 @@ paths:
           description: Неверный формат параметров или устройство не найдено
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к устройству
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
         "404":
           description: Устройство не найдено в базе данных
           schema:
@@ -1081,6 +1113,8 @@ paths:
           description: Внутренняя ошибка сервера при генерации отчета
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Создание отчета по конкретному устройству
       tags:
       - reports
@@ -1211,6 +1245,8 @@ paths:
           description: Внутренняя ошибка сервера
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Получение списка сессий
       tags:
       - sessions
@@ -1229,4 +1265,10 @@ paths:
       - utils
 schemes:
 - http
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
