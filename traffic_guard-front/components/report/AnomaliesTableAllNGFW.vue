@@ -28,11 +28,14 @@
                 
                 <tr v-for="item in group" :key="item.url" class="table__row">
                   <td class="table__cell table__cell--url">
-                    <span>{{ item.url }}</span>
+                    <span>{{ item.url || '–' }}</span>
                   </td>
                   <td class="table__cell table__cell--status">
-                    <span :class="['status-badge', `status-badge--${getStatusColor(item.status)}`]">
+                    <span v-if="item.status && item.live_count" :class="['status-badge', `status-badge--${getStatusColor(item.status)}`]">
                       {{ item.live_count }}
+                    </span>
+                    <span v-else>
+                      –
                     </span>
                   </td>
                   <td class="table__cell table__cell--traffic">
@@ -49,13 +52,13 @@
                     <span class="requests">{{ formatTraffic(item.requests) }}</span>
                   </td>
                   <td class="table__cell table__cell--before-block">
-                    <span class="before-block">{{ formatTraffic(item.before_block) }}</span>
+                    <span class="before-block">{{ formatTraffic(item.detections.allowed) }}</span>
                   </td>
                   <td class="table__cell table__cell--waiting">
-                    <span class="waiting">{{ formatTraffic(item.waiting) }}</span>
+                    <span class="waiting">{{ formatTraffic(item.detections.unresolved) }}</span>
                   </td>
                   <td class="table__cell table__cell--after-block">
-                    <span class="after-block">{{ formatTraffic(item.after_block) }}</span>
+                    <span class="after-block">{{ formatTraffic(item.detections.blocked) }}</span>
                   </td>
                 </tr>
               </template>
@@ -81,14 +84,15 @@ const props = defineProps<{
 
 const { generateColor } = useDeviceColors();
 
-const groupedData = computed(() => {
+const groupedData = computed<Record<string, AnomalyReportItem[]> | null>(() => {
   const groups: Record<string, AnomalyReportItem[]> = {};
+  if (!props.data) return null
   
   props.data.forEach(item => {
-    if (!groups[item.name]) {
-      groups[item.name] = [];
+    if (!groups[item.hostname]) {
+      groups[item.hostname] = [];
     }
-    groups[item.name].push(item);
+    groups[item.hostname].push(item);
   });
   
   return groups;

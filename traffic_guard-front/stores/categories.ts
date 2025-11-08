@@ -42,7 +42,7 @@ export const useCategoriesStore = defineStore("categories", {
       try {
         const { $api } = useNuxtApp();
 
-        const categories = await $api.get<Categories[]>('/categories', {
+        const categories = await $api.get<Categories[]>('/analytics/categories', {
           ...getTokenHeaders(token)
         });
 

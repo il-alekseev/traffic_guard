@@ -56,7 +56,7 @@ export const useSessionsStore = defineStore("sessions", {
           ...(status ? { status } : {}),
         };
 
-        const sessions = await $api.get<SessionTable>('/sessions', {
+        const sessions = await $api.get<SessionTable>('/analytics/sessions', {
           params,
           ...getTokenHeaders(token)
         });

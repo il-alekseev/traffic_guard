@@ -52,7 +52,7 @@ export const useDetectionsStore = defineStore("detection", {
           ...(category ? { category } : {}),
         };
 
-        const detections = await $api.get<DetectionTable>('/detections/', {
+        const detections = await $api.get<DetectionTable>('/analytics/detections', {
           params,
           ...getTokenHeaders(token)
         });
@@ -99,7 +99,7 @@ export const useDetectionsStore = defineStore("detection", {
           ...(category ? { category } : {}),
         };
 
-        const detectionStats = await $api.get<DetectionStats>('/detections/stat', {
+        const detectionStats = await $api.get<DetectionStats>('/analytics/detections/stat', {
           params,
           ...getTokenHeaders(token)
         });
@@ -143,7 +143,7 @@ export const useDetectionsStore = defineStore("detection", {
           path: path,
         };
 
-        const result = await $api.patch<defaultResponse>('/detections/act', params, getTokenHeaders(token));
+        const result = await $api.patch<defaultResponse>('/analytics/dashboards/act', params, getTokenHeaders(token));
 
         if (result) {
           return true;

@@ -18,17 +18,17 @@
               </tr>
             </thead>
             <tbody class="table__body">
-              <tr v-for="item in props.data" :key="item.name" class="table__row">
+              <tr v-for="item in props.data" :key="item.hostname" class="table__row">
                 <td class="table__cell table__cell--name">
-                  <span class="table__text">{{ item.name }}</span>
+                  <span class="table__text">{{ item.hostname }}</span>
                 </td>
                 <td class="table__cell table__cell--traffic">
                   <div class="traffic">
                     <span class="traffic__item traffic__item--up">
-                      ↑ {{ formatTraffic(item.input) }}
+                      ↑ {{ formatTraffic(item.traffic.input) }}
                     </span>
                     <span class="traffic__item traffic__item--down">
-                      ↓ {{ formatTraffic(item.output) }}
+                      ↓ {{ formatTraffic(item.traffic.output) }}
                     </span>
                   </div>
                 </td>
@@ -37,14 +37,14 @@
                 </td>
                 <td class="table__cell table__cell--anomalies">
                   <span class="metric">
-                    {{ item.anomalies }}/{{ item.all }}
-                    <span class="metric__percent">{{ calculatePercent(item.anomalies, item.all) }}</span>
+                    {{ item.anomaly_block_stat.anomalies }}/{{ item.anomaly_block_stat.all }}
+                    <span class="metric__percent">{{ calculatePercent(item.anomaly_block_stat.anomalies, item.anomaly_block_stat.all) }}</span>
                   </span>
                 </td>
                 <td class="table__cell table__cell--blocks">
                   <span class="metric">
-                    {{ item.blocks }}/{{ item.all }}
-                    <span class="metric__percent">{{ calculatePercent(item.blocks, item.all) }}</span>
+                    {{ item.anomaly_block_stat.blocks }}/{{ item.anomaly_block_stat.all }}
+                    <span class="metric__percent">{{ calculatePercent(item.anomaly_block_stat.blocks, item.anomaly_block_stat.all) }}</span>
                   </span>
                 </td>
                 <td class="table__cell table__cell--detections">

@@ -113,7 +113,7 @@ defineEmits<{
 }>()
 
 const { generateColor } = useDeviceColors();
-const deviceColors = generateColor(props.item.hostname);
+const deviceColors = generateColor(props.item.hostname || 'Неизвестно');
 
 </script>
 

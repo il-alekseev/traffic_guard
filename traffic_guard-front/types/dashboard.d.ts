@@ -19,9 +19,9 @@ export type TopDetections = DashboardDetection[];
 export interface DashboardTraffic {
   count: number;
   data: {
-    Input: number[];
-    Output: number[];
-    Time: string[];
+    input: number[];
+    output: number[];
+    time: string[];
   }
 }
 
@@ -41,8 +41,8 @@ export type DashboardRequestsType = 'blocked' | 'allowed' | 'before_block' | 'pe
 export interface DashboardRequestObj {
   count: number;
   data: {
-    Data: number[];
-    Time: string[];
+    data: number[];
+    time: string[];
   },
   type: DashboardRequestsType;
 }

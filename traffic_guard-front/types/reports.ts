@@ -16,13 +16,17 @@ export interface GraphLegendItem {
 export type GraphLegend = GraphLegendItem[]
 
 export interface NGFWReportItem {
-  name: string;
-  input: number;
-  output: number;
+  hostname: string;
+  traffic: {
+    input: number;
+    output: number;
+  }
   requests: number;
-  all: number;
-  anomalies: number
-  blocks: number;
+  anomaly_block_stat: {
+    all: number;
+    blocks: number;
+    anomalies: number;
+  }
   detections: {
     all: number
     allowed: number
@@ -32,18 +36,29 @@ export interface NGFWReportItem {
 }
 
 export interface AnomalyReportItem {
-  name: string;
-  url: string;
-  status: string;
-  live_count: string
+  hostname: string;
+  requests: number;
   traffic: {
     input: number;
     output: number;
   };
-  requests: number;
-  before_block: number;
-  waiting: number;
-  after_block: number;
+
+  url?: string;
+  status?: string;  
+  live_count?: string
+
+  detections: {
+    all: 0,
+    allowed: 0,
+    blocked: 0,
+    unresolved: 0
+  },
+
+  anomaly_block_stat: {
+    all: 0,
+    anomalies: 0,
+    blocks: 0
+  },
 }
 
 export interface ReportCategoryItem {
@@ -68,11 +83,17 @@ export interface ReportResourceItem {
 export interface ReportData {
   from: string,
   to: string,
-  top_categories: ReportCategoryItem[],
-  top_resources: ReportResourceItem[],
-  traffic: DashboardTraffic,
-  all_ngfw: NGFWReportItem[];
-  anomalies: AnomalyReportItem[];
+  main_activity_page: {
+    top_categories: ReportCategoryItem[],
+    top_resources: ReportResourceItem[],
+    traffic: DashboardTraffic,
+  }
+  device_analytics_page: {
+    analytics: NGFWReportItem[];
+  }
+  anomalies_list_page: {
+    anomalies: AnomalyReportItem[]
+  }
 }
 
 export interface ReportsState {

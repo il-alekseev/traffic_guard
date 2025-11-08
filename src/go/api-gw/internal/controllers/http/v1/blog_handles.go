@@ -22,7 +22,7 @@ import (
 // @Success      200  {object}  models.ModelsLogs "Отфильтрованные логи"
 // @Failure		 400 {object} 	models.ModelsAPIError "query params is not valid"
 // @Failure 	 500 {object} 	models.ModelsAPIError "internal error"
-// @Router       /v1/logs [get]
+// @Router       /api/v1/logs [get]
 func (s *Server) logs(c *gin.Context) {
 	page, err := strconv.ParseInt(c.Query("page"), 10, 64)
 	if err != nil {

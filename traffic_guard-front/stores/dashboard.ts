@@ -61,7 +61,7 @@ export const useDashboardStore = defineStore("dashboard", {
           ...(hostname ? { hostname } : {}),
         };
 
-        const result = await $api.get<TopCategories>('/dashboards/top-categories', {
+        const result = await $api.get<TopCategories>('/analytics/dashboards/top-categories', {
           params,
           ...getTokenHeaders(token)
         });
@@ -109,7 +109,7 @@ export const useDashboardStore = defineStore("dashboard", {
           ...(hostname ? { hostname } : {}),
         };
 
-        const result = await $api.get<TopDetections>('/dashboards/top-unresolved_detections', {
+        const result = await $api.get<TopDetections>('/analytics/dashboards/top-unresolved_detections', {
           params,
           ...getTokenHeaders(token)
         });
@@ -157,7 +157,7 @@ export const useDashboardStore = defineStore("dashboard", {
           ...(hostname ? { hostname } : {}),
         };
 
-        const result = await $api.get<DashboardTraffic>('/dashboards/traffic', {
+        const result = await $api.get<DashboardTraffic>('/analytics/dashboards/traffic', {
           params,
           ...getTokenHeaders(token)
         });
@@ -205,7 +205,7 @@ export const useDashboardStore = defineStore("dashboard", {
           ...(hostname ? { hostname } : {}),
         };
 
-        const result = await $api.get<DashboardRequestObj>('/dashboards/requests', {
+        const result = await $api.get<DashboardRequestObj>('/analytics/dashboards/requests', {
           params,
           ...getTokenHeaders(token)
         });

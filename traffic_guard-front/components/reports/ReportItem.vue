@@ -65,18 +65,12 @@ const fetchError = ref('');
 const isGenerating = ref(false);
 
 const saveReport = async () => {
-  console.log('saveReport')
+  // pass
 }
 
 </script>
 
 <style scoped lang="scss">
-.hidden-report {
-  position: absolute;
-  left: -9999px;
-  top: 0;
-}
-
 .report {
   width: 100%;
   display: flex;

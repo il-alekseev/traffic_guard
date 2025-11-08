@@ -27,3 +27,11 @@ func (s *HTTPStrategy) Fetch(ctx context.Context, url string) (models.ContentDat
 
 	return models.ContentData{RawHTML: body, UserAgent: agent}, nil
 }
+
+func (s *HTTPStrategy) FetchWithUserAgent(ctx context.Context, url, agent string) (models.ContentData, error) {
+	body, usedAgent, err := s.client.FetchWithCustomAgent(ctx, url, agent)
+	if err != nil {
+		return models.ContentData{}, err
+	}
+	return models.ContentData{RawHTML: body, UserAgent: usedAgent}, nil
+}

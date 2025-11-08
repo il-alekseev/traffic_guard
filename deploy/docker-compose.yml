@@ -324,9 +324,6 @@ services:
       context: ../src/go/webscraper
       dockerfile: deploy/Dockerfile
     container_name: webscraper
-    extra_hosts:
-      - kafka:192.168.130.114
-      - webscraper:127.0.0.1
     env_file: ./webscraper/.env
     volumes:
       - ./webscraper/config:/app/config:ro

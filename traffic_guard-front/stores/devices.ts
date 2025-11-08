@@ -42,7 +42,7 @@ export const useDevicesStore = defineStore("devices", {
       try {
         const { $api } = useNuxtApp();
 
-        const devices = await $api.get<Device[]>('/devices', {
+        const devices = await $api.get<Device[]>('/analytics/devices', {
           ...getTokenHeaders(token)
         });
 

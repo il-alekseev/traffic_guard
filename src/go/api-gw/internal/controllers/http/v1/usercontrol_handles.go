@@ -28,7 +28,7 @@ import (
 // @Failure 401 {object} models.DtoErrorResponse
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/auth/sign-in [post]
+// @Router /api/v1/auth/sign-in [post]
 func (s *Server) signIn(c *gin.Context) {
 	var input models.DtoLogUser
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -91,7 +91,7 @@ func (s *Server) signIn(c *gin.Context) {
 // @Failure 401 {object} models.DtoErrorResponse
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/auth/sign-out [post]
+// @Router /api/v1/auth/sign-out [post]
 func (s *Server) signOut(c *gin.Context) {
 	refreshToken := c.GetHeader("X-Refresh-Token")
 	if refreshToken == "" {
@@ -158,7 +158,7 @@ func (s *Server) signOut(c *gin.Context) {
 // @Failure 401 {object} models.DtoErrorResponse
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/auth/refresh [post]
+// @Router /api/v1/auth/refresh [post]
 func (s *Server) refresh(c *gin.Context) {
 	refreshToken := c.GetHeader("X-Refresh-Token")
 	if refreshToken == "" {
@@ -195,7 +195,7 @@ func (s *Server) refresh(c *gin.Context) {
 // @Failure 401 {object} models.DtoErrorResponse
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/users/profile [get]
+// @Router /api/v1/users/profile [get]
 func (s *Server) getProfile(c *gin.Context) {
 	authInfo, err := utils.GetAuthInfo(c)
 	if err != nil {
@@ -235,7 +235,7 @@ func (s *Server) getProfile(c *gin.Context) {
 // @Failure 401 {object} models.DtoErrorResponse
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/users/profile/pass [put]
+// @Router /api/v1/users/profile/pass [put]
 func (s *Server) updatePassword(c *gin.Context) {
 	var input models.DtoUserUpdatePass
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -283,7 +283,7 @@ func (s *Server) updatePassword(c *gin.Context) {
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 404 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/users/{userId} [put]
+// @Router /api/v1/users/{userId} [put]
 func (s *Server) updateUser(c *gin.Context) {
 	id := c.Param("userId")
 	if id == "" {
@@ -335,7 +335,7 @@ func (s *Server) updateUser(c *gin.Context) {
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 404 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/users/{userId} [delete]
+// @Router /api/v1/users/{userId} [delete]
 func (s *Server) deleteUser(c *gin.Context) {
 	id := c.Param("userId")
 	if id == "" {
@@ -383,7 +383,7 @@ func (s *Server) deleteUser(c *gin.Context) {
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 404 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/users/{userId}/pass/otp [put]
+// @Router /api/v1/users/{userId}/pass/otp [put]
 func (s *Server) resetPassword(c *gin.Context) {
 	id := c.Param("userId")
 	if id == "" {
@@ -434,7 +434,7 @@ func (s *Server) resetPassword(c *gin.Context) {
 // @Failure 401 {object} models.DtoErrorResponse
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/users/count [get]
+// @Router /api/v1/users/count [get]
 func (s *Server) getUsersCount(c *gin.Context) {
 	authInfo, err := utils.GetAuthInfo(c)
 	if err != nil {
@@ -475,7 +475,7 @@ func (s *Server) getUsersCount(c *gin.Context) {
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 404 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/users/{userId}/roles [put]
+// @Router /api/v1/users/{userId}/roles [put]
 func (s *Server) updateUserRoles(c *gin.Context) {
 	id := c.Param("userId")
 	if id == "" {
@@ -530,7 +530,7 @@ func (s *Server) updateUserRoles(c *gin.Context) {
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 404 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/users/{userId}/roles [delete]
+// @Router /api/v1/users/{userId}/roles [delete]
 func (s *Server) deleteUserRoles(c *gin.Context) {
 	id := c.Param("userId")
 	if id == "" {
@@ -586,7 +586,7 @@ func (s *Server) deleteUserRoles(c *gin.Context) {
 // @Failure 401 {object} models.DtoErrorResponse
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/users [get]
+// @Router /api/v1/users [get]
 func (s *Server) getUsers(c *gin.Context) {
 	page, err := strconv.ParseInt(c.Query("page"), 10, 64)
 	if err != nil {
@@ -647,7 +647,7 @@ func (s *Server) getUsers(c *gin.Context) {
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 409 {object} models.DtoErrorResponse "Пользователь с таким email/логином уже существует"
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/users [post]
+// @Router /api/v1/users [post]
 func (s *Server) createUser(c *gin.Context) {
 	var input models.DtoUserCreateRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -694,7 +694,7 @@ func (s *Server) createUser(c *gin.Context) {
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 404 {object} models.DtoErrorResponse "Пользователь не найден"
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/users/{userId} [get]
+// @Router /api/v1/users/{userId} [get]
 func (s *Server) getUser(c *gin.Context) {
 	id := c.Param("userId")
 	if id == "" {
@@ -741,7 +741,7 @@ func (s *Server) getUser(c *gin.Context) {
 // @Failure 401 {object} models.DtoErrorResponse
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/roles [get]
+// @Router /api/v1/roles [get]
 func (s *Server) getRoles(c *gin.Context) {
 	page, err := strconv.ParseInt(c.Query("page"), 10, 64)
 	if err != nil {
@@ -789,12 +789,12 @@ func (s *Server) getRoles(c *gin.Context) {
 // @Description Получение числа всех ролей системы.
 // @Tags roles
 // @Security BearerAuth
-// @Success 200 {integer} integer "Количество ролей"
+// @Success 200 {object} models.DtoCountResponse "Количество ролей"
 // @Failure 400 {object} models.DtoErrorResponse
 // @Failure 401 {object} models.DtoErrorResponse
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/roles/count [get]
+// @Router /api/v1/roles/count [get]
 func (s *Server) getRolesCount(c *gin.Context) {
 	authInfo, err := utils.GetAuthInfo(c)
 	if err != nil {
@@ -831,7 +831,7 @@ func (s *Server) getRolesCount(c *gin.Context) {
 // @Failure 401 {object} models.DtoErrorResponse
 // @Failure 403 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/users/count-by-role [get]
+// @Router /api/v1/users/count-by-role [get]
 func (s *Server) getCountUsersByRole(c *gin.Context) {
 	authInfo, err := utils.GetAuthInfo(c)
 	if err != nil {

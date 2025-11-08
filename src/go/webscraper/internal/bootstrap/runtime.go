@@ -32,18 +32,21 @@ import (
 )
 
 const (
-	defaultDBPath            = "data/ipinfo_lite.mmdb"
-	defaultWorkersScale      = 2
-	defaultRequestTO         = 15 * time.Second
-	defaultStrategyName      = "http"
-	defaultMinTextLength     = 200
-	defaultMaxContentLength  = 50000
-	defaultLogLevel          = "info"
-	defaultUserAgentsPath    = "data/user_agents.txt"
-	defaultKafkaClientID     = "scraper-worker"
-	defaultKafkaPollTimeout  = 2 * time.Second
-	defaultKafkaCommitPeriod = 5 * time.Second
+	defaultDBPath             = "data/ipinfo_lite.mmdb"
+	defaultWorkersScale       = 2
+	defaultRequestTO          = 15 * time.Second
+	defaultStrategyName       = "http"
+	defaultMinTextLength      = 200
+	defaultMaxContentLength   = 50000
+	defaultLogLevel           = "info"
+	defaultUserAgentsPath     = "data/user_agents.txt"
+	defaultAntiBotPhrasesPath = "data/anti_bot_phrases.txt"
+	defaultKafkaClientID      = "scraper-worker"
+	defaultKafkaPollTimeout   = 2 * time.Second
+	defaultKafkaCommitPeriod  = 5 * time.Second
 )
+
+var defaultArchiveStrategies = []string{"wayback", "archive.today"}
 
 const kafkaMessageKey = "__kafka_message"
 
@@ -76,6 +79,13 @@ func Run(ctx context.Context, p Params) error {
 	}
 	bootLog.Info("user agents loaded", "count", len(userAgents), "path", cfg.Content.UserAgentsPath)
 
+	antiBotPhrases, err := loadAntiBotPhrases(cfg.Content.AntiBotPhrasesPath)
+	if err != nil {
+		bootLog.Warn("anti-bot phrases not loaded", "error", err.Error(), "path", cfg.Content.AntiBotPhrasesPath)
+	} else {
+		bootLog.Info("anti-bot phrases loaded", "count", len(antiBotPhrases), "path", cfg.Content.AntiBotPhrasesPath)
+	}
+
 	resolver := dnsresolver.NewResolver()
 
 	geoProvider, err := geo.NewMaxMindProvider(cfg.DBPath)
@@ -87,7 +97,7 @@ func Run(ctx context.Context, p Params) error {
 	httpClient := httpclient.NewClient(cfg.RequestTimeout.Duration, userAgents)
 	cleaner := parser.NewHTMLCleaner()
 
-	strategies := buildStrategies(cfg.Content.Strategies, httpClient, userAgents)
+	primaryStrategies, archiveStrategies := buildStrategies(cfg.Content.Strategies, cfg.Content.ArchiveStrategies, httpClient, userAgents)
 	evaluator := quality.NewSimpleEvaluator(cfg.Content.MinTextLength)
 
 	var repository usecase.AttemptRepository
@@ -104,8 +114,11 @@ func Run(ctx context.Context, p Params) error {
 
 	metricsCollector := metrics.New()
 
+	antiBotDetector := usecase.NewAntiBotDetector(antiBotPhrases, 500)
+
 	service := usecase.NewScrapeService(
-		strategies,
+		primaryStrategies,
+		archiveStrategies,
 		resolver,
 		geoProvider,
 		cleaner,
@@ -116,6 +129,9 @@ func Run(ctx context.Context, p Params) error {
 		cfg.Workers,
 		cfg.RequestTimeout.Duration,
 		metricsCollector,
+		antiBotDetector,
+		cfg.Content.StripJSONFragments,
+		userAgents,
 	)
 	scraperApp := app.NewScraper(service)
 
@@ -213,6 +229,14 @@ func applyDefaults(cfg config.Config) config.Config {
 
 	if strings.TrimSpace(cfg.Content.UserAgentsPath) == "" {
 		cfg.Content.UserAgentsPath = defaultUserAgentsPath
+	}
+
+	if len(cfg.Content.ArchiveStrategies) == 0 {
+		cfg.Content.ArchiveStrategies = append([]string(nil), defaultArchiveStrategies...)
+	}
+
+	if strings.TrimSpace(cfg.Content.AntiBotPhrasesPath) == "" {
+		cfg.Content.AntiBotPhrasesPath = defaultAntiBotPhrasesPath
 	}
 
 	if cfg.Logging.Level == "" {
@@ -462,23 +486,82 @@ func loadUserAgents(path string) ([]string, error) {
 	return agents, nil
 }
 
-func buildStrategies(names []string, client *httpclient.Client, userAgents []string) []usecase.ContentStrategy {
+func loadAntiBotPhrases(path string) ([]string, error) {
+	if strings.TrimSpace(path) == "" {
+		return nil, errors.New("anti-bot phrases path empty")
+	}
+
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	phrases := make([]string, 0, 16)
+	seen := make(map[string]struct{})
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		lowered := strings.ToLower(line)
+		if _, ok := seen[lowered]; ok {
+			continue
+		}
+		seen[lowered] = struct{}{}
+		phrases = append(phrases, line)
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return phrases, nil
+}
+
+func buildStrategies(primaryNames, archiveNames []string, client *httpclient.Client, userAgents []string) ([]usecase.ContentStrategy, []usecase.ContentStrategy) {
+	primary := buildStrategySet(primaryNames, client, userAgents, false)
+	archive := buildStrategySet(archiveNames, client, userAgents, true)
+
+	if len(primary) == 0 {
+		primary = append(primary, content.NewHTTPStrategy(client))
+	}
+
+	return primary, archive
+}
+
+func buildStrategySet(names []string, client *httpclient.Client, userAgents []string, archive bool) []usecase.ContentStrategy {
+	if len(names) == 0 {
+		return nil
+	}
+
 	strategies := make([]usecase.ContentStrategy, 0, len(names))
 
 	for _, name := range names {
 		switch strings.ToLower(strings.TrimSpace(name)) {
 		case "trafilatura":
+			if archive {
+				continue
+			}
 			if s, err := content.NewTrafilaturaStrategy(client.Client(), userAgents); err == nil {
 				strategies = append(strategies, s)
-				break
 			}
 		case "", defaultStrategyName:
+			if archive {
+				continue
+			}
 			strategies = append(strategies, content.NewHTTPStrategy(client))
+		case "wayback", "webarchive", "archive.org":
+			if s := content.NewWaybackStrategy(client, userAgents); s != nil {
+				strategies = append(strategies, s)
+			}
+		case "archive.today", "archivetoday", "archive_today":
+			if s := content.NewArchiveTodayStrategy(client, userAgents); s != nil {
+				strategies = append(strategies, s)
+			}
 		}
-	}
-
-	if len(strategies) == 0 {
-		strategies = append(strategies, content.NewHTTPStrategy(client))
 	}
 
 	return strategies

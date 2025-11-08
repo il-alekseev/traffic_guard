@@ -18,8 +18,9 @@ logs/
 !logs/.gitkeep
 
 # Local environment overrides
-.env
 .env.*
+!.env
+!.env.example
 config/*.local.yaml
 config/*.override.yaml
 

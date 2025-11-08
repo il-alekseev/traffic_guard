@@ -9,7 +9,7 @@
           placeholder="Поиск"
           @search="applyFilters"
         />
-        <FilterButton @click="console.log('openFilter')"/>
+        <FilterButton/>
         <BaseButton
           @click.stop="openCreateUserModal"
           type="button"

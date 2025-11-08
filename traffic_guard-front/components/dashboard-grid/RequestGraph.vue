@@ -23,8 +23,8 @@ const props = defineProps<{
 }>()
 
 const safeData = computed(() => ({
-  data: props.data?.data?.Data ?? [],
-  time: props.data?.data?.Time ?? []
+  data: props.data?.data?.data ?? [],
+  time: props.data?.data?.time ?? []
 }))
 
 const series = computed(() => [

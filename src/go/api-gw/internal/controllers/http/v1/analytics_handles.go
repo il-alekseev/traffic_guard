@@ -23,7 +23,7 @@ import (
 // @Security BearerAuth
 // @Success 200 {array} string
 // @Failure 500 {object} models.DtoErrorResponse "Ошибка при получении списка категорий"
-// @Router /v1/analytics/categories [get]
+// @Router /api/v1/analytics/categories [get]
 func (s *Server) getCategories(c *gin.Context) {
 	//Создаем authInfoWriter для передачи токена
 	//authInfo, err := utils.GetAuthInfo(c)
@@ -55,7 +55,7 @@ func (s *Server) getCategories(c *gin.Context) {
 // @Security BearerAuth
 // @Success 200 {array} string "Список имен устройств"
 // @Failure 500 {object} models.DtoErrorResponse "Ошибка при получении имен устройств"
-// @Router /v1/analytics/devices [get]
+// @Router /api/v1/analytics/devices [get]
 func (s *Server) getDevices(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
 	//authInfo, err := utils.GetAuthInfo(c)
@@ -92,7 +92,7 @@ func (s *Server) getDevices(c *gin.Context) {
 // @Success 200 {object} models.DtoGetAnomaliesResponse "Список обнаруженных аномалий"
 // @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера"
-// @Router /v1/analytics/dashboards/anomalies [get]
+// @Router /api/v1/analytics/dashboards/anomalies [get]
 func (s *Server) getV1DashboardsAnomalies(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
 	//authInfo, err := utils.GetAuthInfo(c)
@@ -136,7 +136,7 @@ func (s *Server) getV1DashboardsAnomalies(c *gin.Context) {
 // @Success 200 {object} models.DtoDeviceStatResponse "Статистика по устройствам"
 // @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера"
-// @Router /v1/analytics/dashboards/devices [get]
+// @Router /api/v1/analytics/dashboards/devices [get]
 func (s *Server) getV1DashboardsDevices(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
 	//authInfo, err := utils.GetAuthInfo(c)
@@ -192,7 +192,7 @@ func (s *Server) getV1DashboardsDevices(c *gin.Context) {
 // @Success 200 {object} models.DtoRequestStatResponse "Статистика запросов (массив чисел)"
 // @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера"
-// @Router /v1/analytics/dashboards/requests [get]
+// @Router /api/v1/analytics/dashboards/requests [get]
 func (s *Server) getDashboardsRequests(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
 	//authInfo, err := utils.GetAuthInfo(c)
@@ -252,7 +252,7 @@ func (s *Server) getDashboardsRequests(c *gin.Context) {
 // @Success 200 {array} models.DtoCategory
 // @Failure 400 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/analytics/dashboards/top-categories [get]
+// @Router /api/v1/analytics/dashboards/top-categories [get]
 func (s *Server) getDashboardsTopCategories(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
 	//authInfo, err := utils.GetAuthInfo(c)
@@ -311,7 +311,7 @@ func (s *Server) getDashboardsTopCategories(c *gin.Context) {
 // @Success 200 {array} models.DtoUnresolvedDetection
 // @Failure 400 {object} models.DtoErrorResponse
 // @Failure 500 {object} models.DtoErrorResponse
-// @Router /v1/analytics/dashboards/top-unresolved_detections [get]
+// @Router /api/v1/analytics/dashboards/top-unresolved_detections [get]
 func (s *Server) getDashboardsTopUnresolvedDetections(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
 	//authInfo, err := utils.GetAuthInfo(c)
@@ -368,7 +368,7 @@ func (s *Server) getDashboardsTopUnresolvedDetections(c *gin.Context) {
 // @Success 200 {object} models.DtoTrafficStatResponse "Успешный ответ со статистикой трафика"
 // @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров запроса"
 // @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера при получении статистики"
-// @Router /v1/analytics/dashboards/traffic [get]
+// @Router /api/v1/analytics/dashboards/traffic [get]
 func (s *Server) getDashboardsTraffic(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
 	//authInfo, err := utils.GetAuthInfo(c)
@@ -424,7 +424,7 @@ func (s *Server) getDashboardsTraffic(c *gin.Context) {
 // @Success 200 {object} models.DtoSuccessResponse "Действие успешно применено к домену"
 // @Failure 400 {object} models.DtoErrorResponse "Неверные параметры запроса"
 // @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера"
-// @Router /v1/analytics/dashboards/act [patch]
+// @Router /api/v1/analytics/dashboards/act [patch]
 func (s *Server) patchV1DashboardsAct(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
 	//authInfo, err := utils.GetAuthInfo(c)
@@ -473,7 +473,7 @@ func (s *Server) patchV1DashboardsAct(c *gin.Context) {
 // @Success 200 {object} models.DtoGetDetectionsResponse "Успешный ответ"
 // @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера"
-// @Router /v1/analytics/detections [get]
+// @Router /api/v1/analytics/detections [get]
 func (s *Server) getDetections(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
 	//authInfo, err := utils.GetAuthInfo(c)
@@ -545,7 +545,7 @@ func (s *Server) getDetections(c *gin.Context) {
 // @Success 200 {object} models.DtoDetectionStat "Статистика детекций"
 // @Failure 400 {object} models.DtoErrorResponse "Неверный формат временного диапазона"
 // @Failure 500 {object} models.DtoErrorResponse "Ошибка при получении статистики выявлений"
-// @Router /v1/analytics/detections/stat [get]
+// @Router /api/v1/analytics/detections/stat [get]
 func (s *Server) getDetectionsStat(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
 	//authInfo, err := utils.GetAuthInfo(c)
@@ -593,7 +593,7 @@ func (s *Server) getDetectionsStat(c *gin.Context) {
 // @Success 200 {object} models.ModelsReport "Полный отчет по активности"
 // @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера при генерации отчета"
-// @Router /v1/analytics/reports [get]
+// @Router /api/v1/analytics/reports [get]
 func (s *Server) getV1Reports(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
 	//authInfo, err := utils.GetAuthInfo(c)
@@ -636,7 +636,7 @@ func (s *Server) getV1Reports(c *gin.Context) {
 // @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров или устройство не найдено"
 // @Failure 404 {object} models.DtoErrorResponse "Устройство не найдено в базе данных"
 // @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера при генерации отчета"
-// @Router /v1/analytics/reports/{hostname} [get]
+// @Router /api/v1/analytics/reports/{hostname} [get]
 func (s *Server) getV1ReportsHostname(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
 	//authInfo, err := utils.GetAuthInfo(c)
@@ -690,7 +690,7 @@ func (s *Server) getV1ReportsHostname(c *gin.Context) {
 // @Success 200 {object} models.DtoGetSessionsResponse "Успешный ответ"
 // @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера"
-// @Router /v1/analytics/sessions [get]
+// @Router /api/v1/analytics/sessions [get]
 func (s *Server) getSessions(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
 	//authInfo, err := utils.GetAuthInfo(c)

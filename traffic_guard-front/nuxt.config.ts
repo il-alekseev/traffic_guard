@@ -16,10 +16,6 @@ export default defineNuxtConfig({
         host: '',
         port: ''
       },
-      apiUsers: {
-        host: '',
-        port: ''
-      },
       grafana: {
         host: '',
         port: ''

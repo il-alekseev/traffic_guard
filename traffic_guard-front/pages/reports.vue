@@ -44,20 +44,23 @@
       />
 
       <ActivityPage
+        v-if="reportData.main_activity_page.traffic.count > 0 || reportData.main_activity_page.top_categories.length > 0 || reportData.main_activity_page.top_resources.length > 0"
         ref="activityPageRef"
-        :traffic="reportData.traffic"
-        :categoriesTop="reportData.top_categories"
-        :resourcesTop="reportData.top_resources"
+        :traffic="reportData.main_activity_page.traffic"
+        :categoriesTop="reportData.main_activity_page.top_categories"
+        :resourcesTop="reportData.main_activity_page.top_resources"
       />
 
       <AnalyticsTableAllNGFW
+        v-if="reportData.device_analytics_page.analytics"
         ref="analyticsPageRef"
-        :data="reportData.all_ngfw"
+        :data="reportData.device_analytics_page.analytics"
       />
 
       <AnomaliesTableAllNGFW
+        v-if="reportData.anomalies_list_page.anomalies"
         ref="anomaliesPageRef"
-        :data="reportData.anomalies"
+        :data="reportData.anomalies_list_page.anomalies"
       />
     </div>
   </div>
@@ -132,7 +135,6 @@ const setReportConfig = (from: string, to: string) => {
 }
 
 const getReport = async (formData: ReportFormData) => {
-  console.log('getReport', formData)
   if (formData.deviceSelection === 'specific') return;
 
   formLoading.value = true;
@@ -154,19 +156,25 @@ const getReport = async (formData: ReportFormData) => {
   }
 }
 
-// @ts-ignore
+
 const welcomePageRef = ref<InstanceType<typeof WelcomePage> | null>(null);
-// @ts-ignore
-const activityPageRef = ref<InstanceType<typeof activityPageRef> | null>(null);
-// @ts-ignore
-const analyticsPageRef = ref<InstanceType<typeof analyticsPageRef> | null>(null);
-// @ts-ignore
-const anomaliesPageRef = ref<InstanceType<typeof anomaliesPageRef> | null>(null);
+
+const activityPageRef = ref<InstanceType<typeof ActivityPage> | null>(null);
+
+const analyticsPageRef = ref<InstanceType<typeof AnalyticsTableAllNGFW> | null>(null);
+
+const anomaliesPageRef = ref<InstanceType<typeof AnomaliesTableAllNGFW> | null>(null);
 
 const downloadReport = async () => {
-const { jsPDF } = await import('jspdf');
+  const { jsPDF } = await import('jspdf');
+  console.log('reportData.value', reportData.value);
+  console.log('welcomePageRef.value', welcomePageRef.value);
+  console.log('activityPageRef.value', activityPageRef.value);
+  console.log('analyticsPageRef.value', analyticsPageRef.value);
+  console.log('anomaliesPageRef.value', anomaliesPageRef.value);
   
-  if (reportData.value == null || !welcomePageRef.value || !activityPageRef.value || !analyticsPageRef.value || !anomaliesPageRef.value) {
+  if (reportData.value == null) {
+    console.log("LOX");
     return
   }
 
@@ -177,12 +185,13 @@ const { jsPDF } = await import('jspdf');
       format: 'a4'
     })
 
-    const pages = [
-      { ref: welcomePageRef.value.$el, name: 'Welcome' },
-      { ref: activityPageRef.value.$el, name: 'Activity' },
-      { ref: analyticsPageRef.value.$el, name: 'Analytics' },
-      { ref: anomaliesPageRef.value.$el, name: 'Anomalies' },
-    ]
+    const pages: { ref: HTMLElement; name: string }[] = [
+      welcomePageRef.value && { ref: welcomePageRef.value.$el, name: 'Welcome' },
+      activityPageRef.value && { ref: activityPageRef.value.$el, name: 'Activity' },
+      analyticsPageRef.value && { ref: analyticsPageRef.value.$el, name: 'Analytics' },
+      anomaliesPageRef.value && { ref: anomaliesPageRef.value.$el, name: 'Anomalies' },
+    ].filter((p): p is { ref: HTMLElement; name: string } => Boolean(p));
+
 
     for (let i = 0; i < pages.length; i++) {
       const page = pages[i]
@@ -223,6 +232,12 @@ onMounted( async () => {
 </script>
 
 <style lang="scss">
+.hidden-report {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+}
+
 .page-title {
   font-weight: 500;
   font-size: 1.875rem;

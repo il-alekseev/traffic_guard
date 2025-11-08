@@ -6,6 +6,7 @@
     <template #data>
       <div class="activity-data">
         <BaseCard
+        v-if="categoiersChartData.length > 0"
           :title="'Рейтинг категорий'"
           :legend="ratingLegend"
           class="category-card"
@@ -15,6 +16,7 @@
           </template>
         </BaseCard>
         <BaseCard
+          v-if="resourcesChartData.length > 0"
           :title="'Рейтинг ресурсов'"
           :legend="ratingLegend"
           class="resources-card"
@@ -24,6 +26,7 @@
           </template>
         </BaseCard>
         <BaseCard
+          v-if="props.traffic.count > 0"
           :title="'Объём трафика'"
           :legend="trafficLegend"
           class="traffic-card"
@@ -53,6 +56,8 @@ const props = defineProps<{
 }>();
 
 const categoiersChartData = computed<ChartItem[]>(() => {
+  if (props.categoriesTop.length === 0) return [];
+
   return props.categoriesTop.map((c) => {
     return {
       name: c.category,
@@ -64,6 +69,8 @@ const categoiersChartData = computed<ChartItem[]>(() => {
 })
 
 const resourcesChartData = computed<ChartItem[]>(() => {
+  if (props.resourcesTop.length === 0) return [];
+
   return props.resourcesTop.map((r) => {
     return {
       name: r.resource,

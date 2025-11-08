@@ -41,8 +41,8 @@
         <span
           class="sessions__table-cell__badge"
           :style="{
-            backgroundColor: generateColor(value).background,
-            color: generateColor(value).color
+            backgroundColor: generateColor(value || 'Неизвестно').background,
+            color: generateColor(value || 'Неизвестно').color
           }"
         >
           {{ value || 'Неизвестно' }}
@@ -282,7 +282,7 @@ const applyFilters = () => {
 };
 
 const handleActionClick = (session: Session) => {
-  console.log('Action clicked for session:', session);
+  // pass
 };
 
 onMounted(async () => {

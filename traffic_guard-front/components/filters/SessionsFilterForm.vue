@@ -218,6 +218,7 @@ const allowedDevices = computed<DropdownItem[]>(() => {
 const resetFilters = () => {
   form.category = {id: '', name: ''}
   form.device = {id: '', name: ''}
+  form.types = {id: '', name: ''}
   form.status = {id: '', name: ''}
 }
 
