@@ -7,7 +7,9 @@ package models
 
 import (
 	"context"
+	"strconv"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
@@ -17,23 +19,92 @@ import (
 // swagger:model dto.GetAnomaliesResponse
 type DtoGetAnomaliesResponse struct {
 
-	// blocked resourses count
-	BlockedResoursesCount int64 `json:"blocked_resourses_count,omitempty"`
+	// block count
+	BlockCount int64 `json:"block_count,omitempty"`
 
-	// data
-	Data map[string][]string `json:"data,omitempty"`
+	// host anomalies
+	HostAnomalies []*ModelsHostAnomalies `json:"host_anomalies"`
 
-	// hostnames count
-	HostnamesCount int64 `json:"hostnames_count,omitempty"`
+	// host count
+	HostCount int64 `json:"host_count,omitempty"`
 }
 
 // Validate validates this dto get anomalies response
 func (m *DtoGetAnomaliesResponse) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateHostAnomalies(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }
 
-// ContextValidate validates this dto get anomalies response based on context it is used
+func (m *DtoGetAnomaliesResponse) validateHostAnomalies(formats strfmt.Registry) error {
+	if swag.IsZero(m.HostAnomalies) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.HostAnomalies); i++ {
+		if swag.IsZero(m.HostAnomalies[i]) { // not required
+			continue
+		}
+
+		if m.HostAnomalies[i] != nil {
+			if err := m.HostAnomalies[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("host_anomalies" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("host_anomalies" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// ContextValidate validate this dto get anomalies response based on the context it is used
 func (m *DtoGetAnomaliesResponse) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateHostAnomalies(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *DtoGetAnomaliesResponse) contextValidateHostAnomalies(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.HostAnomalies); i++ {
+
+		if m.HostAnomalies[i] != nil {
+
+			if swag.IsZero(m.HostAnomalies[i]) { // not required
+				return nil
+			}
+
+			if err := m.HostAnomalies[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("host_anomalies" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("host_anomalies" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
 	return nil
 }
 

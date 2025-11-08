@@ -161,18 +161,16 @@ definitions:
     type: object
   models.DtoGetAnomaliesResponse:
     properties:
-      blocked_resourses_count:
-        description: blocked resourses count
+      block_count:
+        description: block count
         type: integer
-      data:
-        additionalProperties:
-          items:
-            type: string
-          type: array
-        description: data
-        type: object
-      hostnames_count:
-        description: hostnames count
+      host_anomalies:
+        description: host anomalies
+        items:
+          $ref: '#/definitions/models.ModelsHostAnomalies'
+        type: array
+      host_count:
+        description: host count
         type: integer
     type: object
   models.DtoGetDetectionsResponse:
@@ -510,6 +508,9 @@ definitions:
         allOf:
         - $ref: '#/definitions/models.ModelsRequestReport'
         description: stat
+      status:
+        description: status
+        type: string
       traffic:
         allOf:
         - $ref: '#/definitions/models.ModelsTraffic'
@@ -726,6 +727,20 @@ definitions:
         items:
           $ref: '#/definitions/models.ModelsDeviceAnomaly'
         type: array
+    type: object
+  models.ModelsHostAnomalies:
+    properties:
+      anomaly_count:
+        description: anomaly count
+        type: integer
+      domains:
+        description: domains
+        items:
+          type: string
+        type: array
+      hostname:
+        description: hostname
+        type: string
     type: object
   models.ModelsLogs:
     properties:
