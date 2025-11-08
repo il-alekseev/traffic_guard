@@ -24,6 +24,9 @@ type ModelsAnomalyReport struct {
 	// stat
 	Stat *ModelsRequestReport `json:"stat,omitempty"`
 
+	// status
+	Status string `json:"status,omitempty"`
+
 	// traffic
 	Traffic *ModelsTraffic `json:"traffic,omitempty"`
 
