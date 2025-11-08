@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/v1/analytics/categories": {
+        "/api/v1/analytics/categories": {
             "get": {
                 "security": [
                     {
@@ -49,8 +49,8 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/analytics/dashboards/act": {
-            "get": {
+        "/api/v1/analytics/dashboards/act": {
+            "patch": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -110,7 +110,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/analytics/dashboards/anomalies": {
+        "/api/v1/analytics/dashboards/anomalies": {
             "get": {
                 "security": [
                     {
@@ -169,7 +169,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/analytics/dashboards/devices": {
+        "/api/v1/analytics/dashboards/devices": {
             "get": {
                 "security": [
                     {
@@ -230,7 +230,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/analytics/dashboards/requests": {
+        "/api/v1/analytics/dashboards/requests": {
             "get": {
                 "security": [
                     {
@@ -312,7 +312,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/analytics/dashboards/top-categories": {
+        "/api/v1/analytics/dashboards/top-categories": {
             "get": {
                 "security": [
                     {
@@ -397,7 +397,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/analytics/dashboards/top-unresolved_detections": {
+        "/api/v1/analytics/dashboards/top-unresolved_detections": {
             "get": {
                 "security": [
                     {
@@ -470,7 +470,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/analytics/dashboards/traffic": {
+        "/api/v1/analytics/dashboards/traffic": {
             "get": {
                 "security": [
                     {
@@ -540,7 +540,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/analytics/detections": {
+        "/api/v1/analytics/detections": {
             "get": {
                 "security": [
                     {
@@ -669,7 +669,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/analytics/detections/stat": {
+        "/api/v1/analytics/detections/stat": {
             "get": {
                 "security": [
                     {
@@ -770,7 +770,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/analytics/devices": {
+        "/api/v1/analytics/devices": {
             "get": {
                 "security": [
                     {
@@ -807,7 +807,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/analytics/reports": {
+        "/api/v1/analytics/reports": {
             "get": {
                 "security": [
                     {
@@ -863,7 +863,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/analytics/reports/{hostname}": {
+        "/api/v1/analytics/reports/{hostname}": {
             "get": {
                 "security": [
                     {
@@ -932,7 +932,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/analytics/sessions": {
+        "/api/v1/analytics/sessions": {
             "get": {
                 "security": [
                     {
@@ -1101,7 +1101,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/auth/refresh": {
+        "/api/v1/auth/refresh": {
             "post": {
                 "description": "Для успешного обновления токена пользователю необходимо передать валидный токен OAuth в заголовке Authorization и refresh-токен в заголовке X-Refresh-Token.",
                 "tags": [
@@ -1151,7 +1151,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/auth/sign-in": {
+        "/api/v1/auth/sign-in": {
             "post": {
                 "description": "Для авторизации требуется логин и пароль. В случае успешной авторизации пользователю выдается токен OAuth. Время жизни токена 24 часа.",
                 "consumes": [
@@ -1209,7 +1209,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/auth/sign-out": {
+        "/api/v1/auth/sign-out": {
             "post": {
                 "security": [
                     {
@@ -1264,7 +1264,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/contexts": {
+        "/api/v1/contexts": {
             "get": {
                 "security": [
                     {
@@ -1421,7 +1421,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/contexts/count": {
+        "/api/v1/contexts/count": {
             "get": {
                 "security": [
                     {
@@ -1473,7 +1473,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/contexts/free-ports": {
+        "/api/v1/contexts/free-ports": {
             "get": {
                 "security": [
                     {
@@ -1522,7 +1522,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/contexts/{context_id}": {
+        "/api/v1/contexts/{context_id}": {
             "get": {
                 "security": [
                     {
@@ -1722,75 +1722,28 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/logs": {
+        "/api/v1/logs": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Получение бизнес логов с возможностью фильтрации и пагинации",
                 "tags": [
-                    "logs"
+                    "healthcheck"
                 ],
-                "summary": "Получение бизнес логов",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Номер страницы с 1",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Колличесвто отображаемых элементов на странице",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Фильтр по роли",
-                        "name": "role",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Фильтр по contextID",
-                        "name": "contextID",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "фильтр по username/entity/description",
-                        "name": "search",
-                        "in": "query"
-                    }
-                ],
+                "summary": "Проверка состояния сервера",
                 "responses": {
                     "200": {
                         "description": "Отфильтрованные логи",
                         "schema": {
-                            "$ref": "#/definitions/models.ModelsLogs"
-                        }
-                    },
-                    "400": {
-                        "description": "query params is not valid",
-                        "schema": {
-                            "$ref": "#/definitions/models.ModelsAPIError"
-                        }
-                    },
-                    "500": {
-                        "description": "internal error",
-                        "schema": {
-                            "$ref": "#/definitions/models.ModelsAPIError"
+                            "$ref": "#/definitions/models.DtoSuccessResponse"
                         }
                     }
                 }
             }
         },
-        "/v1/roles": {
+        "/api/v1/roles": {
             "get": {
                 "security": [
                     {
@@ -1858,7 +1811,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/roles/count": {
+        "/api/v1/roles/count": {
             "get": {
                 "security": [
                     {
@@ -1874,7 +1827,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Количество ролей",
                         "schema": {
-                            "type": "integer"
+                            "$ref": "#/definitions/models.DtoCountResponse"
                         }
                     },
                     "400": {
@@ -1904,7 +1857,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/users": {
+        "/api/v1/users": {
             "get": {
                 "security": [
                     {
@@ -2056,7 +2009,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/users/count": {
+        "/api/v1/users/count": {
             "get": {
                 "security": [
                     {
@@ -2102,7 +2055,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/users/count-by-role": {
+        "/api/v1/users/count-by-role": {
             "get": {
                 "security": [
                     {
@@ -2148,7 +2101,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/users/profile": {
+        "/api/v1/users/profile": {
             "get": {
                 "security": [
                     {
@@ -2194,7 +2147,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/users/profile/pass": {
+        "/api/v1/users/profile/pass": {
             "put": {
                 "security": [
                     {
@@ -2257,7 +2210,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/users/{userId}": {
+        "/api/v1/users/{userId}": {
             "get": {
                 "security": [
                     {
@@ -2448,7 +2401,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/users/{userId}/pass/otp": {
+        "/api/v1/users/{userId}/pass/otp": {
             "put": {
                 "security": [
                     {
@@ -2521,7 +2474,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/users/{userId}/roles": {
+        "/api/v1/users/{userId}/roles": {
             "put": {
                 "security": [
                     {

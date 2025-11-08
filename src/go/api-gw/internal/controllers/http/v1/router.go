@@ -21,7 +21,7 @@ func (s *Server) configureRouter() {
 	s.router.Use(middleware.LoggingMiddleware())
 
 	// Auth routes
-	auth := s.router.Group("/v1/auth")
+	auth := s.router.Group("/api/v1/auth")
 	{
 		auth.POST("/sign-in", s.signIn)
 		auth.POST("/sign-out",
@@ -40,7 +40,7 @@ func (s *Server) configureRouter() {
 	apiRouter.Use(middleware.SetUserMetaData()) // Установка метаданных пользователя
 
 	// Users routes
-	users := apiRouter.Group("/v1/users")
+	users := apiRouter.Group("/api/v1/users")
 	{
 		users.GET("", s.getUsers)                          // SA, CA
 		users.POST("", s.createUser)                       // SA, CA
@@ -56,13 +56,13 @@ func (s *Server) configureRouter() {
 		users.GET("/count-by-role", s.getCountUsersByRole) // SA
 	}
 
-	roles := apiRouter.Group("/v1/roles")
+	roles := apiRouter.Group("/api/v1/roles")
 	{
 		roles.GET("", s.getRoles)            // SA
 		roles.GET("/count", s.getRolesCount) // SA
 	}
 
-	ctxcontrol := apiRouter.Group("/v1/contexts")
+	ctxcontrol := apiRouter.Group("/api/v1/contexts")
 	{
 		ctxcontrol.GET("", s.getContexts)                   // SA
 		ctxcontrol.POST("", s.createContext)                // SA
@@ -73,12 +73,12 @@ func (s *Server) configureRouter() {
 		ctxcontrol.GET("/free-ports", s.getFreePorts)
 	}
 
-	blog := apiRouter.Group("/v1")
+	blog := apiRouter.Group("/api/v1")
 	{
 		blog.GET("/logs", s.logs) // SA, CA
 	}
 
-	analytics := apiRouter.Group("/v1/analytics")
+	analytics := apiRouter.Group("/api/v1/analytics")
 	{
 		// common
 		analytics.GET("/categories", s.getCategories)
@@ -93,7 +93,7 @@ func (s *Server) configureRouter() {
 		analytics.GET("/dashboards/traffic", s.getDashboardsTraffic)
 
 		//actions
-		analytics.GET("/dashboards/act", s.getV1DashboardsAct)
+		analytics.PATCH("/dashboards/act", s.patchV1DashboardsAct)
 
 		//detections
 		analytics.GET("/detections", s.getDetections)

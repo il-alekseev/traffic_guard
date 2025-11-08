@@ -56,11 +56,51 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
+	GetAPIV1Healthcheck(params *GetAPIV1HealthcheckParams, opts ...ClientOption) (*GetAPIV1HealthcheckOK, error)
+
 	GetAPIV1Version(params *GetAPIV1VersionParams, opts ...ClientOption) (*GetAPIV1VersionOK, error)
 
-	GetV1Healthcheck(params *GetV1HealthcheckParams, opts ...ClientOption) (*GetV1HealthcheckOK, error)
-
 	SetTransport(transport runtime.ClientTransport)
+}
+
+/*
+GetAPIV1Healthcheck проверкаs работоспособности сервера
+
+Проверка, что сервер работает
+*/
+func (a *Client) GetAPIV1Healthcheck(params *GetAPIV1HealthcheckParams, opts ...ClientOption) (*GetAPIV1HealthcheckOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewGetAPIV1HealthcheckParams()
+	}
+	op := &runtime.ClientOperation{
+		ID:                 "GetAPIV1Healthcheck",
+		Method:             "GET",
+		PathPattern:        "/api/v1/healthcheck",
+		ProducesMediaTypes: []string{"application/json"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http"},
+		Params:             params,
+		Reader:             &GetAPIV1HealthcheckReader{formats: a.formats},
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
+	if err != nil {
+		return nil, err
+	}
+	success, ok := result.(*GetAPIV1HealthcheckOK)
+	if ok {
+		return success, nil
+	}
+	// unexpected success response
+	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+	msg := fmt.Sprintf("unexpected success response for GetAPIV1Healthcheck: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	panic(msg)
 }
 
 /*
@@ -100,46 +140,6 @@ func (a *Client) GetAPIV1Version(params *GetAPIV1VersionParams, opts ...ClientOp
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1Version: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
-}
-
-/*
-GetV1Healthcheck проверкаs работоспособности сервера
-
-Проверка, что сервер работает
-*/
-func (a *Client) GetV1Healthcheck(params *GetV1HealthcheckParams, opts ...ClientOption) (*GetV1HealthcheckOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewGetV1HealthcheckParams()
-	}
-	op := &runtime.ClientOperation{
-		ID:                 "GetV1Healthcheck",
-		Method:             "GET",
-		PathPattern:        "/v1/healthcheck",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &GetV1HealthcheckReader{formats: a.formats},
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*GetV1HealthcheckOK)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetV1Healthcheck: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 
