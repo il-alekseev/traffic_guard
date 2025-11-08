@@ -34,3 +34,9 @@ type DeviceRequestStat struct {
 	Blocked []uint `json:"blocked"`
 	Pending []uint `json:"pending"`
 }
+
+type HostAnomalies struct {
+	HostName     string   `json:"hostname"`
+	AnomalyCount uint     `json:"anomaly_count"`
+	Domains      []string `json:"domains"`
+}

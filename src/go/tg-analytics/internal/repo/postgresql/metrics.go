@@ -2,14 +2,13 @@ package postgresql
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"tg-an/internal/models"
 	"tg-an/pkg/trparser"
 	"time"
 )
 
-// Получение статистики по входящему и исходящему трафику за временной интервал в килобайтах
+// GetTrafficStat возвращает статистику по трафику
 func (r *RepoPG) GetTrafficStat(ctx context.Context, tr *trparser.TimeRange, hostname string, count uint) (models.TrafficStat, error) {
 	result := models.TrafficStat{
 		Time:   make([]time.Time, count),
@@ -28,76 +27,51 @@ func (r *RepoPG) GetTrafficStat(ctx context.Context, tr *trparser.TimeRange, hos
 	totalDuration := tr.Duration()
 	intervalDuration := totalDuration / time.Duration(count)
 
-	// Создаем временные интервалы заранее
+	// Создаем временные интервалы
 	for i := uint(0); i < count; i++ {
 		start := tr.From.Add(time.Duration(i) * intervalDuration)
 		result.Time[i] = start.Add(intervalDuration / 2)
 	}
 
-	// Получаем все записи используя GORM
-	var statsRecords []models.StatsJSON
-	err := r.db.GetDB().WithContext(ctx).
-		Where("date BETWEEN ? AND ?", tr.From, tr.To).
-		Order("date").
-		Find(&statsRecords).Error
+	// Используем сырой SQL запрос с JSON функциями PostgreSQL для ускорения запроса
+	// TODO: приспособить под различные сетевые интерфейсы (нужно менять структуру БД метрик)
+	query := `
+		SELECT 
+			FLOOR(EXTRACT(EPOCH FROM (date - $1)) / $2)::integer as interval_index,
+			SUM(
+				(stat->'statistics'->'network'->'interfaces'->'ge-0-0'->'input'->'bytes'->>'count')::bigint
+			) as input_bytes,
+			SUM(
+				(stat->'statistics'->'network'->'interfaces'->'ge-0-0'->'output'->'bytes'->>'count')::bigint
+			) as output_bytes
+		FROM stats_json 
+		WHERE date BETWEEN $1 AND $3
+		AND ($4 = '' OR stat->'statistics'->'common'->>'hostname' = $4)
+		GROUP BY interval_index
+		ORDER BY interval_index
+	`
+
+	intervalSeconds := int(intervalDuration.Seconds())
+	var rows []struct {
+		IntervalIndex int   `gorm:"column:interval_index"`
+		InputBytes    int64 `gorm:"column:input_bytes"`
+		OutputBytes   int64 `gorm:"column:output_bytes"`
+	}
+
+	err := r.db.GetDB().WithContext(ctx).Raw(query,
+		tr.From, intervalSeconds, tr.To, hostname).Find(&rows).Error
 
 	if err != nil {
 		return result, fmt.Errorf("failed to execute query: %w", err)
 	}
 
-	// Временные переменные для накопления байтов
-	inputBytesTotal := make([]int64, count)
-	outputBytesTotal := make([]int64, count)
-
-	// Обрабатываем каждую запись и распределяем по интервалам
-	for _, record := range statsRecords {
-		// Преобразуем datatypes.JSON в []byte
-		statJSON, err := record.Stat.MarshalJSON()
-		if err != nil {
-			// Пропускаем записи с ошибками JSON
-			continue
+	// Заполняем результат
+	for _, row := range rows {
+		if row.IntervalIndex >= 0 && row.IntervalIndex < int(count) {
+			result.Input[row.IntervalIndex] = uint(row.InputBytes / 1024)
+			result.Output[row.IntervalIndex] = uint(row.OutputBytes / 1024)
 		}
-
-		// Определяем индекс интервала
-		timeDiff := record.Date.Sub(tr.From)
-		intervalIndex := int(timeDiff / intervalDuration)
-
-		if intervalIndex >= 0 && intervalIndex < int(count) {
-			// TODO: Фильтрация по сетевым интерфейсам, суммирование по всем интерфейсам и пр. (backlog)
-			inputBytes, outputBytes, err := getInterfaceBytes(statJSON, hostname, "ge-0-0")
-			if err == nil {
-				inputBytesTotal[intervalIndex] += inputBytes
-				outputBytesTotal[intervalIndex] += outputBytes
-			}
-		}
-	}
-
-	// Преобразуем накопленные байты в килобайты
-	for i := uint(0); i < count; i++ {
-		result.Input[i] = uint(inputBytesTotal[i] / 1024)
-		result.Output[i] = uint(outputBytesTotal[i] / 1024)
 	}
 
 	return result, nil
-}
-
-// Функция для получения числа байтов из JSON
-func getInterfaceBytes(statsJSON []byte, hostName string, interfaceName string) (inputBytes, outputBytes int64, err error) {
-	var data models.Statistics
-
-	if err := json.Unmarshal(statsJSON, &data); err != nil {
-		return 0, 0, fmt.Errorf("ошибка парсинга JSON: %v", err)
-	}
-	// Проверяем, относится ли статистика к указанному узлу
-	// если hostname == "", то не используем фильтрацию
-	if hostName != "" && data.Statistics.Common.Hostname != hostName {
-		return 0, 0, nil
-	}
-
-	iface, exists := data.Statistics.Network.Interfaces[interfaceName]
-	if !exists {
-		return 0, 0, fmt.Errorf("интерфейс %s не найден", interfaceName)
-	}
-
-	return iface.Input.Bytes.Count, iface.Output.Bytes.Count, nil
 }

@@ -62,15 +62,13 @@ definitions:
     type: object
   dto.GetAnomaliesResponse:
     properties:
-      blocked_resourses_count:
+      block_count:
         type: integer
-      data:
-        additionalProperties:
-          items:
-            type: string
-          type: array
-        type: object
-      hostnames_count:
+      host_anomalies:
+        items:
+          $ref: '#/definitions/models.HostAnomalies'
+        type: array
+      host_count:
         type: integer
     type: object
   dto.GetDetectionsResponse:
@@ -194,6 +192,8 @@ definitions:
         type: integer
       stat:
         $ref: '#/definitions/models.RequestReport'
+      status:
+        type: string
       traffic:
         $ref: '#/definitions/models.Traffic'
       url:
@@ -287,6 +287,17 @@ definitions:
         items:
           $ref: '#/definitions/models.DeviceAnomaly'
         type: array
+    type: object
+  models.HostAnomalies:
+    properties:
+      anomaly_count:
+        type: integer
+      domains:
+        items:
+          type: string
+        type: array
+      hostname:
+        type: string
     type: object
   models.MainActivityPage:
     properties:

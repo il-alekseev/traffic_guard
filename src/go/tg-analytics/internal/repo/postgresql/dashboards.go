@@ -202,7 +202,7 @@ func (r *RepoPG) GetDeviceStat(ctx context.Context, tr *trparser.TimeRange, coun
 			sessions.status,
 			urls.path,
 			urls.proto,
-			devices.hostname,
+			devices.hostname as host_name,
 			sources.ip as src_ip,
 			sources.country as src_country,
 			sources.username,
@@ -226,7 +226,7 @@ func (r *RepoPG) GetDeviceStat(ctx context.Context, tr *trparser.TimeRange, coun
 		intervalIndex := int(timeDiff / intervalDuration)
 
 		if intervalIndex >= 0 && intervalIndex < int(count) {
-			if record.Status == status.StatusBlocked.String() && record.Status == status.StatusAnomaly.String() {
+			if record.Status == status.StatusBlocked.String() || record.Status == status.StatusAnomaly.String() {
 				result.Data[record.HostName].Blocked[intervalIndex]++
 			} else if record.Status == status.StatusPending.String() {
 				result.Data[record.HostName].Pending[intervalIndex]++
@@ -239,7 +239,7 @@ func (r *RepoPG) GetDeviceStat(ctx context.Context, tr *trparser.TimeRange, coun
 
 func (r *RepoPG) GetAnomalies(ctx context.Context, tr *trparser.TimeRange, hostname string) (dto.GetAnomaliesResponse, error) {
 	var result = dto.GetAnomaliesResponse{
-		Data: make(map[string][]string),
+		HostAnomalies: make([]models.HostAnomalies, 0),
 	}
 
 	// Получаем список хостов
@@ -263,52 +263,52 @@ func (r *RepoPG) GetAnomalies(ctx context.Context, tr *trparser.TimeRange, hostn
 		hostnames = []string{hostname} // Работаем только с указанным хостом
 	}
 
-	result.HostNamesCount = uint(len(hostnames))
-
-	// Инициализируем данные для хостов
+	result.HostCount = uint(len(hostnames))
+	// Инициализируем списки хостов
 	for _, h := range hostnames {
-		result.Data[h] = []string{}
+		result.HostAnomalies = append(result.HostAnomalies, models.HostAnomalies{HostName: h, Domains: []string{}})
 	}
+
 	// Получаем число заблокированных ресурсов (доменов)
 	var blockedDomainsCount int64
 	if err := r.db.GetDB().WithContext(ctx).Table("sessions").
-		Distinct("domains.id").
+		Select(`
+			COUNT(DISTINCT CASE WHEN actions.action = ? THEN domains.id END) as denied
+		`, pkg.ActionTypeDenied.String()).
+		Joins("LEFT JOIN devices ON sessions.device_id = devices.id").
 		Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
-		Where("sessions.status = ?", status.StatusBlocked.String()).
-		Where("sessions.datetime_utc BETWEEN ? AND ?", tr.From, tr.To).
-		Count(&blockedDomainsCount).Error; err != nil {
+		Joins("LEFT JOIN actions ON domains.action_id = actions.id").
+		Joins("LEFT JOIN categories ON domains.category_id = categories.id").
+		Where("categories.type = ?", pkg.CategoryTypeNegative.String()).
+		Scan(&blockedDomainsCount).Error; err != nil {
 		return result, fmt.Errorf("failed to get blocked domains count: %w", err)
 	}
 
-	result.BlockedResoursesCount = uint(blockedDomainsCount)
+	result.BlockCount = uint(blockedDomainsCount)
 
-	// Получаем списки ресурсов, которые разрешены сетевым узлом, несмотря на блокировку в КСУ
-	for _, hostname := range hostnames {
-		var anomalies []string
+	// Получаем аномалии для каждого хоста
+	for i, host := range hostnames {
+		var anomalyDomains []string
 
-		// Получаем заблокированные домены для конкретного хоста
-		var blockedDomains []string
+		// Получаем аномальные домены для конкретного хоста
 		err := r.db.GetDB().WithContext(ctx).Table("sessions").
 			Distinct("domains.path").
 			Select("domains.path").
 			Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
 			Joins("LEFT JOIN devices ON sessions.device_id = devices.id").
 			Where("sessions.status = ?", status.StatusAnomaly.String()).
-			Where("devices.hostname = ?", hostname).
+			Where("devices.hostname = ?", host).
 			Where("sessions.datetime_utc BETWEEN ? AND ?", tr.From, tr.To).
-			Pluck("domains.path", &blockedDomains).Error
+			Pluck("domains.path", &anomalyDomains).Error
 
 		if err != nil {
 			r.l.WarnContext(ctx, "warning with get domains", wsl.Err(err))
 			continue
 		}
 
-		// Формируем список аномалий для этого хоста
-		for _, domain := range blockedDomains {
-			anomalies = append(anomalies, fmt.Sprintf("Заблокирован доступ к %s", domain))
-		}
-
-		result.Data[hostname] = anomalies
+		// Добавляем в result
+		result.HostAnomalies[i].AnomalyCount = uint(len(anomalyDomains))
+		result.HostAnomalies[i].Domains = anomalyDomains
 	}
 
 	return result, nil

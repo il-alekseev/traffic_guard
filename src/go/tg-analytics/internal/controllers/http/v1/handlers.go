@@ -628,6 +628,7 @@ func (s *Server) Act(c *gin.Context) {
 		})
 		return
 	}
+
 	err := s.u.Act(c, req.Action, req.Path)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{

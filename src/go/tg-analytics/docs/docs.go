@@ -1177,19 +1177,16 @@ const docTemplate = `{
         "dto.GetAnomaliesResponse": {
             "type": "object",
             "properties": {
-                "blocked_resourses_count": {
+                "block_count": {
                     "type": "integer"
                 },
-                "data": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
+                "host_anomalies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.HostAnomalies"
                     }
                 },
-                "hostnames_count": {
+                "host_count": {
                     "type": "integer"
                 }
             }
@@ -1382,6 +1379,9 @@ const docTemplate = `{
                 "stat": {
                     "$ref": "#/definitions/models.RequestReport"
                 },
+                "status": {
+                    "type": "string"
+                },
                 "traffic": {
                     "$ref": "#/definitions/models.Traffic"
                 },
@@ -1525,6 +1525,23 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/models.DeviceAnomaly"
                     }
+                }
+            }
+        },
+        "models.HostAnomalies": {
+            "type": "object",
+            "properties": {
+                "anomaly_count": {
+                    "type": "integer"
+                },
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "hostname": {
+                    "type": "string"
                 }
             }
         },

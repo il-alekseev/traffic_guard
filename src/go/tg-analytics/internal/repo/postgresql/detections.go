@@ -26,7 +26,7 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 			domains.path as domain,
 			domains.categorized_at as categorized_at,
 			COUNT(*) as request_count,
-			devices.hostname,
+			devices.hostname as host_name,
 			categories.name as category,
 			categories.name as description,
 			COALESCE(actions.action, '%s') as action
@@ -93,8 +93,23 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 // GetDetectionStat возвращает статистику по детекциям
 func (r *RepoPG) GetDetectionStat(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter) (dto.DetectionStat, error) {
 	var result dto.DetectionStat
-	// Базовый запрос
+
+	// Структура для результатов подсчета
+	type countResult struct {
+		Detected int64
+		Allowed  int64
+		Denied   int64
+	}
+
+	var counts countResult
+
+	// Один запрос для подсчета всех статистик
 	query := r.db.GetDB().WithContext(ctx).Table("sessions").
+		Select(`
+			COUNT(DISTINCT domains.id) as detected,
+			COUNT(DISTINCT CASE WHEN actions.action = ? THEN domains.id END) as allowed,
+			COUNT(DISTINCT CASE WHEN actions.action = ? THEN domains.id END) as denied
+		`, pkg.ActionTypeAllowed.String(), pkg.ActionTypeDenied.String()).
 		Joins("LEFT JOIN devices ON sessions.device_id = devices.id").
 		Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
 		Joins("LEFT JOIN actions ON domains.action_id = actions.id").
@@ -114,25 +129,17 @@ func (r *RepoPG) GetDetectionStat(ctx context.Context, tr *trparser.TimeRange, f
 		query = query.Where("categories.name = ?", f.TopCategory)
 	}
 
-	// Подсчитываем все выявления (уникальные по domains.id)
-	detectedQuery := query.Select("COUNT(DISTINCT domains.id)")
-	if err := detectedQuery.Count(&result.Detected).Error; err != nil {
-		return result, fmt.Errorf("failed to get detected events: %w", err)
+	// Выполняем запрос
+	if err := query.Scan(&counts).Error; err != nil {
+		return result, fmt.Errorf("failed to get detection stats: %w", err)
 	}
 
-	// Подсчитываем разрешенные выявления
-	allowedQuery := detectedQuery.Where("actions.action = ?", pkg.ActionTypeAllowed.String())
-	if err := allowedQuery.Count(&result.Allowed).Error; err != nil {
-		return result, fmt.Errorf("failed to get accepted events: %w", err)
-	}
+	// Заполняем результат
+	result.Detected = counts.Detected
+	result.Allowed = counts.Allowed
+	result.Denied = counts.Denied
+	result.Unresolved = counts.Detected - counts.Allowed - counts.Denied
 
-	// Подсчитываем запрещенные выявления
-	deniedQuery := detectedQuery.Where("actions.action = ?", pkg.ActionTypeDenied.String())
-	if err := deniedQuery.Count(&result.Denied).Error; err != nil {
-		return result, fmt.Errorf("failed to get denied events: %w", err)
-	}
-	// Вычисляем неразрешенны
-	result.Unresolved = result.Detected - result.Allowed - result.Denied
 	return result, nil
 }
 
@@ -148,6 +155,12 @@ func (r *RepoPG) Act(ctx context.Context, action, path string) error {
 		if domain.ActionID != 0 {
 			return fmt.Errorf("domain already acted")
 		}
+		// Обрабатываем Action
+		detectionType, err := models.ParseDetectionStatus(action)
+		if err != nil {
+			return fmt.Errorf("incorrect action: %s", action)
+		}
+
 		// Получаем общее количество записей action
 		var count int64
 		if err := tx.Model(&models.Action{}).Count(&count).Error; err != nil {
@@ -156,7 +169,7 @@ func (r *RepoPG) Act(ctx context.Context, action, path string) error {
 		// Cоздаем действие
 		var actionRecord = models.Action{
 			ID:        uint(count + 1),
-			Action:    action,
+			Action:    detectionType.String(),
 			CreatedAt: time.Now(),
 			// TODO: добавить пользователя
 			CreatedBy: "user",
