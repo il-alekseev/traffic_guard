@@ -1600,7 +1600,7 @@ const docTemplate = `{
                         }
                     },
                     "409": {
-                        "description": "Пользователь с таким email/логином уже существует",
+                        "description": "Пользователь с таким email/логином уже существует или роль не найдена",
                         "schema": {
                             "$ref": "#/definitions/models.DtoErrorResponse"
                         }

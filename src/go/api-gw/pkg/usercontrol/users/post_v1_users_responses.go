@@ -353,7 +353,7 @@ func NewPostV1UsersConflict() *PostV1UsersConflict {
 /*
 PostV1UsersConflict describes a response with status code 409, with default header values.
 
-Пользователь с таким email/логином уже существует
+Пользователь с таким email/логином уже существует или роль не найдена
 */
 type PostV1UsersConflict struct {
 	Payload *models.DtoErrorResponse

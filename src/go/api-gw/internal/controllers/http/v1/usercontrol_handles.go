@@ -645,7 +645,7 @@ func (s *Server) getUsers(c *gin.Context) {
 // @Failure 400 {object} models.DtoErrorResponse
 // @Failure 401 {object} models.DtoErrorResponse
 // @Failure 403 {object} models.DtoErrorResponse
-// @Failure 409 {object} models.DtoErrorResponse "Пользователь с таким email/логином уже существует"
+// @Failure 409 {object} models.DtoErrorResponse "Пользователь с таким email/логином уже существует или роль не найдена"
 // @Failure 500 {object} models.DtoErrorResponse
 // @Router /api/v1/users [post]
 func (s *Server) createUser(c *gin.Context) {

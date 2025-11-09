@@ -2,14 +2,14 @@ package v1
 
 import (
 	"errors"
+	"math"
+	"net/http"
+	"strconv"
 	"userctrl/internal/controllers/http/v1/dto"
 	"userctrl/internal/controllers/http/v1/utils"
 	"userctrl/internal/models"
 	"userctrl/pkg/keycloakclient"
 	"userctrl/pkg/slogger/wsl"
-	"math"
-	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -498,7 +498,7 @@ func (s *Server) getUsers(c *gin.Context) {
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 401 {object} dto.ErrorResponse
 // @Failure 403 {object} dto.ErrorResponse
-// @Failure 409 {object} dto.ErrorResponse "Пользователь с таким email/логином уже существует"
+// @Failure 409 {object} dto.ErrorResponse "Пользователь с таким email/логином уже существует или роль не найдена"
 // @Failure 500 {object} dto.ErrorResponse
 // @Router /v1/users [post]
 func (s *Server) createUser(c *gin.Context) {
@@ -527,7 +527,8 @@ func (s *Server) createUser(c *gin.Context) {
 			s.ErrorResponse(c, http.StatusConflict, "Create", err)
 			return
 		} else if errors.Is(err, models.ErrRoleNotFound) {
-			s.ErrorResponse(c, http.StatusNotFound, "Create", err)
+			s.ErrorResponse(c, http.StatusConflict, "Create", err)
+			return
 		}
 		s.ErrorResponse(c, http.StatusInternalServerError, "Create", err)
 		return
