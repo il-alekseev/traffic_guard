@@ -95,6 +95,7 @@ var (
 		{suffix: ".wav", category: "audio"},
 		{suffix: ".ogg", category: "audio"},
 		{suffix: ".m4a", category: "audio"},
+		{suffix: ".m4s", category: "audio"},
 		{suffix: ".pdf", category: "document"},
 		{suffix: ".doc", category: "document"},
 		{suffix: ".docx", category: "document"},
@@ -104,6 +105,7 @@ var (
 		{suffix: ".xlsx", category: "document"},
 		{suffix: ".ods", category: "document"},
 		{suffix: ".odt", category: "document"},
+		{suffix: ".txt", category: "text"},
 		{suffix: ".zip", category: "archive"},
 		{suffix: ".rar", category: "archive"},
 		{suffix: ".7z", category: "archive"},
@@ -166,6 +168,7 @@ var (
 		{fragment: "/videos/", message: "path contains \"%s\" and serves video catalog"},
 		{fragment: "/images/", message: "path contains \"%s\" and serves image catalog"},
 		{fragment: "/thumbnails/", message: "path contains \"%s\" and serves thumbnails"},
+		{fragment: "/sitemap.xml", message: "path contains \"%s\" (sitemap) and is skipped"},
 	}
 
 	disallowedQueryFragments = []struct {
@@ -468,6 +471,10 @@ func (s *ScrapeService) ProcessRequest(ctx context.Context, workerID int, req mo
 }
 
 func (s *ScrapeService) handle(parent context.Context, workerID int, rawURL string) models.ScrapeResult {
+	return s.handleWithFallback(parent, workerID, rawURL, true)
+}
+
+func (s *ScrapeService) handleWithFallback(parent context.Context, workerID int, rawURL string, allowRootFallback bool) models.ScrapeResult {
 	result := models.ScrapeResult{
 		URL:    rawURL,
 		Status: models.StatusError,
@@ -502,6 +509,7 @@ func (s *ScrapeService) handle(parent context.Context, workerID int, rawURL stri
 	ips, err := s.dnsResolver.LookupIP(reqCtx, host)
 	if err != nil {
 		result.Error = fmt.Sprintf("dns lookup: %v", err)
+		result.Failure = models.FailureDNS
 		return result
 	}
 
@@ -531,7 +539,7 @@ func (s *ScrapeService) handle(parent context.Context, workerID int, rawURL stri
 
 	if reasons := shouldSkipURL(parsed); len(reasons) > 0 {
 		result.Status = models.StatusError
-		result.Failure = models.FailureRequirements
+		result.Failure = models.FailureFiltered
 		result.Error = strings.Join(reasons, "; ")
 		warnings = append(warnings, reasons...)
 		result.Warnings = append(result.Warnings, warnings...)
@@ -560,17 +568,26 @@ func (s *ScrapeService) handle(parent context.Context, workerID int, rawURL stri
 
 		payload, fetchErr := strategy.Fetch(reqCtx, rawURL)
 		if fetchErr != nil {
-			if code, retryable := extractRetryableStatus(fetchErr); retryable {
-				if newPayload, ok := s.retryWithUserAgent(reqCtx, strategy, rawURL, ""); ok {
-					s.info("strategy retry due to http status", "worker_id", workerID, "host", host, "strategy", strategy.Name(), "status_code", code)
-					payload = newPayload
-					goto payloadLoop
+			if statusCode, hasStatus := parseStatusCodeFromError(fetchErr); hasStatus {
+				if _, retryable := retryableStatusCodes[statusCode]; retryable {
+					if newPayload, ok := s.retryWithUserAgent(reqCtx, strategy, rawURL, ""); ok {
+						s.info("strategy retry due to http status", "worker_id", workerID, "host", host, "strategy", strategy.Name(), "status_code", statusCode)
+						payload = newPayload
+						goto payloadLoop
+					}
+					if len(s.archiveStrategies) > 0 && !archiveAdded {
+						strategyQueue = append(strategyQueue, s.archiveStrategies...)
+						archiveAdded = true
+					}
+					warnings = append(warnings, fmt.Sprintf("strategy %s http status %d, archives scheduled", strategy.Name(), statusCode))
+				} else if len(s.archiveStrategies) > 0 && !archiveAdded {
+					if statusCode == 404 {
+						warnings = append(warnings, fmt.Sprintf("strategy %s http status %d, archives skipped", strategy.Name(), statusCode))
+					} else {
+						strategyQueue = append(strategyQueue, s.archiveStrategies...)
+						archiveAdded = true
+					}
 				}
-				if len(s.archiveStrategies) > 0 && !archiveAdded {
-					strategyQueue = append(strategyQueue, s.archiveStrategies...)
-					archiveAdded = true
-				}
-				warnings = append(warnings, fmt.Sprintf("strategy %s http status %d, archives scheduled", strategy.Name(), code))
 			} else if len(s.archiveStrategies) > 0 && !archiveAdded {
 				strategyQueue = append(strategyQueue, s.archiveStrategies...)
 				archiveAdded = true
@@ -658,7 +675,7 @@ func (s *ScrapeService) handle(parent context.Context, workerID int, rawURL stri
 					warnings = append(warnings, fmt.Sprintf("persist attempt (%s): %v", attempt.Strategy, err))
 				}
 				warnings = append(warnings, warning)
-				reason = models.FailureRequirements
+				reason = models.FailureAntiBot
 				if len(s.archiveStrategies) > 0 && !archiveAdded {
 					strategyQueue = append(strategyQueue, s.archiveStrategies...)
 					archiveAdded = true
@@ -682,7 +699,7 @@ func (s *ScrapeService) handle(parent context.Context, workerID int, rawURL stri
 					warnings = append(warnings, fmt.Sprintf("persist attempt (%s): %v", attempt.Strategy, err))
 				}
 				warnings = append(warnings, fmt.Sprintf("strategy %s content too short (%d < %d); trying archive sources", strategy.Name(), runeCount, s.shortContentLimit))
-				reason = models.FailureRequirements
+				reason = models.FailureShortContent
 				if len(s.archiveStrategies) > 0 && !archiveAdded {
 					strategyQueue = append(strategyQueue, s.archiveStrategies...)
 					archiveAdded = true
@@ -721,7 +738,7 @@ func (s *ScrapeService) handle(parent context.Context, workerID int, rawURL stri
 		if len(validationReasons) > 0 {
 			warnings = append(warnings, fmt.Sprintf("strategy %s rejected after validation: %s", strategy.Name(), strings.Join(validationReasons, "; ")))
 			s.warn("strategy payload rejected after validation", "worker_id", workerID, "host", host, "strategy", strategy.Name(), "user_agent", attempt.Content.UserAgent, "reasons", strings.Join(validationReasons, "; "))
-			reason = models.FailureRequirements
+			reason = models.FailureValidation
 			continue
 		}
 
@@ -767,7 +784,7 @@ func (s *ScrapeService) handle(parent context.Context, workerID int, rawURL stri
 		} else {
 			if !accepted {
 				warnings = append(warnings, "content requirements not satisfied")
-				reason = models.FailureRequirements
+				reason = models.FailureQuality
 			}
 			result.Status = models.StatusPartial
 		}
@@ -779,6 +796,17 @@ func (s *ScrapeService) handle(parent context.Context, workerID int, rawURL stri
 		result.Status = models.StatusError
 		reason = models.FailureUnavailable
 		s.error("scrape failed", "worker_id", workerID, "host", host)
+	}
+
+	if allowRootFallback && reason == models.FailureUnavailable && shouldFallbackToRoot(parsed) {
+		rootURL := buildRootURL(parsed)
+		if rootURL != "" && rootURL != rawURL {
+			s.warn("no strategy succeeded, retrying with root url", "worker_id", workerID, "host", host, "url", rawURL, "fallback_url", rootURL)
+			fallback := s.handleWithFallback(parent, workerID, rootURL, false)
+			note := fmt.Sprintf("fallback to root %s after failure for %s", rootURL, rawURL)
+			fallback.Warnings = append([]string{note}, fallback.Warnings...)
+			return fallback
+		}
 	}
 
 	if len(warnings) > 0 {
@@ -917,11 +945,61 @@ func failureMessage(reason models.FailureReason) string {
 		return "extracted content empty"
 	case models.FailureRequirements:
 		return "content requirements not satisfied"
+	case models.FailureDNS:
+		return "dns lookup failed"
+	case models.FailureAntiBot:
+		return "anti-bot content detected"
+	case models.FailureShortContent:
+		return "content too short"
+	case models.FailureValidation:
+		return "invalid or binary content"
+	case models.FailureQuality:
+		return "content quality score rejected"
+	case models.FailureFiltered:
+		return "url filtered by policy"
 	case models.FailureUnavailable:
 		return "no strategy succeeded"
 	default:
 		return ""
 	}
+}
+
+func shouldFallbackToRoot(u *url.URL) bool {
+	if u == nil {
+		return false
+	}
+	path := strings.Trim(u.EscapedPath(), "/")
+	if path == "" {
+		return false
+	}
+	segments := 0
+	for _, part := range strings.Split(path, "/") {
+		if part != "" {
+			segments++
+		}
+	}
+	if segments >= 2 {
+		return true
+	}
+	if len(path) >= 48 {
+		return true
+	}
+	return len(u.RawQuery) >= 48
+}
+
+func buildRootURL(u *url.URL) string {
+	if u == nil {
+		return ""
+	}
+	root := &url.URL{
+		Scheme: u.Scheme,
+		Host:   u.Host,
+		Path:   "/",
+	}
+	if root.Scheme == "" {
+		root.Scheme = "https"
+	}
+	return root.String()
 }
 
 func shouldSkipURL(u *url.URL) []string {
@@ -1231,17 +1309,6 @@ func (s *ScrapeService) randomUserAgents(exclude map[string]struct{}) []string {
 	}
 
 	return available
-}
-
-func extractRetryableStatus(err error) (int, bool) {
-	code, ok := parseStatusCodeFromError(err)
-	if !ok {
-		return 0, false
-	}
-	if _, allowed := retryableStatusCodes[code]; !allowed {
-		return 0, false
-	}
-	return code, true
 }
 
 func parseStatusCodeFromError(err error) (int, bool) {

@@ -8,6 +8,17 @@ import (
 	"scrapper/internal/models"
 )
 
+var (
+	metadataWarningIgnorePrefixes = []string{
+		"strategy ",
+		"fallback to root ",
+		"persist attempt ",
+	}
+	metadataWarningIgnoreExact = map[string]struct{}{
+		"no strategy succeeded": {},
+	}
+)
+
 func BuildMetadata(outcome models.RequestOutcome, contentID string) models.MetadataMessage {
 	best := outcome.Best.Result
 
@@ -17,7 +28,7 @@ func BuildMetadata(outcome models.RequestOutcome, contentID string) models.Metad
 		Status:      best.Status,
 		Failure:     best.Failure,
 		Error:       best.Error,
-		Warnings:    best.Warnings,
+		Warnings:    filterMetadataWarnings(best.Warnings),
 		URL:         outcome.Best.URL,
 		Domain:      best.Domain,
 		Strategy:    best.Strategy,
@@ -31,6 +42,33 @@ func BuildMetadata(outcome models.RequestOutcome, contentID string) models.Metad
 	}
 
 	return metadata
+}
+
+func filterMetadataWarnings(values []string) []string {
+	if len(values) == 0 {
+		return nil
+	}
+
+	filtered := make([]string, 0, len(values))
+
+valueLoop:
+	for _, item := range values {
+		item = strings.TrimSpace(item)
+		if item == "" {
+			continue
+		}
+		if _, skip := metadataWarningIgnoreExact[item]; skip {
+			continue
+		}
+		for _, prefix := range metadataWarningIgnorePrefixes {
+			if strings.HasPrefix(item, prefix) {
+				continue valueLoop
+			}
+		}
+		filtered = append(filtered, item)
+	}
+
+	return filtered
 }
 
 func BuildContent(outcome models.RequestOutcome, contentID string) (models.ContentMessage, bool) {

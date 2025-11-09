@@ -133,7 +133,7 @@ func Run(ctx context.Context, p Params) error {
 		cfg.Content.StripJSONFragments,
 		userAgents,
 	)
-	scraperApp := app.NewScraper(service)
+	scraperApp := app.NewScraper(service, metricsCollector)
 
 	kafkaConsumer, err := kafkaio.NewConsumer(cfg.Kafka)
 	if err != nil {
@@ -164,7 +164,7 @@ func Run(ctx context.Context, p Params) error {
 	errCh := make(chan error, 1)
 
 	consumerLogger := logger.With("component", "consumer")
-	go consumeLoop(ctx, kafkaConsumer, requests, errCh, consumerLogger)
+	go consumeLoop(ctx, kafkaConsumer, requests, errCh, consumerLogger, metricsCollector)
 	pipelineLogger := logger.With("component", "pipeline")
 	httpSrv := httpserver.New(cfg.HTTP, cfg.Kafka, service, metricsCollector, logger)
 	httpErrCh := make(chan error, 1)
@@ -292,6 +292,7 @@ func consumeLoop(
 	requests chan<- models.ProcessingRequest,
 	errCh chan<- error,
 	logger usecase.Logger,
+	metricsCollector *metrics.Metrics,
 ) {
 	defer close(requests)
 
@@ -343,6 +344,9 @@ func consumeLoop(
 		case <-ctx.Done():
 			return
 		case requests <- req:
+			if metricsCollector != nil {
+				metricsCollector.IncQueued()
+			}
 		}
 	}
 }

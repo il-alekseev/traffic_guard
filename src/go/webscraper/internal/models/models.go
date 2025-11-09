@@ -26,6 +26,12 @@ const (
 	FailureEvaluate     FailureReason = "evaluate_error"
 	FailureEmpty        FailureReason = "empty_content"
 	FailureRequirements FailureReason = "requirements_not_met"
+	FailureDNS          FailureReason = "dns_error"
+	FailureAntiBot      FailureReason = "anti_bot_detected"
+	FailureShortContent FailureReason = "short_content"
+	FailureValidation   FailureReason = "invalid_content"
+	FailureQuality      FailureReason = "quality_rejected"
+	FailureFiltered     FailureReason = "filtered_url"
 	FailureUnavailable  FailureReason = "no_successful_strategy"
 )
 
