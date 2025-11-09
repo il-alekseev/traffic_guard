@@ -4,7 +4,6 @@ import (
 	"api-gateway/config"
 	"api-gateway/pkg/analytics"
 	"api-gateway/pkg/blogserv"
-	"api-gateway/pkg/ctxcontrol"
 
 	"api-gateway/pkg/models"
 	"api-gateway/pkg/slogger"
@@ -32,7 +31,6 @@ import (
 
 type Server struct {
 	userCl      *usercontrol.Usercontrol
-	ctxCl       *ctxcontrol.Ctxcontrol
 	blogCL      *blogserv.Blogserv
 	analyticsCL *analytics.Analytics
 	router      *gin.Engine
@@ -46,7 +44,6 @@ func New(
 	ctx context.Context,
 	cfg *config.Config,
 	userCl *usercontrol.Usercontrol,
-	ctxCl *ctxcontrol.Ctxcontrol,
 	blogCL *blogserv.Blogserv,
 	analyticsCL *analytics.Analytics,
 ) (*Server, error) {
@@ -57,9 +54,9 @@ func New(
 
 	router := gin.New()
 	apigw := Server{
-		router:      router,
-		userCl:      userCl,
-		ctxCl:       ctxCl,
+		router: router,
+		userCl: userCl,
+
 		blogCL:      blogCL,
 		analyticsCL: analyticsCL,
 		domain:      cfg.Swagger.Host,

@@ -9,30 +9,6 @@ definitions:
         description: name
         type: string
     type: object
-  models.DtoContextListResponse:
-    properties:
-      data:
-        description: Список контекстов
-        items:
-          $ref: '#/definitions/models.ModelsContext'
-        type: array
-      meta:
-        description: Метаданные пагинации
-        properties:
-          limit:
-            description: Количество элементов на странице
-            type: integer
-          page:
-            description: Текущая страница (начинается с 1)
-            type: integer
-          pages:
-            description: Общее количество страниц
-            type: integer
-          total:
-            description: Общее количество элементов
-            type: integer
-        type: object
-    type: object
   models.DtoCountResponse:
     properties:
       count:
@@ -50,44 +26,6 @@ definitions:
       count_sa:
         description: count sa
         type: integer
-    type: object
-  models.DtoCreateContextRequest:
-    properties:
-      description:
-        description: Описание контекста
-        type: string
-      id:
-        description: Уникальный идентификатор контекста (первичный ключ в БД)
-        type: string
-      logs_limits:
-        description: Лимиты для логов
-        properties:
-          disk_storage:
-            description: disk storage
-            type: integer
-          retention_duration:
-            description: retention duration
-            type: integer
-        type: object
-      metric_limits:
-        description: Лимиты для метрик
-        properties:
-          disk_storage:
-            description: disk storage
-            type: integer
-          retention_duration:
-            description: retention duration
-            type: integer
-        type: object
-      name:
-        description: Уникальное имя контекста
-        type: string
-      port:
-        description: Уникальный порт для получения метрик
-        type: integer
-      transport:
-        description: Протокол транспортного уровня для получения метрик
-        type: string
     type: object
   models.DtoDetection:
     properties:
@@ -156,7 +94,7 @@ definitions:
   models.DtoErrorResponse:
     properties:
       error:
-        description: Описание ошибки
+        description: error
         type: string
     type: object
   models.DtoGetAnomaliesResponse:
@@ -184,16 +122,16 @@ definitions:
         description: Метаданные пагинации
         properties:
           limit:
-            description: Количество элементов на странице
+            description: limit
             type: integer
           page:
-            description: Текущая страница (начинается с 1)
+            description: page
             type: integer
           pages:
-            description: Общее количество страниц
+            description: pages
             type: integer
           total:
-            description: Общее количество элементов
+            description: total
             type: integer
         type: object
     type: object
@@ -208,16 +146,16 @@ definitions:
         description: Метаданные пагинации
         properties:
           limit:
-            description: Количество элементов на странице
+            description: limit
             type: integer
           page:
-            description: Текущая страница (начинается с 1)
+            description: page
             type: integer
           pages:
-            description: Общее количество страниц
+            description: pages
             type: integer
           total:
-            description: Общее количество элементов
+            description: total
             type: integer
         type: object
     type: object
@@ -237,16 +175,16 @@ definitions:
   models.DtoPaginationMeta:
     properties:
       limit:
-        description: Количество элементов на странице
+        description: limit
         type: integer
       page:
-        description: Текущая страница (начинается с 1)
+        description: page
         type: integer
       pages:
-        description: Общее количество страниц
+        description: pages
         type: integer
       total:
-        description: Общее количество элементов
+        description: total
         type: integer
     type: object
   models.DtoRequestStatResponse:
@@ -360,15 +298,6 @@ definitions:
         description: requests before
         type: integer
     type: object
-  models.DtoUpdateContextRequest:
-    properties:
-      description:
-        description: Новое описание контекста
-        type: string
-      name:
-        description: Новое имя контекста
-        type: string
-    type: object
   models.DtoUserCreateRequest:
     properties:
       email:
@@ -470,14 +399,6 @@ definitions:
         - $ref: '#/definitions/models.DtoPaginationMeta'
         description: meta
     type: object
-  models.DtoVectroFreePortsResponse:
-    properties:
-      ports:
-        description: ports
-        items:
-          type: integer
-        type: array
-    type: object
   models.ModelsAPIError:
     properties:
       code:
@@ -565,53 +486,6 @@ definitions:
         allOf:
         - $ref: '#/definitions/models.ModelsRequestReport'
         description: stat
-    type: object
-  models.ModelsContext:
-    properties:
-      admins_count:
-        description: admins count
-        type: integer
-      created_at:
-        description: created at
-        type: string
-      description:
-        description: description
-        type: string
-      id:
-        description: id
-        type: string
-      log_input_port:
-        description: Порт для получения метрик в Vector
-        type: integer
-      log_input_transport:
-        description: Протокол транспортного уровня для получения метрик в Vector
-        type: string
-      logs_limits:
-        allOf:
-        - $ref: '#/definitions/models.ModelsDataLimits'
-        description: logs limits
-      metric_limits:
-        allOf:
-        - $ref: '#/definitions/models.ModelsDataLimits'
-        description: metric limits
-      metrics_input_port:
-        description: metrics input port
-        type: string
-      name:
-        description: name
-        type: string
-      operators_count:
-        description: operators count
-        type: integer
-    type: object
-  models.ModelsDataLimits:
-    properties:
-      disk_storage:
-        description: disk storage
-        type: integer
-      retention_duration:
-        description: retention duration
-        type: integer
     type: object
   models.ModelsDetectionReport:
     properties:
@@ -1932,315 +1806,60 @@ paths:
       summary: Выход пользователя из системы
       tags:
       - auth
-  /api/v1/contexts:
-    get:
-      consumes:
-      - application/json
-      description: Получение списка всех контекстов системы с возможностью пагинации
-        и фильтрации
-      parameters:
-      - default: 1
-        description: Номер страницы
-        in: query
-        name: page
-        type: integer
-      - default: 10
-        description: Количество элементов на странице
-        in: query
-        name: limit
-        type: integer
-      - description: Фильтр по названию/id контекста
-        in: query
-        name: search
-        type: string
-      - default: context_id
-        description: Поле для сортировки default(context_id)
-        enum:
-        - context_id
-        - created_at
-        in: query
-        name: order_by
-        type: string
-      - default: desc
-        description: Направление сортировки default(desc)
-        enum:
-        - asc
-        - desc
-        in: query
-        name: order_dir
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.DtoContextListResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Получение списка всех контекстов в системе
-      tags:
-      - contexts
-    post:
-      consumes:
-      - text/plain
-      description: Создание нового контекста с указанным названием
-      parameters:
-      - description: Название контекста
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/models.DtoCreateContextRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.ModelsContext'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Добавление нового контекста в систему
-      tags:
-      - contexts
-  /api/v1/contexts/{context_id}:
-    delete:
-      consumes:
-      - application/json
-      description: Удаление контекста по его ID
-      parameters:
-      - description: ID контекста
-        in: path
-        name: context_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.DtoSuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Удаление контекста
-      tags:
-      - contexts
-    get:
-      consumes:
-      - application/json
-      description: Получение информации о контексте по его ID
-      parameters:
-      - description: ID контекста
-        in: path
-        name: context_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.ModelsContext'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Получение контекста по его идентификатору
-      tags:
-      - contexts
-    put:
-      consumes:
-      - application/json
-      description: Обновление названия контекста и/или описания
-      parameters:
-      - description: ID контекста
-        in: path
-        name: context_id
-        required: true
-        type: string
-      - description: Информация о контексте
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/models.DtoUpdateContextRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.DtoCountResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Обновление контекста по его идентификатору
-      tags:
-      - contexts
-  /api/v1/contexts/count:
-    get:
-      consumes:
-      - application/json
-      description: Получение общего количества контекстов в системе
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.DtoCountResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Получение числа всех контекстов системы
-      tags:
-      - contexts
-  /api/v1/contexts/free-ports:
-    get:
-      description: Выводит массив портов доступных для получения логов от МЭ
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/models.DtoVectroFreePortsResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Получение списка свободных портов
-      tags:
-      - contexts
-  /api/v1/logs:
+  /api/v1/healthcheck:
     get:
       responses:
         "200":
           description: Отфильтрованные логи
           schema:
             $ref: '#/definitions/models.DtoSuccessResponse'
-      security:
-      - BearerAuth: []
       summary: Проверка состояния сервера
       tags:
       - healthcheck
+  /api/v1/logs:
+    get:
+      description: Получение бизнес логов с возможностью фильтрации и пагинации
+      parameters:
+      - default: 1
+        description: Номер страницы с 1
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Колличесвто отображаемых элементов на странице
+        in: query
+        name: limit
+        type: integer
+      - description: Фильтр по роли
+        in: query
+        name: role
+        type: string
+      - description: Фильтр по contextID
+        in: query
+        name: contextID
+        type: string
+      - description: фильтр по username/entity/description
+        in: query
+        name: search
+        type: string
+      responses:
+        "200":
+          description: Отфильтрованные логи
+          schema:
+            $ref: '#/definitions/models.ModelsLogs'
+        "400":
+          description: query params is not valid
+          schema:
+            $ref: '#/definitions/models.ModelsAPIError'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/models.ModelsAPIError'
+      security:
+      - BearerAuth: []
+      summary: Получение бизнес логов
+      tags:
+      - logs
   /api/v1/roles:
     get:
       description: Возвращает список ролей с возможностью пагинации и фильтрации по

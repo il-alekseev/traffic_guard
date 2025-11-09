@@ -27,13 +27,13 @@ import (
 // @Router /api/v1/analytics/categories [get]
 func (s *Server) getCategories(c *gin.Context) {
 	//Создаем authInfoWriter для передачи токена
-	authInfo, err := utils.GetAuthInfo(c)
-	if err != nil {
-		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-		return
-	}
+	//authInfo, err := utils.GetAuthInfo(c)
+	//if err != nil {
+	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+	//	return
+	//}
 
-	resp, err := s.analyticsCL.Common.GetAPIV1Categories(&common.GetAPIV1CategoriesParams{}, authInfo)
+	resp, err := s.analyticsCL.Common.GetAPIV1Categories(&common.GetAPIV1CategoriesParams{})
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
