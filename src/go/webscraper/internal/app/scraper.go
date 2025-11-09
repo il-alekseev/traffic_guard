@@ -4,16 +4,21 @@ import (
 	"context"
 	"sync"
 
+	"scrapper/internal/metrics"
 	"scrapper/internal/models"
 	"scrapper/internal/usecase"
 )
 
 type Scraper struct {
 	service *usecase.ScrapeService
+	metrics *metrics.Metrics
 }
 
-func NewScraper(service *usecase.ScrapeService) *Scraper {
-	return &Scraper{service: service}
+func NewScraper(service *usecase.ScrapeService, collector *metrics.Metrics) *Scraper {
+	return &Scraper{
+		service: service,
+		metrics: collector,
+	}
 }
 
 func (s *Scraper) Stream(ctx context.Context, workers int, requests <-chan models.ProcessingRequest) <-chan models.RequestOutcome {
@@ -42,6 +47,9 @@ func (s *Scraper) Stream(ctx context.Context, workers int, requests <-chan model
 				case req, ok := <-requests:
 					if !ok {
 						return
+					}
+					if s.metrics != nil {
+						s.metrics.DecQueued()
 					}
 					outcome := s.service.ProcessRequest(ctx, id, req)
 					select {

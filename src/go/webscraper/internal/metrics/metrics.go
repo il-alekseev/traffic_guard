@@ -10,16 +10,18 @@ type Snapshot struct {
 	InFlight   int64     `json:"in_flight"`
 	Processed  uint64    `json:"processed"`
 	Failed     uint64    `json:"failed"`
+	Queued     int64     `json:"queued"`
 	StartedAt  time.Time `json:"started_at"`
 	Processing []string  `json:"processing"`
 }
 
 type Metrics struct {
-	inFlight  atomic.Int64
-	processed atomic.Uint64
-	failed    atomic.Uint64
-	started   time.Time
-	requests  sync.Map
+	inFlight   atomic.Int64
+	processed  atomic.Uint64
+	failed     atomic.Uint64
+	queueDepth atomic.Int64
+	started    time.Time
+	requests   sync.Map
 }
 
 func New() *Metrics {
@@ -71,6 +73,7 @@ func (m *Metrics) Snapshot() Snapshot {
 		InFlight:   m.inFlight.Load(),
 		Processed:  m.processed.Load(),
 		Failed:     m.failed.Load(),
+		Queued:     m.queueDepth.Load(),
 		StartedAt:  m.started,
 		Processing: processing,
 	}
@@ -88,4 +91,18 @@ func (m *Metrics) TrackDone(id string) {
 		return
 	}
 	m.requests.Delete(id)
+}
+
+func (m *Metrics) IncQueued() {
+	if m == nil {
+		return
+	}
+	m.queueDepth.Add(1)
+}
+
+func (m *Metrics) DecQueued() {
+	if m == nil {
+		return
+	}
+	m.queueDepth.Add(-1)
 }
