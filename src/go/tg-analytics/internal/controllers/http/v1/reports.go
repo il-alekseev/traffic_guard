@@ -3,7 +3,10 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"tg-an/internal/controllers/http/v1/utils"
 	"tg-an/internal/controllers/http/v1/validation"
+	"tg-an/internal/controllers/http/v1/values"
+	"tg-an/pkg/slogger"
 	"tg-an/pkg/trparser"
 	"time"
 
@@ -17,11 +20,18 @@ import (
 // @Produce json
 // @Param from query string false "Начало временного диапазона (формат: now-24h, 2023-12-01T10:00:00Z)" default(now-24h)
 // @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)" default(now)
+// @Security BearerAuth
 // @Success 200 {object} models.Report "Полный отчет по активности"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера при генерации отчета"
 // @Router /api/v1/reports [get]
 func (s *Server) CreateReport(c *gin.Context) {
+	userMeta, err := utils.GetUserMeta(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetUserMeta", slogger.WrapError(c.Request.Context(), err))
+		return
+	}
+
 	// Валидация запроса
 	var req validation.GetAnomaliesRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -30,6 +40,7 @@ func (s *Server) CreateReport(c *gin.Context) {
 		})
 		return
 	}
+
 	// Нормализация и валидация
 	if err := req.ValidateAndNormalize(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -37,6 +48,7 @@ func (s *Server) CreateReport(c *gin.Context) {
 		})
 		return
 	}
+
 	// Парсим временной диапазон
 	parser := &trparser.TimeRangeParser{}
 	now := time.Now()
@@ -47,10 +59,11 @@ func (s *Server) CreateReport(c *gin.Context) {
 		})
 		return
 	}
-	report, err := s.u.CreateReport(c, timeRange)
+
+	report, err := s.u.CreateReport(c.Request.Context(), userMeta, timeRange)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Error creating report",
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Ошибка при создании отчета",
 		})
 		return
 	}
@@ -65,21 +78,31 @@ func (s *Server) CreateReport(c *gin.Context) {
 // @Param hostname path string true "Имя сетевого устройства (хоста)"
 // @Param from query string false "Начало временного диапазона (формат: now-24h, 2023-12-01T10:00:00Z)" default(now-24h)
 // @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)" default(now)
+// @Security BearerAuth
 // @Success 200 {object} models.ReportForDevice "Детализированный отчет по устройству"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров или устройство не найдено"
+// @Failure 403 {object} dto.ErrorResponse "Недостаточно прав для доступа к устройству"
 // @Failure 404 {object} dto.ErrorResponse "Устройство не найдено в базе данных"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера при генерации отчета"
 // @Router /api/v1/reports/{hostname} [get]
 func (s *Server) CreateReportForDevice(c *gin.Context) {
+	userMeta, err := utils.GetUserMeta(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetUserMeta", slogger.WrapError(c.Request.Context(), err))
+		return
+	}
+
 	// Проверяем, что устройство есть в БД
 	hostname := c.Param("hostname")
-	devices, err := s.u.GetDevices(c)
+	devices, err := s.u.GetDevices(c.Request.Context(), userMeta)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": fmt.Sprintf("error with getting devices: %v", err),
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Ошибка при получении списка устройств",
 		})
 		return
 	}
+
+	// Проверяем существование устройства
 	found := false
 	for _, device := range devices {
 		if device == hostname {
@@ -89,8 +112,16 @@ func (s *Server) CreateReportForDevice(c *gin.Context) {
 	}
 
 	if !found {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("device '%s' not found in DB", hostname),
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": fmt.Sprintf("Устройство '%s' не найдено", hostname),
+		})
+		return
+	}
+
+	// Проверяем права доступа для контекстных администраторов
+	if userMeta.ShortRole == values.ContextAdmin && hostname != userMeta.ClientRole {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": fmt.Sprintf("Недостаточно прав для доступа к устройству '%s'", hostname),
 		})
 		return
 	}
@@ -99,10 +130,11 @@ func (s *Server) CreateReportForDevice(c *gin.Context) {
 	var req validation.GetAnomaliesRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Invalid query parameters: %v", err),
+			"error": fmt.Sprintf("Неверные параметры запроса: %v", err),
 		})
 		return
 	}
+
 	// Нормализация и валидация
 	if err := req.ValidateAndNormalize(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -110,6 +142,7 @@ func (s *Server) CreateReportForDevice(c *gin.Context) {
 		})
 		return
 	}
+
 	// Парсим временной диапазон
 	parser := &trparser.TimeRangeParser{}
 	now := time.Now()
@@ -120,10 +153,11 @@ func (s *Server) CreateReportForDevice(c *gin.Context) {
 		})
 		return
 	}
-	report, err := s.u.CreateReportForDevice(c, timeRange, hostname)
+
+	report, err := s.u.CreateReportForDevice(c.Request.Context(), userMeta, timeRange, hostname)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Error creating report for device",
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Ошибка при создании отчета для устройства",
 		})
 		return
 	}

@@ -4,15 +4,25 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"tg-an/internal/controllers/http/v1/values"
+	"tg-an/internal/models"
 	"tg-an/pkg/slogger/wsl"
 )
 
-func (u *Usecase) GetDevices(ctx context.Context) ([]string, error) {
+func (u *Usecase) GetDevices(ctx context.Context, userMeta *models.UserMeta) ([]string, error) {
 	method := "GetDevices"
 	u.l.InfoContext(ctx,
 		method,
 	)
-	devices, err := u.db.GetDevices(ctx)
+
+	var hostname = ""
+	// Проверяем роль пользователя
+	// И если она CA, то фильтруем по хосту
+	if userMeta.ShortRole == values.ContextAdmin {
+		hostname = userMeta.ContextID
+	}
+
+	devices, err := u.db.GetDevices(ctx, hostname)
 	if err != nil {
 		err = fmt.Errorf("%s: failed to get devices: %w", method, err)
 		u.l.ErrorContext(ctx, "Database operation failed",

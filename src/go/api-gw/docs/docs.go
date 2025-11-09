@@ -2823,8 +2823,8 @@ const docTemplate = `{
                 },
                 "data": {
                     "description": "data",
-                    "type": "object",
-                    "additionalProperties": {
+                    "type": "array",
+                    "items": {
                         "$ref": "#/definitions/models.ModelsDeviceRequestStat"
                     }
                 },
@@ -2849,22 +2849,19 @@ const docTemplate = `{
         "models.DtoGetAnomaliesResponse": {
             "type": "object",
             "properties": {
-                "blocked_resourses_count": {
-                    "description": "blocked resourses count",
+                "block_count": {
+                    "description": "block count",
                     "type": "integer"
                 },
-                "data": {
-                    "description": "data",
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
+                "host_anomalies": {
+                    "description": "host anomalies",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ModelsHostAnomalies"
                     }
                 },
-                "hostnames_count": {
-                    "description": "hostnames count",
+                "host_count": {
+                    "description": "host count",
                     "type": "integer"
                 }
             }
@@ -3302,6 +3299,10 @@ const docTemplate = `{
                         }
                     ]
                 },
+                "status": {
+                    "description": "status",
+                    "type": "string"
+                },
                 "traffic": {
                     "description": "traffic",
                     "allOf": [
@@ -3604,6 +3605,10 @@ const docTemplate = `{
                         "type": "integer"
                     }
                 },
+                "hostname": {
+                    "description": "hostname",
+                    "type": "string"
+                },
                 "pending": {
                     "description": "pending",
                     "type": "array",
@@ -3638,6 +3643,26 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/models.ModelsDeviceAnomaly"
                     }
+                }
+            }
+        },
+        "models.ModelsHostAnomalies": {
+            "type": "object",
+            "properties": {
+                "anomaly_count": {
+                    "description": "anomaly count",
+                    "type": "integer"
+                },
+                "domains": {
+                    "description": "domains",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "hostname": {
+                    "description": "hostname",
+                    "type": "string"
                 }
             }
         },

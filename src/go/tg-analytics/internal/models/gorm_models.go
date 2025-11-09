@@ -20,8 +20,8 @@ type Session struct {
 
 // Device представляет таблицу device
 type Device struct {
-	ID       uint   `gorm:"primaryKey" json:"id"`
-	HostName string `gorm:"type:varchar" json:"host"`
+	ID       uint   `gorm:"primaryKey;column:id" json:"id"`
+	HostName string `gorm:"column:hostname;type:varchar" json:"hostname"`
 }
 
 // Source представляет таблицу source

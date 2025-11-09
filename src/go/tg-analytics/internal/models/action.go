@@ -43,6 +43,14 @@ func (ActionType) Values() []ActionType {
 	}
 }
 
+// Values возвращает все возможные значения ActionType
+func ActionTypeStringValues() []string {
+	return []string{
+		string(ActionTypeAllow),
+		string(ActionTypeDeny),
+	}
+}
+
 // ParseActionType преобразует строку в ActionType
 func ParseActionType(str string) (ActionType, error) {
 	switch strings.ToLower(strings.TrimSpace(str)) {

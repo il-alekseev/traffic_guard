@@ -3,6 +3,7 @@ package validation
 import (
 	"fmt"
 	"strings"
+	"tg-an/internal/models"
 )
 
 type GetTopCategoriesRequest struct {
@@ -262,7 +263,7 @@ func (r *ActRequest) Normalize() {
 // Validate выполняет валидацию всех полей запроса
 func (r *ActRequest) Validate() error {
 	// Валидация типа действия
-	allowedTypes := []string{"alllow", "deny"}
+	allowedTypes := models.ActionTypeStringValues()
 	if r.Action != "" && !contains(allowedTypes, r.Action) {
 		return fmt.Errorf("invalid action")
 	}

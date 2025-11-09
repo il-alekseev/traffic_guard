@@ -56,7 +56,7 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	PatchAPIV1DetectionsAct(params *PatchAPIV1DetectionsActParams, opts ...ClientOption) (*PatchAPIV1DetectionsActOK, error)
+	PatchAPIV1DetectionsAct(params *PatchAPIV1DetectionsActParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PatchAPIV1DetectionsActOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -66,7 +66,7 @@ PatchAPIV1DetectionsAct выполнениеs действия над домен
 
 Устанавливает действие (разрешить/заблокировать) для указанного домена
 */
-func (a *Client) PatchAPIV1DetectionsAct(params *PatchAPIV1DetectionsActParams, opts ...ClientOption) (*PatchAPIV1DetectionsActOK, error) {
+func (a *Client) PatchAPIV1DetectionsAct(params *PatchAPIV1DetectionsActParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PatchAPIV1DetectionsActOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPatchAPIV1DetectionsActParams()
@@ -80,6 +80,7 @@ func (a *Client) PatchAPIV1DetectionsAct(params *PatchAPIV1DetectionsActParams, 
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &PatchAPIV1DetectionsActReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}

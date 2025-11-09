@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"api-gateway/internal/controllers/http/v1/utils"
 	"api-gateway/pkg/analytics/actions"
 	"api-gateway/pkg/analytics/common"
 	"api-gateway/pkg/analytics/dashboards"
@@ -26,13 +27,13 @@ import (
 // @Router /api/v1/analytics/categories [get]
 func (s *Server) getCategories(c *gin.Context) {
 	//Создаем authInfoWriter для передачи токена
-	//authInfo, err := utils.GetAuthInfo(c)
-	//if err != nil {
-	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-	//	return
-	//}
+	authInfo, err := utils.GetAuthInfo(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+		return
+	}
 
-	resp, err := s.analyticsCL.Common.GetAPIV1Categories(&common.GetAPIV1CategoriesParams{})
+	resp, err := s.analyticsCL.Common.GetAPIV1Categories(&common.GetAPIV1CategoriesParams{}, authInfo)
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -58,13 +59,13 @@ func (s *Server) getCategories(c *gin.Context) {
 // @Router /api/v1/analytics/devices [get]
 func (s *Server) getDevices(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
-	//authInfo, err := utils.GetAuthInfo(c)
-	//if err != nil {
-	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-	//	return
-	//}
+	authInfo, err := utils.GetAuthInfo(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+		return
+	}
 
-	resp, err := s.analyticsCL.Common.GetAPIV1Devices(&common.GetAPIV1DevicesParams{})
+	resp, err := s.analyticsCL.Common.GetAPIV1Devices(&common.GetAPIV1DevicesParams{}, authInfo)
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -95,11 +96,11 @@ func (s *Server) getDevices(c *gin.Context) {
 // @Router /api/v1/analytics/dashboards/anomalies [get]
 func (s *Server) getV1DashboardsAnomalies(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
-	//authInfo, err := utils.GetAuthInfo(c)
-	//if err != nil {
-	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-	//	return
-	//}
+	authInfo, err := utils.GetAuthInfo(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+		return
+	}
 
 	//Парсим входные данные
 	from := c.DefaultQuery("from", "now-10m")
@@ -110,7 +111,7 @@ func (s *Server) getV1DashboardsAnomalies(c *gin.Context) {
 		From:     &from,
 		To:       &to,
 		Hostname: &hostname,
-	})
+	}, authInfo)
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -139,11 +140,11 @@ func (s *Server) getV1DashboardsAnomalies(c *gin.Context) {
 // @Router /api/v1/analytics/dashboards/devices [get]
 func (s *Server) getV1DashboardsDevices(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
-	//authInfo, err := utils.GetAuthInfo(c)
-	//if err != nil {
-	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-	//	return
-	//}
+	authInfo, err := utils.GetAuthInfo(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+		return
+	}
 
 	//Парсим входные данные
 	from := c.DefaultQuery("from", "now-10m")
@@ -163,7 +164,7 @@ func (s *Server) getV1DashboardsDevices(c *gin.Context) {
 		From:  &from,
 		To:    &to,
 		Count: &count,
-	})
+	}, authInfo)
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -195,11 +196,11 @@ func (s *Server) getV1DashboardsDevices(c *gin.Context) {
 // @Router /api/v1/analytics/dashboards/requests [get]
 func (s *Server) getDashboardsRequests(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
-	//authInfo, err := utils.GetAuthInfo(c)
-	//if err != nil {
-	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-	//	return
-	//}
+	authInfo, err := utils.GetAuthInfo(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+		return
+	}
 
 	//Парсим входные данные
 	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
@@ -223,7 +224,7 @@ func (s *Server) getDashboardsRequests(c *gin.Context) {
 		RequestType: &requestType,
 		Hostname:    &hostname,
 		Count:       &count,
-	})
+	}, authInfo)
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -255,11 +256,11 @@ func (s *Server) getDashboardsRequests(c *gin.Context) {
 // @Router /api/v1/analytics/dashboards/top-categories [get]
 func (s *Server) getDashboardsTopCategories(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
-	//authInfo, err := utils.GetAuthInfo(c)
-	//if err != nil {
-	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-	//	return
-	//}
+	authInfo, err := utils.GetAuthInfo(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+		return
+	}
 
 	//Парсим временные метки
 	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
@@ -283,7 +284,7 @@ func (s *Server) getDashboardsTopCategories(c *gin.Context) {
 		Hostname: &hostname,
 		Type:     &typeStr,
 		Count:    &count,
-	})
+	}, authInfo)
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -314,11 +315,11 @@ func (s *Server) getDashboardsTopCategories(c *gin.Context) {
 // @Router /api/v1/analytics/dashboards/top-unresolved_detections [get]
 func (s *Server) getDashboardsTopUnresolvedDetections(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
-	//authInfo, err := utils.GetAuthInfo(c)
-	//if err != nil {
-	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-	//	return
-	//}
+	authInfo, err := utils.GetAuthInfo(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+		return
+	}
 
 	//Парсим временные метки
 	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
@@ -340,7 +341,7 @@ func (s *Server) getDashboardsTopUnresolvedDetections(c *gin.Context) {
 		To:       &to,
 		Hostname: &hostname,
 		Count:    &count,
-	})
+	}, authInfo)
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -371,11 +372,11 @@ func (s *Server) getDashboardsTopUnresolvedDetections(c *gin.Context) {
 // @Router /api/v1/analytics/dashboards/traffic [get]
 func (s *Server) getDashboardsTraffic(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
-	//authInfo, err := utils.GetAuthInfo(c)
-	//if err != nil {
-	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-	//	return
-	//}
+	authInfo, err := utils.GetAuthInfo(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+		return
+	}
 
 	//Парсим временные метки
 	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
@@ -397,7 +398,7 @@ func (s *Server) getDashboardsTraffic(c *gin.Context) {
 		To:       &to,
 		Hostname: &hostname,
 		Count:    &count,
-	})
+	}, authInfo)
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -427,11 +428,11 @@ func (s *Server) getDashboardsTraffic(c *gin.Context) {
 // @Router /api/v1/analytics/dashboards/act [patch]
 func (s *Server) patchV1DashboardsAct(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
-	//authInfo, err := utils.GetAuthInfo(c)
-	//if err != nil {
-	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-	//	return
-	//}
+	authInfo, err := utils.GetAuthInfo(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+		return
+	}
 
 	//Парсим временные метки
 	action := c.DefaultQuery("action", "allow") // по умолчанию выдает последние 10 минут
@@ -440,7 +441,7 @@ func (s *Server) patchV1DashboardsAct(c *gin.Context) {
 	resp, err := s.analyticsCL.Actions.PatchAPIV1DetectionsAct(&actions.PatchAPIV1DetectionsActParams{
 		Action: action,
 		Path:   path,
-	})
+	}, authInfo)
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -476,11 +477,11 @@ func (s *Server) patchV1DashboardsAct(c *gin.Context) {
 // @Router /api/v1/analytics/detections [get]
 func (s *Server) getDetections(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
-	//authInfo, err := utils.GetAuthInfo(c)
-	//if err != nil {
-	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-	//	return
-	//}
+	authInfo, err := utils.GetAuthInfo(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+		return
+	}
 
 	//Парсим входные данные
 	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
@@ -517,7 +518,7 @@ func (s *Server) getDetections(c *gin.Context) {
 		Action:   &action,
 		Page:     &page,
 		Limit:    &limit,
-	})
+	}, authInfo)
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -548,11 +549,11 @@ func (s *Server) getDetections(c *gin.Context) {
 // @Router /api/v1/analytics/detections/stat [get]
 func (s *Server) getDetectionsStat(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
-	//authInfo, err := utils.GetAuthInfo(c)
-	//if err != nil {
-	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-	//	return
-	//}
+	authInfo, err := utils.GetAuthInfo(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+		return
+	}
 
 	//Парсим входные данные
 	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
@@ -565,7 +566,7 @@ func (s *Server) getDetectionsStat(c *gin.Context) {
 		To:       &to,
 		Hostname: &hostname,
 		Category: &category,
-	})
+	}, authInfo)
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -596,11 +597,11 @@ func (s *Server) getDetectionsStat(c *gin.Context) {
 // @Router /api/v1/analytics/reports [get]
 func (s *Server) getV1Reports(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
-	//authInfo, err := utils.GetAuthInfo(c)
-	//if err != nil {
-	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-	//	return
-	//}
+	authInfo, err := utils.GetAuthInfo(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+		return
+	}
 
 	//Парсим входные данные
 	from := c.DefaultQuery("from", "now-24h")
@@ -609,7 +610,7 @@ func (s *Server) getV1Reports(c *gin.Context) {
 	resp, err := s.analyticsCL.Reports.GetAPIV1Reports(&reports.GetAPIV1ReportsParams{
 		From: &from,
 		To:   &to,
-	})
+	}, authInfo)
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -639,11 +640,11 @@ func (s *Server) getV1Reports(c *gin.Context) {
 // @Router /api/v1/analytics/reports/{hostname} [get]
 func (s *Server) getV1ReportsHostname(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
-	//authInfo, err := utils.GetAuthInfo(c)
-	//if err != nil {
-	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-	//	return
-	//}
+	authInfo, err := utils.GetAuthInfo(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+		return
+	}
 
 	//Парсим входные данные
 	hostname := c.Param("hostname")
@@ -654,7 +655,7 @@ func (s *Server) getV1ReportsHostname(c *gin.Context) {
 		Hostname: hostname,
 		From:     &from,
 		To:       &to,
-	})
+	}, authInfo)
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
@@ -693,11 +694,11 @@ func (s *Server) getV1ReportsHostname(c *gin.Context) {
 // @Router /api/v1/analytics/sessions [get]
 func (s *Server) getSessions(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
-	//authInfo, err := utils.GetAuthInfo(c)
-	//if err != nil {
-	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-	//	return
-	//}
+	authInfo, err := utils.GetAuthInfo(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+		return
+	}
 
 	//Парсим входные данные
 	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
@@ -740,7 +741,7 @@ func (s *Server) getSessions(c *gin.Context) {
 		Limit:    &limit,
 		OrderBy:  &orderBy,
 		OrderDir: &orderDir,
-	})
+	}, authInfo)
 	if err != nil {
 		if conflictErr, ok := err.(ResponseErrorInterface); ok {
 			c.JSON(conflictErr.Code(), conflictErr.GetPayload())

@@ -215,6 +215,7 @@ func (r *RepoPG) GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, h
 		URL             string     `json:"url"`
 		CategorizedAt   time.Time  `json:"categorized_at"`
 		ActionCreatedAt *time.Time `json:"action_created_at"`
+		Action          string     `json:"action"`
 		Total           uint       `json:"total"`
 		BeforeBlock     uint       `json:"before_block"`
 		AfterBlock      uint       `json:"after_block"`
@@ -225,10 +226,11 @@ func (r *RepoPG) GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, h
 
 	query := r.db.GetDB().WithContext(ctx).Table("sessions").
 		Select(`
-			devices.hostname as host_name,
+			devices.hostname as hostname,
 			domains.path as url,
 			domains.categorized_at as categorized_at,
 			actions.created_at as action_created_at,
+			actions.action as action,
 			COUNT(*) as total,
 			COUNT(CASE WHEN sessions.datetime_utc < domains.categorized_at THEN 1 END) as before_block,
 			COUNT(CASE WHEN sessions.datetime_utc >= domains.categorized_at AND sessions.status != ? THEN 1 END) as after_block,
@@ -252,7 +254,7 @@ func (r *RepoPG) GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, h
 	}
 
 	err := query.
-		Group("devices.hostname, domains.path, domains.categorized_at, actions.created_at").
+		Group("devices.hostname, domains.path, domains.categorized_at, actions.created_at, actions.action").
 		Order("total DESC").
 		Find(&tempResults).Error
 
@@ -265,19 +267,27 @@ func (r *RepoPG) GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, h
 	for _, anomaly := range tempResults {
 		// Вычисляем LiveCount как разницу в днях
 		var liveCount int64
+		var status string = "Не решено"
 		if anomaly.ActionCreatedAt != nil && !anomaly.ActionCreatedAt.IsZero() {
 			// Если есть действие, считаем разницу между действием и категоризацией
 			duration := anomaly.ActionCreatedAt.Sub(anomaly.CategorizedAt)
 			liveCount = int64(duration.Hours() / 24) // Переводим в дни
+			// TODO: переделать под Enum
+			if anomaly.Action == "allow" {
+				status = "Разрешено"
+			} else {
+				status = "Заблокировано"
+			}
 		} else {
-			// Если действия нет, считаем разницу от текущего времени до категоризации
-			duration := time.Now().UTC().Sub(anomaly.CategorizedAt)
+			// Если действия нет, считаем разницу от текущего времени до конца временного диапазона
+			duration := time.Now().UTC().Sub(tr.To)
 			liveCount = int64(duration.Hours() / 24) // Переводим в дни
 		}
 
 		anomalyReport := models.AnomalyReport{
 			URL:       anomaly.URL,
 			LiveCount: liveCount,
+			Status:    status,
 			Traffic: models.Traffic{
 				Input:  0, // Заглушка
 				Output: 0, // Заглушка
@@ -324,7 +334,7 @@ func (r *RepoPG) GetTopAnomalies(ctx context.Context, tr *trparser.TimeRange) ([
 	// Получаем основную статистику по устройствам с аномалиями
 	query := r.db.GetDB().WithContext(ctx).Table("sessions").
 		Select(`
-			devices.hostname as host_name,
+			devices.hostname as hostname,
 			COUNT(*) as requests,
 			COUNT(CASE WHEN sessions.status = ? THEN 1 END) as anomalies,
 			COUNT(CASE WHEN sessions.status = ? THEN 1 END) as blocks,

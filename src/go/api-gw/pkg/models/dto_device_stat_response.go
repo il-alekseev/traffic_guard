@@ -7,11 +7,11 @@ package models
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // DtoDeviceStatResponse dto device stat response
@@ -23,7 +23,7 @@ type DtoDeviceStatResponse struct {
 	Count int64 `json:"count,omitempty"`
 
 	// data
-	Data map[string]ModelsDeviceRequestStat `json:"data,omitempty"`
+	Data []*ModelsDeviceRequestStat `json:"data"`
 
 	// time
 	Time []string `json:"time"`
@@ -48,17 +48,17 @@ func (m *DtoDeviceStatResponse) validateData(formats strfmt.Registry) error {
 		return nil
 	}
 
-	for k := range m.Data {
-
-		if err := validate.Required("data"+"."+k, "body", m.Data[k]); err != nil {
-			return err
+	for i := 0; i < len(m.Data); i++ {
+		if swag.IsZero(m.Data[i]) { // not required
+			continue
 		}
-		if val, ok := m.Data[k]; ok {
-			if err := val.Validate(formats); err != nil {
+
+		if m.Data[i] != nil {
+			if err := m.Data[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("data" + "." + k)
+					return ve.ValidateName("data" + "." + strconv.Itoa(i))
 				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("data" + "." + k)
+					return ce.ValidateName("data" + "." + strconv.Itoa(i))
 				}
 				return err
 			}
@@ -85,10 +85,20 @@ func (m *DtoDeviceStatResponse) ContextValidate(ctx context.Context, formats str
 
 func (m *DtoDeviceStatResponse) contextValidateData(ctx context.Context, formats strfmt.Registry) error {
 
-	for k := range m.Data {
+	for i := 0; i < len(m.Data); i++ {
 
-		if val, ok := m.Data[k]; ok {
-			if err := val.ContextValidate(ctx, formats); err != nil {
+		if m.Data[i] != nil {
+
+			if swag.IsZero(m.Data[i]) { // not required
+				return nil
+			}
+
+			if err := m.Data[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("data" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("data" + "." + strconv.Itoa(i))
+				}
 				return err
 			}
 		}

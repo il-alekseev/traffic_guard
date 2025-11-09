@@ -420,29 +420,29 @@ services:
     networks:
       - continent 
 
-  # nginx:
-  #   image: nginx:latest
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #     - "7007:7007"
-  #   volumes:
-  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-  #     - ../traffic_guard-front/certs:/etc/nginx/certs
-  #   #depends_on:
-  #     # api-gw:
-  #     #   condition: service_healthy
-  #     # frontend:
-  #     #   condition: service_healthy
-  #   restart: always
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f","-k", "https://localhost:443"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
-  #     start_period: 30s
-  #   networks:
-  #     - continent
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+      - "7007:7007"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ../traffic_guard-front/certs:/etc/nginx/certs
+    #depends_on:
+      # api-gw:
+      #   condition: service_healthy
+      # frontend:
+      #   condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f","-k", "https://localhost:443"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - continent
   
   frontend:
     build:

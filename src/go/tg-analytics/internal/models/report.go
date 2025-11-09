@@ -67,6 +67,7 @@ type DevicesAnalyticsPage struct {
 type AnomalyReport struct {
 	URL       string        `json:"url"`
 	LiveCount int64         `json:"live_count"`
+	Status    string        `json:"status"`
 	Traffic   Traffic       `json:"traffic"`
 	Stat      RequestReport `json:"stat"`
 }

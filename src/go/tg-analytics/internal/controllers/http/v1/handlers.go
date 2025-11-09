@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"strings"
 	"tg-an/internal/controllers/http/v1/dto"
+	"tg-an/internal/controllers/http/v1/utils"
 	"tg-an/internal/controllers/http/v1/validation"
 	"tg-an/internal/models"
+	"tg-an/pkg/slogger"
 	"tg-an/pkg/trparser"
 	"time"
 
@@ -42,11 +45,18 @@ func (s *Server) Version(c *gin.Context) {
 // @Param limit query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
 // @Param order_by query string false "Поле для сортировки" default(datetime_utc) Enums(id, datetime_utc, type, status, url, proto, hostname, src_ip, src_country, username, dst_ip, dst_port, dst_country, category)
 // @Param order_dir query string false "Направление сортировки (asc/desc)" default(desc) Enums(asc, desc)
+// @Security BearerAuth
 // @Success 200 {object} dto.GetSessionsResponse "Успешный ответ"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/sessions [get]
 func (s *Server) GetSessions(c *gin.Context) {
+	userMeta, err := utils.GetUserMeta(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetUserMeta", slogger.WrapError(c.Request.Context(), err))
+		return
+	}
+
 	// Получение данных запроса
 	var req validation.GetSessionsRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -87,7 +97,7 @@ func (s *Server) GetSessions(c *gin.Context) {
 		OrderDir: req.OrderDir,
 	}
 	// Получаем данные из usecase
-	sessions, total, err := s.u.GetSessions(c, timeRange, filter, req.Search, pagination, sorting)
+	sessions, total, err := s.u.GetSessions(c, userMeta, timeRange, filter, req.Search, pagination, sorting)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "ошибка при получении сессий",
@@ -117,11 +127,17 @@ func (s *Server) GetSessions(c *gin.Context) {
 // @Param hostname query string false "Фильтр по имени хоста"
 // @Param type query string false "Фильтр по типу сессии" Enums(Разрешен, Заблокирован, VPN)
 // @Param count query int false "Количество возвращаемых категорий" default(5) minimum(1) maximum(50)
+// @Security BearerAuth
 // @Success 200 {object} []dto.Category
 // @Failure 400 {object} dto.ErrorResponse
 // @Failure 500 {object} dto.ErrorResponse
 // @Router /api/v1/dashboards/top-categories [get]
 func (s *Server) GetTopCategories(c *gin.Context) {
+	userMeta, err := utils.GetUserMeta(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetUserMeta", slogger.WrapError(c.Request.Context(), err))
+		return
+	}
 	// Валидация запроса
 	var req validation.GetTopCategoriesRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -153,7 +169,7 @@ func (s *Server) GetTopCategories(c *gin.Context) {
 		Type:     req.Type,
 	}
 	// Получаем данные из usecase
-	categories, err := s.u.GetTopCategories(c.Request.Context(), timeRange, filter, req.Count)
+	categories, err := s.u.GetTopCategories(c.Request.Context(), userMeta, timeRange, filter, req.Count)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Ошибка при получении топ категорий",
@@ -175,11 +191,18 @@ func (s *Server) GetTopCategories(c *gin.Context) {
 // @Param action query string false "Действие пользователя" Enums(Разрешено, Заблокировано, Не решено)
 // @Param page query int false "Номер страницы" default(1) minimum(1)
 // @Param limit query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
+// @Security BearerAuth
 // @Success 200 {object} dto.GetDetectionsResponse "Успешный ответ"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/detections [get]
 func (s *Server) GetDetections(c *gin.Context) {
+	userMeta, err := utils.GetUserMeta(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetUserMeta", slogger.WrapError(c.Request.Context(), err))
+		return
+	}
+
 	// Валидация запроса
 	var req validation.GetTopDetectionsRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -218,8 +241,9 @@ func (s *Server) GetDetections(c *gin.Context) {
 		Page:  req.Page,
 		Limit: req.Limit,
 	}
+
 	// Получаем данные из usecase
-	detections, total, err := s.u.GetTopDetections(c, timeRange, filter, req.Action, pagination)
+	detections, total, err := s.u.GetTopDetections(c.Request.Context(), userMeta, timeRange, filter, req.Action, pagination)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "ошибка при получении списка выявлений",
@@ -249,11 +273,18 @@ func (s *Server) GetDetections(c *gin.Context) {
 // @Param to query string false "Конец временного диапазона (формат: now, 2024-01-01T00:00:00Z)" default(now)
 // @Param hostname query string false "Фильтр по имени хоста"
 // @Param category query string false "Фильтр по категории" Enums(Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет-магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Дополнительно, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депресивный контент и суицид, Алкоголь, табак)
+// @Security BearerAuth
 // @Success 200 {object} dto.DetectionStat "Статистика детекций"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат временного диапазона"
 // @Failure 500 {object} dto.ErrorResponse "Ошибка при получении статистики выявлений"
 // @Router /api/v1/detections/stat [get]
 func (s *Server) GetDetectionStat(c *gin.Context) {
+	userMeta, err := utils.GetUserMeta(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetUserMeta", slogger.WrapError(c.Request.Context(), err))
+		return
+	}
+
 	var req validation.GetDetectionStatRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -288,7 +319,7 @@ func (s *Server) GetDetectionStat(c *gin.Context) {
 	}
 
 	// Получаем данные из usecase
-	stat, err := s.u.GetDetectionStat(c, timeRange, filter)
+	stat, err := s.u.GetDetectionStat(c.Request.Context(), userMeta, timeRange, filter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "ошибка при получении статистики выявлений",
@@ -309,11 +340,18 @@ func (s *Server) GetDetectionStat(c *gin.Context) {
 // @Param request_type query string false "Тип запроса" Enums(allowed, blocked, before_block, pending) default(pending)
 // @Param hostname query string false "Фильтр по имени хоста"
 // @Param count query integer false "Количество интервалов" default(10)
+// @Security BearerAuth
 // @Success 200 {object} dto.RequestStatResponse "Статистика запросов (массив чисел)"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/dashboards/requests [get]
 func (s *Server) GetRequestStat(c *gin.Context) {
+	userMeta, err := utils.GetUserMeta(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetUserMeta", slogger.WrapError(c.Request.Context(), err))
+		return
+	}
+
 	var req validation.GetRequestStatRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -321,6 +359,7 @@ func (s *Server) GetRequestStat(c *gin.Context) {
 		})
 		return
 	}
+
 	// Нормализация и валидация
 	if err := req.ValidateAndNormalize(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -340,14 +379,15 @@ func (s *Server) GetRequestStat(c *gin.Context) {
 		return
 	}
 
-	// Получем данные
-	stat, err := s.u.GetRequestStat(c, timeRange, req.HostName, req.RequestType, req.Count)
+	// Получаем данные
+	stat, err := s.u.GetRequestStat(c.Request.Context(), userMeta, timeRange, req.HostName, req.RequestType, req.Count)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "ошибка при получении статистики запросов",
 		})
 		return
 	}
+
 	resp := dto.RequestStatResponse{
 		Type:  fmt.Sprintf("requests_%s", req.RequestType),
 		Data:  stat,
@@ -356,17 +396,24 @@ func (s *Server) GetRequestStat(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// @Summary Полуечение списка имен устройств
+// @Summary Получение списка имен устройств
 // @Description Возвращает список всех уникальных имен устройств (хостов) из системы
 // @Tags common
 // @Accept json
 // @Produce json
+// @Security BearerAuth
 // @Success 200 {array} string "Список имен устройств"
 // @Failure 500 {object} map[string]string "Ошибка при получении имен устройств"
 // @Router /api/v1/devices [get]
 func (s *Server) GetDevices(c *gin.Context) {
-	// Получем данные
-	devices, err := s.u.GetDevices(c)
+	userMeta, err := utils.GetUserMeta(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetUserMeta", slogger.WrapError(c.Request.Context(), err))
+		return
+	}
+
+	// Получаем данные
+	devices, err := s.u.GetDevices(c.Request.Context(), userMeta)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "ошибка при получении имен устройств",
@@ -405,11 +452,18 @@ func (s *Server) GetContentCategories(c *gin.Context) {
 // @Param to query string false "Конец временного диапазона в формате парсера времени (по умолчанию now)" default(now)
 // @Param hostname query string false "Фильтр по имени хоста"
 // @Param count query integer false "Количество точек данных для возврата (по умолчанию 20)" minimum(1) default(20)
+// @Security BearerAuth
 // @Success 200 {object} dto.TrafficStatResponse "Успешный ответ со статистикой трафика"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров запроса"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера при получении статистики"
 // @Router /api/v1/dashboards/traffic [get]
 func (s *Server) GetTrafficStat(c *gin.Context) {
+	userMeta, err := utils.GetUserMeta(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetUserMeta", slogger.WrapError(c.Request.Context(), err))
+		return
+	}
+
 	// Валидация запроса
 	var req validation.GetTrafficStatRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -439,7 +493,7 @@ func (s *Server) GetTrafficStat(c *gin.Context) {
 	}
 
 	// Получаем данные из usecase
-	stat, err := s.u.GetTrafficStat(c.Request.Context(), timeRange, req.HostName, req.Count)
+	stat, err := s.u.GetTrafficStat(c.Request.Context(), userMeta, timeRange, req.HostName, req.Count)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "ошибка при получении статистики трафика",
@@ -464,11 +518,18 @@ func (s *Server) GetTrafficStat(c *gin.Context) {
 // @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)" default(now)
 // @Param hostname query string false "Фильтр по имени хоста"
 // @Param count query int false "Количество возвращаемых записей" default(5) minimum(1)
+// @Security BearerAuth
 // @Success 200 {array} dto.UnresolvedDetection "Успешный ответ со списком нерешенных выявлений"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/dashboards/top-unresolved_detections [get]
 func (s *Server) GetTopUnresolvedDetections(c *gin.Context) {
+	userMeta, err := utils.GetUserMeta(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetUserMeta", slogger.WrapError(c.Request.Context(), err))
+		return
+	}
+
 	// Валидация запроса
 	var req validation.GetTopCategoriesRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -477,6 +538,7 @@ func (s *Server) GetTopUnresolvedDetections(c *gin.Context) {
 		})
 		return
 	}
+
 	// Нормализация и валидация
 	if err := req.ValidateAndNormalize(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -484,6 +546,7 @@ func (s *Server) GetTopUnresolvedDetections(c *gin.Context) {
 		})
 		return
 	}
+
 	// Парсим временной диапазон
 	parser := &trparser.TimeRangeParser{}
 	now := time.Now()
@@ -494,15 +557,16 @@ func (s *Server) GetTopUnresolvedDetections(c *gin.Context) {
 		})
 		return
 	}
+
 	// Получаем данные из usecase
-	UnresolvedDetections, err := s.u.GetTopUnresolvedDetections(c.Request.Context(), timeRange, req.HostName, req.Count)
+	unresolvedDetections, err := s.u.GetTopUnresolvedDetections(c.Request.Context(), userMeta, timeRange, req.HostName, req.Count)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Ошибка при получении топ нерешенных выявлений",
 		})
 		return
 	}
-	c.JSON(http.StatusOK, UnresolvedDetections)
+	c.JSON(http.StatusOK, unresolvedDetections)
 }
 
 // @Summary Получение статистики по устройствам
@@ -512,11 +576,18 @@ func (s *Server) GetTopUnresolvedDetections(c *gin.Context) {
 // @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)" default(now-10m)
 // @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)" default(now)
 // @Param count query int false "Количество точек измерений" default(20) minimum(1)
+// @Security BearerAuth
 // @Success 200 {object} dto.DeviceStatResponse "Статистика по устройствам"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/dashboards/devices [get]
 func (s *Server) GetDeviceStat(c *gin.Context) {
+	userMeta, err := utils.GetUserMeta(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetUserMeta", slogger.WrapError(c.Request.Context(), err))
+		return
+	}
+
 	// Валидация запроса
 	var req validation.GetDeviceStatRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -525,6 +596,7 @@ func (s *Server) GetDeviceStat(c *gin.Context) {
 		})
 		return
 	}
+
 	// Нормализация и валидация
 	if err := req.ValidateAndNormalize(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -532,6 +604,7 @@ func (s *Server) GetDeviceStat(c *gin.Context) {
 		})
 		return
 	}
+
 	// Парсим временной диапазон
 	parser := &trparser.TimeRangeParser{}
 	now := time.Now()
@@ -542,10 +615,11 @@ func (s *Server) GetDeviceStat(c *gin.Context) {
 		})
 		return
 	}
+
 	// Получаем данные из usecase
-	response, err := s.u.GetDeviceStat(c, timeRange, req.Count)
+	response, err := s.u.GetDeviceStat(c.Request.Context(), userMeta, timeRange, req.Count)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
+		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Ошибка при получении статистики сетевых узлов",
 		})
 		return
@@ -560,11 +634,18 @@ func (s *Server) GetDeviceStat(c *gin.Context) {
 // @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)" default(now-10m)
 // @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z)" default(now)
 // @Param hostname query string false "Фильтр по имени хоста"
+// @Security BearerAuth
 // @Success 200 {object} dto.GetAnomaliesResponse "Статистика обнаруженных аномалий"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/dashboards/anomalies [get]
 func (s *Server) GetAnomalies(c *gin.Context) {
+	userMeta, err := utils.GetUserMeta(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetUserMeta", slogger.WrapError(c.Request.Context(), err))
+		return
+	}
+
 	// Валидация запроса
 	var req validation.GetAnomaliesRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -573,6 +654,7 @@ func (s *Server) GetAnomalies(c *gin.Context) {
 		})
 		return
 	}
+
 	// Нормализация и валидация
 	if err := req.ValidateAndNormalize(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -580,6 +662,7 @@ func (s *Server) GetAnomalies(c *gin.Context) {
 		})
 		return
 	}
+
 	// Парсим временной диапазон
 	parser := &trparser.TimeRangeParser{}
 	now := time.Now()
@@ -590,11 +673,12 @@ func (s *Server) GetAnomalies(c *gin.Context) {
 		})
 		return
 	}
+
 	// Получаем данные из usecase
-	response, err := s.u.GetAnomalies(c, timeRange, req.HostName)
+	response, err := s.u.GetAnomalies(c.Request.Context(), userMeta, timeRange, req.HostName)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Ошибка при получении статистики сетевых узлов",
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Ошибка при получении статистики аномалий",
 		})
 		return
 	}
@@ -608,11 +692,19 @@ func (s *Server) GetAnomalies(c *gin.Context) {
 // @Produce json
 // @Param action query string true "Тип действия" Enums(allow, deny) default(allow)
 // @Param path query string true "Путь домена"
+// @Security BearerAuth
 // @Success 200 {object} dto.SuccessResponse "Действие успешно применено к домену"
 // @Failure 400 {object} dto.ErrorResponse "Неверные параметры запроса"
+// @Failure 403 {object} dto.ErrorResponse "Недостаточно прав для выполнения действия"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/detections/act [patch]
 func (s *Server) Act(c *gin.Context) {
+	userMeta, err := utils.GetUserMeta(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetUserMeta", slogger.WrapError(c.Request.Context(), err))
+		return
+	}
+
 	// Валидация запроса
 	var req validation.ActRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -621,6 +713,7 @@ func (s *Server) Act(c *gin.Context) {
 		})
 		return
 	}
+
 	// Нормализация и валидация
 	if err := req.ValidateAndNormalize(); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -628,13 +721,22 @@ func (s *Server) Act(c *gin.Context) {
 		})
 		return
 	}
-	err := s.u.Act(c, req.Action, req.Path)
+
+	err = s.u.Act(c.Request.Context(), userMeta, req.Action, req.Path)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Ошибка при установке значения действия к домену",
-		})
+		// Проверяем тип ошибки для определения статуса
+		if strings.Contains(err.Error(), "does not have permission") {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": err.Error(),
+			})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Ошибка при установке значения действия к домену",
+			})
+		}
 		return
 	}
+
 	resp := dto.SuccessResponse{
 		Message: fmt.Sprintf("Success %s to domain %s", req.Action, req.Path),
 	}

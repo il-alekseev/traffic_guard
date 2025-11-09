@@ -11,7 +11,6 @@ import (
 )
 
 func (s *Server) configureRouter() {
-	s.router.Use(middleware.CorsMiddleware())
 	// Сваггер
 	// Динамический адрес для сваггера
 	addr := os.Getenv("AN_SWAGGER")
@@ -20,11 +19,23 @@ func (s *Server) configureRouter() {
 	}
 	swaggerURL := ginSwagger.URL(fmt.Sprintf("http://%s/swagger/doc.json", addr))
 	s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, swaggerURL))
+
+	// Утилиты
+	s.router.GET("/api/v1/healthcheck", s.Healthcheck)
+	s.router.GET("/api/v1/version", s.Version)
+	//Common
+	s.router.GET("/api/v1/categories", s.GetContentCategories)
+
+	// Middleware
+	s.router.Use(middleware.CorsMiddleware())
+	s.router.Use(middleware.RequestIDMiddleware())
+	s.router.Use(middleware.CheckAuthHeader())
+	s.router.Use(middleware.SetUserMetaData())
+
 	v1 := s.router.Group("/api/v1")
 	{
 		// Common
 		v1.GET("/devices", s.GetDevices)
-		v1.GET("/categories", s.GetContentCategories)
 		// Вкладка Сессии
 		v1.GET("/sessions", s.GetSessions)
 		// Вкладка dashboard
@@ -50,8 +61,5 @@ func (s *Server) configureRouter() {
 			reports.GET("/", s.CreateReport)
 			reports.GET("/:hostname", s.CreateReportForDevice)
 		}
-		// Утилиты
-		v1.GET("/healthcheck", s.Healthcheck)
-		v1.GET("/version", s.Version)
 	}
 }

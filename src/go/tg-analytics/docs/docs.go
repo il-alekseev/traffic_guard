@@ -52,6 +52,11 @@ const docTemplate = `{
         },
         "/api/v1/dashboards/anomalies": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Получение статистики об аномалиях за указанный период",
                 "produces": [
                     "application/json"
@@ -106,6 +111,11 @@ const docTemplate = `{
         },
         "/api/v1/dashboards/devices": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Получение агрегированной статистики по сетевым узлам за указанный период",
                 "produces": [
                     "application/json"
@@ -162,6 +172,11 @@ const docTemplate = `{
         },
         "/api/v1/dashboards/requests": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Получение статистики запросов за указанный период с фильтрацией по хосту и типу запросов",
                 "consumes": [
                     "application/json"
@@ -239,6 +254,11 @@ const docTemplate = `{
         },
         "/api/v1/dashboards/top-categories": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Возвращает наиболее часто встречаемые категории в сессиях с возможностью фильтрации",
                 "consumes": [
                     "application/json"
@@ -319,6 +339,11 @@ const docTemplate = `{
         },
         "/api/v1/dashboards/top-unresolved_detections": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Возвращает список наиболее частых нерешенных выявлений за указанный временной период с возможностью фильтрации",
                 "consumes": [
                     "application/json"
@@ -387,6 +412,11 @@ const docTemplate = `{
         },
         "/api/v1/dashboards/traffic": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Возвращает статистику трафика за указанный временной диапазон с заданным количеством точек данных в Кб",
                 "consumes": [
                     "application/json"
@@ -452,6 +482,11 @@ const docTemplate = `{
         },
         "/api/v1/detections": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Возвращает список выявлений за указанный временной период с пагинацией и фильтрацией",
                 "consumes": [
                     "application/json"
@@ -576,6 +611,11 @@ const docTemplate = `{
         },
         "/api/v1/detections/act": {
             "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Устанавливает действие (разрешить/заблокировать) для указанного домена",
                 "consumes": [
                     "application/json"
@@ -621,6 +661,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Недостаточно прав для выполнения действия",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Внутренняя ошибка сервера",
                         "schema": {
@@ -632,6 +678,11 @@ const docTemplate = `{
         },
         "/api/v1/detections/stat": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Возвращает статистику выявлений за указанный период с фильтрацией",
                 "consumes": [
                     "application/json"
@@ -728,6 +779,11 @@ const docTemplate = `{
         },
         "/api/v1/devices": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Возвращает список всех уникальных имен устройств (хостов) из системы",
                 "consumes": [
                     "application/json"
@@ -738,7 +794,7 @@ const docTemplate = `{
                 "tags": [
                     "common"
                 ],
-                "summary": "Полуечение списка имен устройств",
+                "summary": "Получение списка имен устройств",
                 "responses": {
                     "200": {
                         "description": "Список имен устройств",
@@ -783,6 +839,11 @@ const docTemplate = `{
         },
         "/api/v1/reports": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Генерирует полный отчет по активности за указанный временной период, включая аналитику по устройствам, категориям и аномалиям",
                 "consumes": [
                     "application/json"
@@ -834,6 +895,11 @@ const docTemplate = `{
         },
         "/api/v1/reports/{hostname}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Генерирует детализированный отчет по конкретному сетевому устройству за указанный временной период, включая статистику трафика, аномалии и категории запросов",
                 "consumes": [
                     "application/json"
@@ -881,6 +947,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Недостаточно прав для доступа к устройству",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
                     "404": {
                         "description": "Устройство не найдено в базе данных",
                         "schema": {
@@ -898,6 +970,11 @@ const docTemplate = `{
         },
         "/api/v1/sessions": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Возвращает список сессий с возможностью фильтрации, поиска, сортировки и пагинации",
                 "consumes": [
                     "application/json"
@@ -1152,8 +1229,8 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "data": {
-                    "type": "object",
-                    "additionalProperties": {
+                    "type": "array",
+                    "items": {
                         "$ref": "#/definitions/models.DeviceRequestStat"
                     }
                 },
@@ -1177,19 +1254,16 @@ const docTemplate = `{
         "dto.GetAnomaliesResponse": {
             "type": "object",
             "properties": {
-                "blocked_resourses_count": {
+                "block_count": {
                     "type": "integer"
                 },
-                "data": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
+                "host_anomalies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.HostAnomalies"
                     }
                 },
-                "hostnames_count": {
+                "host_count": {
                     "type": "integer"
                 }
             }
@@ -1382,6 +1456,9 @@ const docTemplate = `{
                 "stat": {
                     "$ref": "#/definitions/models.RequestReport"
                 },
+                "status": {
+                    "type": "string"
+                },
                 "traffic": {
                     "$ref": "#/definitions/models.Traffic"
                 },
@@ -1495,6 +1572,9 @@ const docTemplate = `{
                         "type": "integer"
                     }
                 },
+                "hostname": {
+                    "type": "string"
+                },
                 "pending": {
                     "type": "array",
                     "items": {
@@ -1525,6 +1605,23 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/models.DeviceAnomaly"
                     }
+                }
+            }
+        },
+        "models.HostAnomalies": {
+            "type": "object",
+            "properties": {
+                "anomaly_count": {
+                    "type": "integer"
+                },
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "hostname": {
+                    "type": "string"
                 }
             }
         },
@@ -1762,6 +1859,14 @@ const docTemplate = `{
                     "$ref": "#/definitions/models.TrafficStat"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Type \"Bearer\" followed by a space and JWT token",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

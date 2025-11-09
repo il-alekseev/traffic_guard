@@ -56,17 +56,17 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	GetAPIV1DashboardsAnomalies(params *GetAPIV1DashboardsAnomaliesParams, opts ...ClientOption) (*GetAPIV1DashboardsAnomaliesOK, error)
+	GetAPIV1DashboardsAnomalies(params *GetAPIV1DashboardsAnomaliesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DashboardsAnomaliesOK, error)
 
-	GetAPIV1DashboardsDevices(params *GetAPIV1DashboardsDevicesParams, opts ...ClientOption) (*GetAPIV1DashboardsDevicesOK, error)
+	GetAPIV1DashboardsDevices(params *GetAPIV1DashboardsDevicesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DashboardsDevicesOK, error)
 
-	GetAPIV1DashboardsRequests(params *GetAPIV1DashboardsRequestsParams, opts ...ClientOption) (*GetAPIV1DashboardsRequestsOK, error)
+	GetAPIV1DashboardsRequests(params *GetAPIV1DashboardsRequestsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DashboardsRequestsOK, error)
 
-	GetAPIV1DashboardsTopCategories(params *GetAPIV1DashboardsTopCategoriesParams, opts ...ClientOption) (*GetAPIV1DashboardsTopCategoriesOK, error)
+	GetAPIV1DashboardsTopCategories(params *GetAPIV1DashboardsTopCategoriesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DashboardsTopCategoriesOK, error)
 
-	GetAPIV1DashboardsTopUnresolvedDetections(params *GetAPIV1DashboardsTopUnresolvedDetectionsParams, opts ...ClientOption) (*GetAPIV1DashboardsTopUnresolvedDetectionsOK, error)
+	GetAPIV1DashboardsTopUnresolvedDetections(params *GetAPIV1DashboardsTopUnresolvedDetectionsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DashboardsTopUnresolvedDetectionsOK, error)
 
-	GetAPIV1DashboardsTraffic(params *GetAPIV1DashboardsTrafficParams, opts ...ClientOption) (*GetAPIV1DashboardsTrafficOK, error)
+	GetAPIV1DashboardsTraffic(params *GetAPIV1DashboardsTrafficParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DashboardsTrafficOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -76,7 +76,7 @@ GetAPIV1DashboardsAnomalies получениеs информации об ано
 
 Получение статистики об аномалиях за указанный период
 */
-func (a *Client) GetAPIV1DashboardsAnomalies(params *GetAPIV1DashboardsAnomaliesParams, opts ...ClientOption) (*GetAPIV1DashboardsAnomaliesOK, error) {
+func (a *Client) GetAPIV1DashboardsAnomalies(params *GetAPIV1DashboardsAnomaliesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DashboardsAnomaliesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetAPIV1DashboardsAnomaliesParams()
@@ -90,6 +90,7 @@ func (a *Client) GetAPIV1DashboardsAnomalies(params *GetAPIV1DashboardsAnomalies
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &GetAPIV1DashboardsAnomaliesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -116,7 +117,7 @@ GetAPIV1DashboardsDevices получениеs статистики по устр
 
 Получение агрегированной статистики по сетевым узлам за указанный период
 */
-func (a *Client) GetAPIV1DashboardsDevices(params *GetAPIV1DashboardsDevicesParams, opts ...ClientOption) (*GetAPIV1DashboardsDevicesOK, error) {
+func (a *Client) GetAPIV1DashboardsDevices(params *GetAPIV1DashboardsDevicesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DashboardsDevicesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetAPIV1DashboardsDevicesParams()
@@ -130,6 +131,7 @@ func (a *Client) GetAPIV1DashboardsDevices(params *GetAPIV1DashboardsDevicesPara
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &GetAPIV1DashboardsDevicesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -156,7 +158,7 @@ GetAPIV1DashboardsRequests получениеs статистики запрос
 
 Получение статистики запросов за указанный период с фильтрацией по хосту и типу запросов
 */
-func (a *Client) GetAPIV1DashboardsRequests(params *GetAPIV1DashboardsRequestsParams, opts ...ClientOption) (*GetAPIV1DashboardsRequestsOK, error) {
+func (a *Client) GetAPIV1DashboardsRequests(params *GetAPIV1DashboardsRequestsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DashboardsRequestsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetAPIV1DashboardsRequestsParams()
@@ -170,6 +172,7 @@ func (a *Client) GetAPIV1DashboardsRequests(params *GetAPIV1DashboardsRequestsPa
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &GetAPIV1DashboardsRequestsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -196,7 +199,7 @@ GetAPIV1DashboardsTopCategories получениеs списка самых за
 
 Возвращает наиболее часто встречаемые категории в сессиях с возможностью фильтрации
 */
-func (a *Client) GetAPIV1DashboardsTopCategories(params *GetAPIV1DashboardsTopCategoriesParams, opts ...ClientOption) (*GetAPIV1DashboardsTopCategoriesOK, error) {
+func (a *Client) GetAPIV1DashboardsTopCategories(params *GetAPIV1DashboardsTopCategoriesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DashboardsTopCategoriesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetAPIV1DashboardsTopCategoriesParams()
@@ -210,6 +213,7 @@ func (a *Client) GetAPIV1DashboardsTopCategories(params *GetAPIV1DashboardsTopCa
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &GetAPIV1DashboardsTopCategoriesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -236,7 +240,7 @@ GetAPIV1DashboardsTopUnresolvedDetections получениеs списка то�
 
 Возвращает список наиболее частых нерешенных выявлений за указанный временной период с возможностью фильтрации
 */
-func (a *Client) GetAPIV1DashboardsTopUnresolvedDetections(params *GetAPIV1DashboardsTopUnresolvedDetectionsParams, opts ...ClientOption) (*GetAPIV1DashboardsTopUnresolvedDetectionsOK, error) {
+func (a *Client) GetAPIV1DashboardsTopUnresolvedDetections(params *GetAPIV1DashboardsTopUnresolvedDetectionsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DashboardsTopUnresolvedDetectionsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetAPIV1DashboardsTopUnresolvedDetectionsParams()
@@ -250,6 +254,7 @@ func (a *Client) GetAPIV1DashboardsTopUnresolvedDetections(params *GetAPIV1Dashb
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &GetAPIV1DashboardsTopUnresolvedDetectionsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -276,7 +281,7 @@ GetAPIV1DashboardsTraffic получениеs статистики трафик�
 
 Возвращает статистику трафика за указанный временной диапазон с заданным количеством точек данных в Кб
 */
-func (a *Client) GetAPIV1DashboardsTraffic(params *GetAPIV1DashboardsTrafficParams, opts ...ClientOption) (*GetAPIV1DashboardsTrafficOK, error) {
+func (a *Client) GetAPIV1DashboardsTraffic(params *GetAPIV1DashboardsTrafficParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DashboardsTrafficOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetAPIV1DashboardsTrafficParams()
@@ -290,6 +295,7 @@ func (a *Client) GetAPIV1DashboardsTraffic(params *GetAPIV1DashboardsTrafficPara
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &GetAPIV1DashboardsTrafficReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}

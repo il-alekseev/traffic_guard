@@ -39,13 +39,13 @@ type TrafficStatResponse struct {
 }
 
 type DeviceStatResponse struct {
-	Time  []time.Time                         `json:"time"`
-	Data  map[string]models.DeviceRequestStat `json:"data"`
-	Count uint                                `json:"count"`
+	Time  []time.Time                `json:"time"`
+	Data  []models.DeviceRequestStat `json:"data"`
+	Count uint                       `json:"count"`
 }
 
 type GetAnomaliesResponse struct {
-	BlockedResoursesCount uint                `json:"blocked_resourses_count"`
-	HostNamesCount        uint                `json:"hostnames_count"`
-	Data                  map[string][]string `json:"data"`
+	HostCount     uint                   `json:"host_count"`
+	BlockCount    uint                   `json:"block_count"`
+	HostAnomalies []models.HostAnomalies `json:"host_anomalies"`
 }

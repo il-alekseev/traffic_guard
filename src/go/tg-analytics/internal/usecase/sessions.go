@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"log/slog"
 	"tg-an/internal/controllers/http/v1/dto"
+	"tg-an/internal/controllers/http/v1/values"
 	"tg-an/internal/models"
 	"tg-an/pkg/slogger/wsl"
 	"tg-an/pkg/trparser"
 )
 
 // GetSessions возвращает список сессий с пагинацией
-func (u *Usecase) GetSessions(ctx context.Context, tr *trparser.TimeRange, f models.SessionFilter, search string, p models.Pagination, s models.Sorting) ([]dto.Session, int64, error) {
+func (u *Usecase) GetSessions(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.SessionFilter, search string, p models.Pagination, s models.Sorting) ([]dto.Session, int64, error) {
 	method := "GetSessions"
 	u.l.InfoContext(ctx,
 		method,
@@ -21,6 +22,12 @@ func (u *Usecase) GetSessions(ctx context.Context, tr *trparser.TimeRange, f mod
 		slog.Any("pagination", p),
 		slog.Any("sorting", s),
 	)
+
+	// Проверяем роль пользователя
+	// И если она CA, то фильтруем по хосту
+	if userMeta.ShortRole == values.ContextAdmin {
+		f.HostName = userMeta.ContextID
+	}
 
 	sessions, total, err := u.db.GetSessions(ctx, tr, f, search, p, s)
 	if err != nil {
