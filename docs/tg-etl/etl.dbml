@@ -1,0 +1,91 @@
+Table session {
+  id integer [primary key, increment]
+  datetime_utc timestamp [not null, note: 'Временная метка сессии в UTC']
+  device_id integer [not null, note: 'Ссылка на устройство']
+  type varchar(255) [not null, note: 'Тип сессии (allowed/blocked)']
+  status text [not null, note: 'Статус сессии']
+  ip varchar(45) [not null, note: 'IP адрес сессии']
+  url_id integer [not null, note: 'Ссылка на URL']
+  domain_id integer [not null, note: 'Ссылка на домен']
+  src_id integer [not null, note: 'Ссылка на источник']
+  
+  indexes {
+    datetime_utc [name: 'idx_session_datetime']
+    device_id [name: 'idx_session_device']
+    url_id [name: 'idx_session_url']
+    domain_id [name: 'idx_session_domain']
+    src_id [name: 'idx_session_source']
+  }
+}
+
+Table device {
+  id integer [primary key, note: 'ID устройства']
+  hostname varchar [note: 'Имя хоста устройства']
+}
+
+Table source {
+  id integer [primary key, note: 'ID источника трафика']
+  ip varchar [note: 'IP адрес источника']
+  country varchar [note: 'Страна источника']
+  username varchar [note: 'Имя пользователя источника']
+}
+
+Table domain {
+  id integer [primary key, note: 'ID домена']
+  ip varchar [note: 'IP адрес домена']
+  port integer [note: 'Порт домена']
+  country varchar [note: 'Страна домена']
+  path varchar [note: 'Доменное имя']
+  category_id integer [default: 1, note: 'ID категории контента']
+  categorized_at timestamp [note: 'Время последней категоризации']
+  action_id integer [default: 0, note: 'ID действия (разрешить/заблокировать)']
+  analysis_count integer [default: 0, note: 'Количество проведенных анализов']
+}
+
+Table action {
+  id integer [primary key, note: 'ID действия']
+  action varchar [note: 'Тип действия (allow/deny)']
+  created_at timestamp [note: 'Время создания действия']
+  created_by varchar [note: 'Пользователь, создавший действие']
+}
+
+Table domain_control_lists {
+  id integer [primary key, note: 'ID записи в списке контроля']
+  domain_id integer [not null, note: 'Ссылка на домен']
+  created_at timestamp [not null, note: 'Время добавления в список']
+  type varchar [not null, note: 'Тип списка (white/black)']
+  
+  indexes {
+    domain_id [name: 'idx_dcl_domain']
+  }
+}
+
+Table url {
+  id integer [primary key, note: 'ID URL']
+  path varchar(2048) [not null, note: 'Полный путь URL']
+  proto varchar(10) [not null, note: 'Протокол (http/https)']
+  domain_id integer [not null, note: 'Ссылка на домен']
+  ids_logs_at timestamp [note: 'Время получения из IDS логов']
+  put_kafka_at timestamp [note: 'Время отправки в Kafka']
+  get_metadata_at timestamp [note: 'Время получения метаданных']
+  get_category_at timestamp [note: 'Время получения категории']
+  request_id uuid [note: 'UUID запроса анализа']
+  
+  indexes {
+    domain_id [name: 'idx_url_domain']
+  }
+}
+
+Table last_log {
+  id integer [primary key, note: 'ID последнего лога']
+  timestamp timestamptz [not null, note: 'Временная метка последнего обработанного лога']
+}
+
+// Связи между таблицами
+Ref: session.device_id > device.id
+Ref: session.src_id > source.id
+Ref: session.domain_id > domain.id
+Ref: session.url_id > url.id
+Ref: url.domain_id > domain.id
+Ref: domain_control_lists.domain_id > domain.id
+Ref: domain.action_id > action.id
