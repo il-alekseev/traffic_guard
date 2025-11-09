@@ -56,9 +56,9 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	GetAPIV1Detections(params *GetAPIV1DetectionsParams, opts ...ClientOption) (*GetAPIV1DetectionsOK, error)
+	GetAPIV1Detections(params *GetAPIV1DetectionsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DetectionsOK, error)
 
-	GetAPIV1DetectionsStat(params *GetAPIV1DetectionsStatParams, opts ...ClientOption) (*GetAPIV1DetectionsStatOK, error)
+	GetAPIV1DetectionsStat(params *GetAPIV1DetectionsStatParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DetectionsStatOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -68,7 +68,7 @@ GetAPIV1Detections получениеs списка выявлений
 
 Возвращает список выявлений за указанный временной период с пагинацией и фильтрацией
 */
-func (a *Client) GetAPIV1Detections(params *GetAPIV1DetectionsParams, opts ...ClientOption) (*GetAPIV1DetectionsOK, error) {
+func (a *Client) GetAPIV1Detections(params *GetAPIV1DetectionsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DetectionsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetAPIV1DetectionsParams()
@@ -82,6 +82,7 @@ func (a *Client) GetAPIV1Detections(params *GetAPIV1DetectionsParams, opts ...Cl
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &GetAPIV1DetectionsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -108,7 +109,7 @@ GetAPIV1DetectionsStat получениеs статистики по выявл�
 
 Возвращает статистику выявлений за указанный период с фильтрацией
 */
-func (a *Client) GetAPIV1DetectionsStat(params *GetAPIV1DetectionsStatParams, opts ...ClientOption) (*GetAPIV1DetectionsStatOK, error) {
+func (a *Client) GetAPIV1DetectionsStat(params *GetAPIV1DetectionsStatParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DetectionsStatOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetAPIV1DetectionsStatParams()
@@ -122,6 +123,7 @@ func (a *Client) GetAPIV1DetectionsStat(params *GetAPIV1DetectionsStatParams, op
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &GetAPIV1DetectionsStatReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}

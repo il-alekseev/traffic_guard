@@ -56,9 +56,9 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	GetAPIV1Reports(params *GetAPIV1ReportsParams, opts ...ClientOption) (*GetAPIV1ReportsOK, error)
+	GetAPIV1Reports(params *GetAPIV1ReportsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1ReportsOK, error)
 
-	GetAPIV1ReportsHostname(params *GetAPIV1ReportsHostnameParams, opts ...ClientOption) (*GetAPIV1ReportsHostnameOK, error)
+	GetAPIV1ReportsHostname(params *GetAPIV1ReportsHostnameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1ReportsHostnameOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -68,7 +68,7 @@ GetAPIV1Reports созданиеs отчета
 
 Генерирует полный отчет по активности за указанный временной период, включая аналитику по устройствам, категориям и аномалиям
 */
-func (a *Client) GetAPIV1Reports(params *GetAPIV1ReportsParams, opts ...ClientOption) (*GetAPIV1ReportsOK, error) {
+func (a *Client) GetAPIV1Reports(params *GetAPIV1ReportsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1ReportsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetAPIV1ReportsParams()
@@ -82,6 +82,7 @@ func (a *Client) GetAPIV1Reports(params *GetAPIV1ReportsParams, opts ...ClientOp
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &GetAPIV1ReportsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -108,7 +109,7 @@ GetAPIV1ReportsHostname созданиеs отчета по конкретном
 
 Генерирует детализированный отчет по конкретному сетевому устройству за указанный временной период, включая статистику трафика, аномалии и категории запросов
 */
-func (a *Client) GetAPIV1ReportsHostname(params *GetAPIV1ReportsHostnameParams, opts ...ClientOption) (*GetAPIV1ReportsHostnameOK, error) {
+func (a *Client) GetAPIV1ReportsHostname(params *GetAPIV1ReportsHostnameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1ReportsHostnameOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetAPIV1ReportsHostnameParams()
@@ -122,6 +123,7 @@ func (a *Client) GetAPIV1ReportsHostname(params *GetAPIV1ReportsHostnameParams, 
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &GetAPIV1ReportsHostnameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}

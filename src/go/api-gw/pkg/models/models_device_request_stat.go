@@ -20,6 +20,9 @@ type ModelsDeviceRequestStat struct {
 	// blocked
 	Blocked []int64 `json:"blocked"`
 
+	// hostname
+	Hostname string `json:"hostname,omitempty"`
+
 	// pending
 	Pending []int64 `json:"pending"`
 

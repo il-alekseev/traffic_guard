@@ -2816,8 +2816,8 @@
                 },
                 "data": {
                     "description": "data",
-                    "type": "object",
-                    "additionalProperties": {
+                    "type": "array",
+                    "items": {
                         "$ref": "#/definitions/models.ModelsDeviceRequestStat"
                     }
                 },
@@ -3597,6 +3597,10 @@
                     "items": {
                         "type": "integer"
                     }
+                },
+                "hostname": {
+                    "description": "hostname",
+                    "type": "string"
                 },
                 "pending": {
                     "description": "pending",

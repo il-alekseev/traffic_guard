@@ -36,6 +36,12 @@ func (o *PatchAPIV1DetectionsActReader) ReadResponse(response runtime.ClientResp
 			return nil, err
 		}
 		return nil, result
+	case 403:
+		result := NewPatchAPIV1DetectionsActForbidden()
+		if err := result.readResponse(response, consumer, o.formats); err != nil {
+			return nil, err
+		}
+		return nil, result
 	case 500:
 		result := NewPatchAPIV1DetectionsActInternalServerError()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
@@ -176,6 +182,76 @@ func (o *PatchAPIV1DetectionsActBadRequest) GetPayload() *models.DtoErrorRespons
 }
 
 func (o *PatchAPIV1DetectionsActBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+
+	o.Payload = new(models.DtoErrorResponse)
+
+	// response payload
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+		return err
+	}
+
+	return nil
+}
+
+// NewPatchAPIV1DetectionsActForbidden creates a PatchAPIV1DetectionsActForbidden with default headers values
+func NewPatchAPIV1DetectionsActForbidden() *PatchAPIV1DetectionsActForbidden {
+	return &PatchAPIV1DetectionsActForbidden{}
+}
+
+/*
+PatchAPIV1DetectionsActForbidden describes a response with status code 403, with default header values.
+
+Недостаточно прав для выполнения действия
+*/
+type PatchAPIV1DetectionsActForbidden struct {
+	Payload *models.DtoErrorResponse
+}
+
+// IsSuccess returns true when this patch Api v1 detections act forbidden response has a 2xx status code
+func (o *PatchAPIV1DetectionsActForbidden) IsSuccess() bool {
+	return false
+}
+
+// IsRedirect returns true when this patch Api v1 detections act forbidden response has a 3xx status code
+func (o *PatchAPIV1DetectionsActForbidden) IsRedirect() bool {
+	return false
+}
+
+// IsClientError returns true when this patch Api v1 detections act forbidden response has a 4xx status code
+func (o *PatchAPIV1DetectionsActForbidden) IsClientError() bool {
+	return true
+}
+
+// IsServerError returns true when this patch Api v1 detections act forbidden response has a 5xx status code
+func (o *PatchAPIV1DetectionsActForbidden) IsServerError() bool {
+	return false
+}
+
+// IsCode returns true when this patch Api v1 detections act forbidden response a status code equal to that given
+func (o *PatchAPIV1DetectionsActForbidden) IsCode(code int) bool {
+	return code == 403
+}
+
+// Code gets the status code for the patch Api v1 detections act forbidden response
+func (o *PatchAPIV1DetectionsActForbidden) Code() int {
+	return 403
+}
+
+func (o *PatchAPIV1DetectionsActForbidden) Error() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[PATCH /api/v1/detections/act][%d] patchApiV1DetectionsActForbidden %s", 403, payload)
+}
+
+func (o *PatchAPIV1DetectionsActForbidden) String() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[PATCH /api/v1/detections/act][%d] patchApiV1DetectionsActForbidden %s", 403, payload)
+}
+
+func (o *PatchAPIV1DetectionsActForbidden) GetPayload() *models.DtoErrorResponse {
+	return o.Payload
+}
+
+func (o *PatchAPIV1DetectionsActForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	o.Payload = new(models.DtoErrorResponse)
 

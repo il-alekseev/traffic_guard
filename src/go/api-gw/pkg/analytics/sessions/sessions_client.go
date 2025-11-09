@@ -56,7 +56,7 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	GetAPIV1Sessions(params *GetAPIV1SessionsParams, opts ...ClientOption) (*GetAPIV1SessionsOK, error)
+	GetAPIV1Sessions(params *GetAPIV1SessionsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1SessionsOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -66,7 +66,7 @@ GetAPIV1Sessions получениеs списка сессий
 
 Возвращает список сессий с возможностью фильтрации, поиска, сортировки и пагинации
 */
-func (a *Client) GetAPIV1Sessions(params *GetAPIV1SessionsParams, opts ...ClientOption) (*GetAPIV1SessionsOK, error) {
+func (a *Client) GetAPIV1Sessions(params *GetAPIV1SessionsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1SessionsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetAPIV1SessionsParams()
@@ -80,6 +80,7 @@ func (a *Client) GetAPIV1Sessions(params *GetAPIV1SessionsParams, opts ...Client
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &GetAPIV1SessionsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}

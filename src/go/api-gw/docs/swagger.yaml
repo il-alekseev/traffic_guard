@@ -143,10 +143,10 @@ definitions:
         description: count
         type: integer
       data:
-        additionalProperties:
-          $ref: '#/definitions/models.ModelsDeviceRequestStat'
         description: data
-        type: object
+        items:
+          $ref: '#/definitions/models.ModelsDeviceRequestStat'
+        type: array
       time:
         description: time
         items:
@@ -703,6 +703,9 @@ definitions:
         items:
           type: integer
         type: array
+      hostname:
+        description: hostname
+        type: string
       pending:
         description: pending
         items:

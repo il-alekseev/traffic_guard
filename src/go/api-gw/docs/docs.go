@@ -2823,8 +2823,8 @@ const docTemplate = `{
                 },
                 "data": {
                     "description": "data",
-                    "type": "object",
-                    "additionalProperties": {
+                    "type": "array",
+                    "items": {
                         "$ref": "#/definitions/models.ModelsDeviceRequestStat"
                     }
                 },
@@ -3604,6 +3604,10 @@ const docTemplate = `{
                     "items": {
                         "type": "integer"
                     }
+                },
+                "hostname": {
+                    "description": "hostname",
+                    "type": "string"
                 },
                 "pending": {
                     "description": "pending",

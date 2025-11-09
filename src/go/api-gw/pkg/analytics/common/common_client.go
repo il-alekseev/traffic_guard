@@ -56,9 +56,9 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	GetAPIV1Categories(params *GetAPIV1CategoriesParams, opts ...ClientOption) (*GetAPIV1CategoriesOK, error)
+	GetAPIV1Categories(params *GetAPIV1CategoriesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1CategoriesOK, error)
 
-	GetAPIV1Devices(params *GetAPIV1DevicesParams, opts ...ClientOption) (*GetAPIV1DevicesOK, error)
+	GetAPIV1Devices(params *GetAPIV1DevicesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DevicesOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -68,7 +68,7 @@ GetAPIV1Categories получениеs списка категорий конт�
 
 Возвращает список всех уникальных категорий контента из системы
 */
-func (a *Client) GetAPIV1Categories(params *GetAPIV1CategoriesParams, opts ...ClientOption) (*GetAPIV1CategoriesOK, error) {
+func (a *Client) GetAPIV1Categories(params *GetAPIV1CategoriesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1CategoriesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetAPIV1CategoriesParams()
@@ -82,6 +82,7 @@ func (a *Client) GetAPIV1Categories(params *GetAPIV1CategoriesParams, opts ...Cl
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &GetAPIV1CategoriesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
@@ -104,11 +105,11 @@ func (a *Client) GetAPIV1Categories(params *GetAPIV1CategoriesParams, opts ...Cl
 }
 
 /*
-GetAPIV1Devices полуечениеs списка имен устройств
+GetAPIV1Devices получениеs списка имен устройств
 
 Возвращает список всех уникальных имен устройств (хостов) из системы
 */
-func (a *Client) GetAPIV1Devices(params *GetAPIV1DevicesParams, opts ...ClientOption) (*GetAPIV1DevicesOK, error) {
+func (a *Client) GetAPIV1Devices(params *GetAPIV1DevicesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DevicesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetAPIV1DevicesParams()
@@ -122,6 +123,7 @@ func (a *Client) GetAPIV1Devices(params *GetAPIV1DevicesParams, opts ...ClientOp
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &GetAPIV1DevicesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}
