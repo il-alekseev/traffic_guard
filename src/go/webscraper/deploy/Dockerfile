@@ -8,7 +8,7 @@ RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /tmp/webscraper ./cmd/scraper
 
-FROM gcr.io/distroless/base-debian12:nonroot
+FROM alpine:latest
 WORKDIR /app
 
 COPY --from=builder /tmp/webscraper /usr/local/bin/webscraper
