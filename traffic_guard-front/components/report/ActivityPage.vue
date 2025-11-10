@@ -56,7 +56,7 @@ const props = defineProps<{
 }>();
 
 const categoiersChartData = computed<ChartItem[]>(() => {
-  if (props.categoriesTop.length === 0) return [];
+  if (!props.categoriesTop || props.categoriesTop.length === 0) return [];
 
   return props.categoriesTop.map((c) => {
     return {
@@ -69,7 +69,7 @@ const categoiersChartData = computed<ChartItem[]>(() => {
 })
 
 const resourcesChartData = computed<ChartItem[]>(() => {
-  if (props.resourcesTop.length === 0) return [];
+  if (!props.resourcesTop || props.resourcesTop.length === 0) return [];
 
   return props.resourcesTop.map((r) => {
     return {

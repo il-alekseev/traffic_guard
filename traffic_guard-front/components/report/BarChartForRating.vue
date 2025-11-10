@@ -6,7 +6,7 @@
       class="report-chart__row"
     >
       <div class="report-chart__info">
-        <span class="report-chart__name">{{ item.name }}</span>
+        <span class="report-chart__name">{{ item.name || '–' }}</span>
         <span v-if="showSubcategories && item.categories" class="report-chart__subcategories">
           {{ item.categories.join('/') }}
         </span>
@@ -21,7 +21,7 @@
             class="report-chart__bar report-chart__bar--before"
           >
             <span class="report-chart__dot"></span>
-            <span class="report-chart__value">{{ item.before_block }}</span>
+            <span class="report-chart__value">{{ item.before_block || '–' }}</span>
           </div>
         </div>
 
@@ -33,7 +33,7 @@
             class="report-chart__bar report-chart__bar--after"
           >
             <span class="report-chart__dot"></span>
-            <span class="report-chart__value">{{ item.after_block }}</span>
+            <span class="report-chart__value">{{ item.after_block || '–' }}</span>
           </div>
         </div>
         
@@ -45,7 +45,7 @@
             class="report-chart__bar report-chart__bar--waiting"
           >
             <span class="report-chart__dot"></span>
-            <span class="report-chart__value">{{ item.waiting }}</span>
+            <span class="report-chart__value">{{ item.waiting || '–' }}</span>
           </div>
         </div>
       </div>

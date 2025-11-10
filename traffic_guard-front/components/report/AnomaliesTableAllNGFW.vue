@@ -22,17 +22,17 @@
               <template v-for="(group, ngfwName) in groupedData" :key="ngfwName">
                 <tr class="table__row table__row--group-header" :style="{ borderBottomColor: generateColor(ngfwName).color }">
                   <td colspan="7" class="table__cell table__cell--group-header">
-                    <span class="group-header" :style="{ color: generateColor(ngfwName).color }">{{ ngfwName }}</span>
+                    <span class="group-header" :style="{ color: generateColor(ngfwName).color }">{{ ngfwName || '–' }}</span>
                   </td>
                 </tr>
                 
-                <tr v-for="item in group" :key="item.url" class="table__row">
+                <tr v-for="item in group" :key="item.anomaly_stat.url" class="table__row">
                   <td class="table__cell table__cell--url">
-                    <span>{{ item.url || '–' }}</span>
+                    <span>{{ item.anomaly_stat.url || '–' }}</span>
                   </td>
                   <td class="table__cell table__cell--status">
-                    <span v-if="item.status && item.live_count" :class="['status-badge', `status-badge--${getStatusColor(item.status)}`]">
-                      {{ item.live_count }}
+                    <span v-if="item.anomaly_stat.status && item.anomaly_stat.live_count" :class="['status-badge', `status-badge--${getStatusColor(item.anomaly_stat.status)}`]">
+                      {{ item.anomaly_stat.live_count || '–' }}
                     </span>
                     <span v-else>
                       –
@@ -41,24 +41,24 @@
                   <td class="table__cell table__cell--traffic">
                     <div class="traffic">
                       <span class="traffic__item traffic__item--up">
-                        ↑ {{ formatTraffic(item.traffic.input) }}
+                        ↑ {{ formatTraffic(item.anomaly_stat.traffic.input) }}
                       </span>
                       <span class="traffic__item traffic__item--down">
-                        ↓ {{ formatTraffic(item.traffic.output) }}
+                        ↓ {{ formatTraffic(item.anomaly_stat.traffic.output) }}
                       </span>
                     </div>
                   </td>
                   <td class="table__cell table__cell--requests">
-                    <span class="requests">{{ formatTraffic(item.requests) }}</span>
+                    <span class="requests">{{ formatTraffic(item.anomaly_stat.stat.all) }}</span>
                   </td>
                   <td class="table__cell table__cell--before-block">
-                    <span class="before-block">{{ formatTraffic(item.detections.allowed) }}</span>
+                    <span class="before-block">{{ formatTraffic(item.anomaly_stat.stat.before_block) }}</span>
                   </td>
                   <td class="table__cell table__cell--waiting">
-                    <span class="waiting">{{ formatTraffic(item.detections.unresolved) }}</span>
+                    <span class="waiting">{{ formatTraffic(item.anomaly_stat.stat.pending) }}</span>
                   </td>
                   <td class="table__cell table__cell--after-block">
-                    <span class="after-block">{{ formatTraffic(item.detections.blocked) }}</span>
+                    <span class="after-block">{{ formatTraffic(item.anomaly_stat.stat.after_block) }}</span>
                   </td>
                 </tr>
               </template>
@@ -99,7 +99,7 @@ const groupedData = computed<Record<string, AnomalyReportItem[]> | null>(() => {
 });
 
 const getStatusColor = (status: string): string => {
-  return status === 'critical' ? 'red' : 'green';
+  return status === 'Заблокировано' ? 'red' : status === 'Разрешено' ? 'green' : 'yellow';
 };
 </script>
 
@@ -201,6 +201,11 @@ const getStatusColor = (status: string): string => {
   &--red {
     background-color: #FFE2E2;
     color: #C10007;
+  }
+
+  &--yellow {
+    background-color: #FEF9C2;
+    color: #894B00;
   }
 }
 

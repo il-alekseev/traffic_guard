@@ -54,12 +54,24 @@ export interface DashboardRequests {
   pending: DashboardRequestObj | null;
 }
 
+export interface HostAnomaly {
+  anomaly_count: number,
+  hostname: string,
+  domains: string[]
+}
+
+export interface DashboardAnomalies {
+  block_count: number,
+  host_count: number,
+  host_anomalies: HostAnomaly[]
+}
+
 export interface DashboardState {
   topCategories: TopCategories | null;
   topDetections: TopDetections | null;
   trafic: DashboardTraffic | null
   requests: DashboardRequests,
-  anomalies: null,
+  anomalies: DashboardAnomalies | null,
   events: null,
   proh_activity: null,
   devicesState: null

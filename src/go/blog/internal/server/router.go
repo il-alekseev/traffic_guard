@@ -9,7 +9,7 @@ import (
 
 // initRouter - инициализация роутера
 func (s *Server) initRouter() {
-	s.router.GET("/v1/healthcheck", s.healthcheck)
+	s.router.GET("/api/v1/healthcheck", s.healthcheck)
 
 	s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -23,7 +23,7 @@ func (s *Server) initRouter() {
 	api.Use(middleware.SetUserMetaData(s.logger))
 
 	{
-		api.GET("/healthcheck", s.healthcheck)
+		//api.GET("/healthcheck", s.healthcheck)
 		api.GET("/logs", s.validateParams(), s.logs)
 	}
 }

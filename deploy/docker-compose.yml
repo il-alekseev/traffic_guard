@@ -37,32 +37,12 @@ services:
     image: postgres:${POSTGRES_TAG}
     ports:
       - ${POSTGRES_CONFIG_VOLUME_PORT}:${POSTGRES_CONFIG_PORT}
-    environment:
-      - POSTGRES_USER=${POSTGRES_CONFIG_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_CONFIG_PASSWORD}
-      - POSTGRES_KEYCLOAK_USER=${POSTGRES_KEYCLOAK_USER}
-      - POSTGRES_KEYCLOAK_PASSWORD=${POSTGRES_KEYCLOAK_PASSWORD}
-      - POSTGRES_KEYCLOAK_DATABASE=${POSTGRES_KEYCLOAK_DATABASE}
-      - POSTGRES_GRAFANA_USER=${POSTGRES_GRAFANA_USER}
-      - POSTGRES_GRAFANA_PASSWORD=${POSTGRES_GRAFANA_PASSWORD}
-      - POSTGRES_GRAFANA_DATABASE=${POSTGRES_GRAFANA_DATABASE}
-      - POSTGRES_BLOG_USER=${POSTGRES_BLOG_USER}
-      - POSTGRES_BLOG_PASSWORD=${POSTGRES_BLOG_PASSWORD}
-      - POSTGRES_BLOG_DATABASE=${POSTGRES_BLOG_DATABASE}
-      - POSTGRES_ETL_USER=${POSTGRES_ETL_USER}
-      - POSTGRES_ETL_PASSWORD=${POSTGRES_ETL_PASSWORD}
-      - POSTGRES_ETL_DATABASE=${POSTGRES_ETL_DATABASE}
-      - POSTGRES_WEB_USER=${POSTGRES_WEB_USER}
-      - POSTGRES_WEB_PASSWORD=${POSTGRES_WEB_PASSWORD}
-      - POSTGRES_WEB_DATABASE=${POSTGRES_WEB_DATABASE}
-      - POSTGRES_ML_USER=${POSTGRES_ML_USER}
-      - POSTGRES_ML_PASSWORD=${POSTGRES_ML_PASSWORD}
-      - POSTGRES_ML_DATABASE=${POSTGRES_ML_DATABASE}
+    env_file: ./postgres_config/.env
     volumes:
       - ./postgres_config/data:/var/lib/postgresql/data
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_CONFIG_USER"]
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -85,39 +65,11 @@ services:
     networks:
       - continent
 
-
   grafana:
     image: grafana/grafana:${GRAFANA_TAG}
     ports:
       - ${GRAFANA_VOLUME_PORT}:${GRAFANA_PORT}
-    environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
-      - GF_DATABASE_TYPE=${GRAFANA_DATABASE_TYPE}
-      - GF_DATABASE_HOST=${GRAFANA_DATABASE_HOST}
-      - GF_DATABASE_NAME=${GRAFANA_DATABASE_NAME}
-      - GF_DATABASE_USER=${GRAFANA_DATABASE_USER}
-      - GF_DATABASE_PASSWORD=${GRAFANA_DATABASE_PASSWORD}
-      - GF_DATABASE_SSL_MODE=disable
-      - GF_AUTH_GENERIC_OAUTH_ENABLED=true
-      - GF_AUTH_GENERIC_OAUTH_NAME=${GRAFANA_GENERIC_OAUTH_NAME}
-      - GF_AUTH_GENERIC_OAUTH_CLIENT_ID=${GRAFANA_GENERIC_OAUTH_CLIENT_ID}
-      - GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET=${GRAFANA_GENERIC_OAUTH_CLIENT_SECRET}
-      - GF_AUTH_GENERIC_OAUTH_SCOPES=${GRAFANA_GENERIC_OAUTH_SCOPES}
-      - GF_AUTH_GENERIC_OAUTH_AUTH_URL=${GRAFANA_IP_KEYCLOAK}/auth
-      - GF_AUTH_GENERIC_OAUTH_TOKEN_URL=${GRAFANA_IP_KEYCLOAK}/token
-      - GF_AUTH_GENERIC_OAUTH_API_URL=${GRAFANA_IP_KEYCLOAK}/userinfo
-      - GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP=true
-      - GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH=contains(roles[*], 'SA') && 'GrafanaAdmin' || 'Viewer'
-      - GF_AUTH_GENERIC_OAUTH_ALLOW_ASSIGN_GRAFANA_ADMIN=true
-      - GF_AUTH_GENERIC_OAUTH_LOGIN_ATTRIBUTE_PATH=preferred_username
-      - GF_AUTH_GENERIC_OAUTH_ORG_ATTRIBUTE_PATH=roles
-      - GF_SERVER_PROTOCOL=https
-      - GF_SERVER_CERT_FILE=${GRAFANA_CERT_FILE}
-      - GF_SERVER_CERT_KEY=${GRAFANA_CERT_KEY}
-      - GF_SERVER_DOMAIN=${GRAFANA_DOMAIN}
-      - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL}
-      - GF_AUTH_GENERIC_OAUTH_TLS_SKIP_VERIFY_INSECURE=true
+    env_file: ./grafana/.env
     volumes:
       - ./grafana/data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
@@ -128,7 +80,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 6
-      start_period: 15s
+      start_period: 25s
     depends_on:
       configdb:
         condition: service_healthy
@@ -145,29 +97,7 @@ services:
     # image: keycloak-webhook
     ports:
       - ${KEYCLOAK_VOLUME_PORT}:${KEYCLOAK_PORT}
-    environment:
-      - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
-      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
-      - KC_PROXY_ADDRESS_FORWARDING=true
-      - KC_HOSTNAME_STRICT=false
-      - KC_HOSTNAME=${KEYCLOAK_HOSTNAME}
-      - KC_HOSTNAME_PORT=${KEYCLOAK_HOSTNAME_PORT}
-      - KC_HTTPS_CERTIFICATE_FILE=${KEYCLOAK_HTTPS_CERTIFICATE_FILE}
-      - KC_HTTPS_CERTIFICATE_KEY_FILE=${KEYCLOAK_HTTPS_CERTIFICATE_KEY_FILE}
-      - KC_HTTP_ENABLED=false
-      - KC_HTTPS_ENABLED=true
-      - KC_DB=${KEYCLOAK_DB}
-      - KC_DB_URL=${KEYCLOAK_DB_URL}
-      - KC_DB_USERNAME=${KEYCLOAK_DB_USERNAME}
-      - KC_DB_PASSWORD=${KEYCLOAK_DB_PASSWORD}
-      - KEYCLOAK_GRAFANA_ID=${KEYCLOAK_GRAFANA_ID}
-      - KEYCLOAK_GRAFANA_SECRET=${KEYCLOAK_GRAFANA_SECRET}
-      - KEYCLOAK_GRAFANA_REDIRECT_ONE=${KEYCLOAK_GRAFANA_REDIRECT_ONE}
-      - KEYCLOAK_GRAFANA_REDIRECT_TWO=${KEYCLOAK_GRAFANA_REDIRECT_TWO}
-      - KEYCLOAK_GRAFANA_REDIRECT_THREE=${KEYCLOAK_GRAFANA_REDIRECT_THREE}
-      - KEYCLOAK_GRAFANA_PROTOCOL=${KEYCLOAK_GRAFANA_PROTOCOL}
-      - KEYCLOAK_GLOBAL_PASSWORD=${KEYCLOAK_GLOBAL_PASSWORD}
-      - WEBHOOK_HTTP_BASE_PATH=${WEBHOOK_HTTP_BASE_PATH}
+    env_file: ./keycloak/.env
     volumes:
       - ./keycloak/realm-import.json:/opt/keycloak/data/import/realm-import.json
       - ./keycloak:/certs
@@ -178,7 +108,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 6
-      start_period: 15s
+      start_period: 20s
     command: start --https-certificate-file=/certs/fullchain.crt --https-certificate-key-file=/certs/keycloak.key --import-realm --verbose
     depends_on:
       configdb:
@@ -238,9 +168,15 @@ services:
       context: ../src/go/blog
       dockerfile: "build/Dockerfile"
     ports:
-      - 8004:8004
+      - ${BLOG_HTTP_PORT}:${BLOG_HTTP_PORT}
     env_file: ./tg-blog/.env
     restart: always
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:${BLOG_HTTP_PORT}/api/v1/healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
     depends_on:
       configdb:
         condition: service_healthy
@@ -248,12 +184,12 @@ services:
       - continent
   
   tg-usercontrol:
-    container_name: tg-usercontrol
+    container_name: ${USER_CTRL_APP_NAME}
     build:
       context: ../src/go/userctrl
       dockerfile: "build/Dockerfile"
     ports:
-      - 8002:8002
+      - ${USER_CTRL_HTTP_PORT}:${USER_CTRL_HTTP_PORT}
     restart: always
     env_file: ./tg-usercontrol/.env
     healthcheck:
@@ -261,7 +197,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 6
-      start_period: 15s
+      start_period: 25s
     depends_on:
       configdb:
         condition: service_healthy
@@ -279,10 +215,18 @@ services:
       dockerfile: "build/Dockerfile"
     ports:
       - ${API_GW_HTTP_PORT}:${API_GW_HTTP_PORT}
-    restart: always
     env_file: ./api-gw/.env
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:${API_GW_HTTP_PORT}/api/v1/healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 35s
+    restart: always
     depends_on:
       tg-usercontrol:
+        condition: service_healthy
+      tg-an:
         condition: service_healthy
     networks:
       - continent
@@ -296,8 +240,16 @@ services:
       - ${AN_HTTP_PORT}:${AN_HTTP_PORT}
     restart: always
     env_file: ./tg-an/.env
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:${AN_HTTP_PORT}/api/v1/healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 25s
     depends_on:
       configdb:
+        condition: service_healthy
+      tg-etl:
         condition: service_healthy
     networks:
       - continent
@@ -309,8 +261,14 @@ services:
       dockerfile: "build/Dockerfile"
     ports:
       - '${ETL_HTTP_PORT}:${ETL_HTTP_PORT}'
-    restart: always
     env_file: ./tg-etl/.env
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:${ETL_HTTP_PORT}/api/v1/healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 25s
     depends_on:
       configdb:
         condition: service_healthy
@@ -330,7 +288,13 @@ services:
       - ./webscraper/docs:/app/docs:ro
       - ./webscraper/data:/app/data:ro
     ports:
-      - "8010:8010"
+      - ${SCR_HTTP_PORT}:${SCR_HTTP_PORT}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8010/helth_check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 25s
     restart: always
     depends_on:
       kafka:
@@ -340,15 +304,15 @@ services:
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
-    container_name: zookeeper
+    container_name: ${ZOO_APP_NAME}
     ports:
-      - "2181:2181"
+      - ${ZOO_PORT}:${ZOO_PORT}
     volumes:
       - ./zookeeper/data:/var/lib/zookeeper/data
       - ./zookeeper/log:/var/lib/zookeeper/log
     env_file: ./zookeeper/.env
     healthcheck:
-      test: ["CMD", "bash", "-c", "echo stat | nc localhost 2181"]
+      test: ["CMD", "bash", "-c", "echo stat | nc localhost ${ZOO_PORT}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -359,15 +323,15 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:7.4.0
-    container_name: kafka
+    container_name: ${KAFKA_APP_NAME}
     ports:
-      - "9092:9092"
+      - ${KAFKA_HTTP_PORT}:${KAFKA_HTTP_PORT}
     volumes:
       - ./kafka/data:/var/lib/kafka/data
       - ./kafka/init_topics.sh:/tmp/init-topics.sh
     env_file: ./kafka/.env 
     healthcheck:
-      test: ["CMD", "bash", "-c", "kafka-topics --bootstrap-server localhost:9092 --list && /tmp/init-topics.sh"]
+      test: ["CMD", "bash", "-c", "kafka-topics --bootstrap-server localhost:${KAFKA_HTTP_PORT} --list && /tmp/init-topics.sh"]
       interval: 20s
       timeout: 15s
       retries: 5
@@ -381,42 +345,37 @@ services:
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
-    container_name: kafka-ui
-    # depends_on:
-    #   kafka:
-    #     condition: service_healthy
+    container_name: ${KAFKAUI_APP_NAME}
     ports:
-      - "8081:8080"
+      - ${KAFKAUI_VOLUME_PORT}:${KAFKAUI_PORT}
     env_file: ./kafka_ui/.env
     volumes:
       - ./kafka_ui/data:/etc/kafka-ui
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:${KAFKAUI_PORT}/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: always
+    depends_on:
+      kafka:
+        condition: service_healthy
     networks:
       - continent
   
   neuro:
-    container_name: neuro
+    container_name: ${NEURO_APP_NAME}
     build:
       context: ../src/python/neuro
       dockerfile: deploy/Dockerfile
-    environment:
-      - DATABASE_NAME=${NEURO_DATABASE_NAME}
-      - DATABASE_PASSWORD=${NEURO_DATABASE_PASSWORD}
-      - DATABASE_HOST=${NEURO_DATABASE_HOST}
-      - DATABASE_PORT=${NEURO_DATABASE_PORT}
-      - DATABASE_USER=${NEURO_DATABASE_USER}
-      - KAFKA_CONSUMER_GROUP_ID=${NEURO_KAFKA_CONSUMER_GROUP_ID}
-      - KAFKA_PRODUCER_GROUP_ID=${NEURO_KAFKA_PRODUCER_GROUP_ID}
-      - KAFKA_TIMEOUT=${NEURO_KAFKA_TIMEOUT}
-      - KAFKA_URL=${NEURO_KAFKA_URL}
-      - MODEL_NAME=${NEURO_MODEL_NAME}
-      - LLM_URL=${NEURO_LLM_URL}
-      - PRODUCER_TOPIC=${NEURO_PRODUCER_TOPIC}
-      - CONSUMER_TOPIC=${NEURO_CONSUMER_TOPIC}
+    env_file: ./neuro/.env
     depends_on:
       kafka:
         condition: service_healthy  
       configdb:
         condition: service_healthy
+    restart: always
     networks:
       - continent 
 
@@ -425,15 +384,14 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "7007:7007"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ../traffic_guard-front/certs:/etc/nginx/certs
-    #depends_on:
-      # api-gw:
-      #   condition: service_healthy
-      # frontend:
-      #   condition: service_healthy
+    depends_on:
+      api-gw:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f","-k", "https://localhost:443"]
@@ -457,12 +415,12 @@ services:
       HOST: "${APP_HOST:-0.0.0.0}" 
       PORT: "${APP_PORT_CONTAINER:-3001}"
     restart: always
-    # healthcheck:
-    #   test: ["CMD", "wget", "-qO-", "http://localhost:3001"]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 6
-    #   start_period: 10s
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
     networks:
       - continent
 

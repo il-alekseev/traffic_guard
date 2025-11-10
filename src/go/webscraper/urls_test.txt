@@ -1,4 +1,5 @@
 http://clientservices.googleapis.com/chrome-variations/seed?osname=win&channel=stable&milestone=14
+https://avito.ru/news
 https://101hotels.com
 https://2gis.ru
 https://360.ru

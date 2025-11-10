@@ -40,6 +40,8 @@ func main() {
 	}
 	config.ApplyEnvOverrides(cfg)
 
+	log.Printf("using kafka brokers: %v, topic: %s", cfg.Kafka.Brokers, cfg.Kafka.InputTopic)
+
 	if cfg.Kafka.InputTopic == "" {
 		log.Fatalf("kafka input topic is not configured")
 	}

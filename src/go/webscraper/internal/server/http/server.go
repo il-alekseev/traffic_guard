@@ -130,6 +130,9 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 			"processed":  snapshot.Processed,
 			"failed":     snapshot.Failed,
 		},
+		"queue": map[string]any{
+			"pending": snapshot.Queued,
+		},
 		"uptime":     time.Since(s.startedAt).String(),
 		"started_at": snapshot.StartedAt,
 		"processing": snapshot.Processing,

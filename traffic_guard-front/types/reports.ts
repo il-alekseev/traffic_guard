@@ -35,30 +35,25 @@ export interface NGFWReportItem {
   };
 }
 
+export interface AnomalyStatItem {
+  live_count: number,
+  stat: {
+    after_block: number,
+    all: number,
+    before_block: number,
+    pending: number
+  },
+  status: "Разрешено" | "Заблокировано" | "Не решено",
+  traffic: {
+    input: number,
+    output: number
+  },
+  url: string
+}
+
 export interface AnomalyReportItem {
   hostname: string;
-  requests: number;
-  traffic: {
-    input: number;
-    output: number;
-  };
-
-  url?: string;
-  status?: string;  
-  live_count?: string
-
-  detections: {
-    all: 0,
-    allowed: 0,
-    blocked: 0,
-    unresolved: 0
-  },
-
-  anomaly_block_stat: {
-    all: 0,
-    anomalies: 0,
-    blocks: 0
-  },
+  anomaly_stat: AnomalyStatItem,
 }
 
 export interface ReportCategoryItem {

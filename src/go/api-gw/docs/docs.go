@@ -1264,459 +1264,17 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/contexts": {
+        "/api/v1/healthcheck": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Получение списка всех контекстов системы с возможностью пагинации и фильтрации",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
-                    "contexts"
+                    "healthcheck"
                 ],
-                "summary": "Получение списка всех контекстов в системе",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Номер страницы",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Количество элементов на странице",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Фильтр по названию/id контекста",
-                        "name": "search",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "context_id",
-                            "created_at"
-                        ],
-                        "type": "string",
-                        "default": "context_id",
-                        "description": "Поле для сортировки default(context_id)",
-                        "name": "order_by",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "asc",
-                            "desc"
-                        ],
-                        "type": "string",
-                        "default": "desc",
-                        "description": "Направление сортировки default(desc)",
-                        "name": "order_dir",
-                        "in": "query"
-                    }
-                ],
+                "summary": "Проверка состояния сервера",
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoContextListResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Создание нового контекста с указанным названием",
-                "consumes": [
-                    "text/plain"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "contexts"
-                ],
-                "summary": "Добавление нового контекста в систему",
-                "parameters": [
-                    {
-                        "description": "Название контекста",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoCreateContextRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.ModelsContext"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/contexts/count": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Получение общего количества контекстов в системе",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "contexts"
-                ],
-                "summary": "Получение числа всех контекстов системы",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoCountResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/contexts/free-ports": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Выводит массив портов доступных для получения логов от МЭ",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "contexts"
-                ],
-                "summary": "Получение списка свободных портов",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoVectroFreePortsResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/contexts/{context_id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Получение информации о контексте по его ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "contexts"
-                ],
-                "summary": "Получение контекста по его идентификатору",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID контекста",
-                        "name": "context_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.ModelsContext"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Обновление названия контекста и/или описания",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "contexts"
-                ],
-                "summary": "Обновление контекста по его идентификатору",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID контекста",
-                        "name": "context_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Информация о контексте",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoUpdateContextRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoCountResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Удаление контекста по его ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "contexts"
-                ],
-                "summary": "Удаление контекста",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "ID контекста",
-                        "name": "context_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
+                        "description": "Отфильтрованные логи",
                         "schema": {
                             "$ref": "#/definitions/models.DtoSuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
                         }
                     }
                 }
@@ -1729,15 +1287,62 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
+                "description": "Получение бизнес логов с возможностью фильтрации и пагинации",
                 "tags": [
-                    "healthcheck"
+                    "logs"
                 ],
-                "summary": "Проверка состояния сервера",
+                "summary": "Получение бизнес логов",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Номер страницы с 1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Колличесвто отображаемых элементов на странице",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по роли",
+                        "name": "role",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по contextID",
+                        "name": "contextID",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "фильтр по username/entity/description",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Отфильтрованные логи",
                         "schema": {
-                            "$ref": "#/definitions/models.DtoSuccessResponse"
+                            "$ref": "#/definitions/models.ModelsLogs"
+                        }
+                    },
+                    "400": {
+                        "description": "query params is not valid",
+                        "schema": {
+                            "$ref": "#/definitions/models.ModelsAPIError"
+                        }
+                    },
+                    "500": {
+                        "description": "internal error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ModelsAPIError"
                         }
                     }
                 }
@@ -1995,7 +1600,7 @@ const docTemplate = `{
                         }
                     },
                     "409": {
-                        "description": "Пользователь с таким email/логином уже существует",
+                        "description": "Пользователь с таким email/логином уже существует или роль не найдена",
                         "schema": {
                             "$ref": "#/definitions/models.DtoErrorResponse"
                         }
@@ -2635,40 +2240,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.DtoContextListResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "description": "Список контекстов",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ModelsContext"
-                    }
-                },
-                "meta": {
-                    "description": "Метаданные пагинации",
-                    "type": "object",
-                    "properties": {
-                        "limit": {
-                            "description": "Количество элементов на странице",
-                            "type": "integer"
-                        },
-                        "page": {
-                            "description": "Текущая страница (начинается с 1)",
-                            "type": "integer"
-                        },
-                        "pages": {
-                            "description": "Общее количество страниц",
-                            "type": "integer"
-                        },
-                        "total": {
-                            "description": "Общее количество элементов",
-                            "type": "integer"
-                        }
-                    }
-                }
-            }
-        },
         "models.DtoCountResponse": {
             "type": "object",
             "properties": {
@@ -2692,59 +2263,6 @@ const docTemplate = `{
                 "count_sa": {
                     "description": "count sa",
                     "type": "integer"
-                }
-            }
-        },
-        "models.DtoCreateContextRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "description": "Описание контекста",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "Уникальный идентификатор контекста (первичный ключ в БД)",
-                    "type": "string"
-                },
-                "logs_limits": {
-                    "description": "Лимиты для логов",
-                    "type": "object",
-                    "properties": {
-                        "disk_storage": {
-                            "description": "disk storage",
-                            "type": "integer"
-                        },
-                        "retention_duration": {
-                            "description": "retention duration",
-                            "type": "integer"
-                        }
-                    }
-                },
-                "metric_limits": {
-                    "description": "Лимиты для метрик",
-                    "type": "object",
-                    "properties": {
-                        "disk_storage": {
-                            "description": "disk storage",
-                            "type": "integer"
-                        },
-                        "retention_duration": {
-                            "description": "retention duration",
-                            "type": "integer"
-                        }
-                    }
-                },
-                "name": {
-                    "description": "Уникальное имя контекста",
-                    "type": "string"
-                },
-                "port": {
-                    "description": "Уникальный порт для получения метрик",
-                    "type": "integer"
-                },
-                "transport": {
-                    "description": "Протокол транспортного уровня для получения метрик",
-                    "type": "string"
                 }
             }
         },
@@ -2841,7 +2359,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error": {
-                    "description": "Описание ошибки",
+                    "description": "error",
                     "type": "string"
                 }
             }
@@ -2881,19 +2399,19 @@ const docTemplate = `{
                     "type": "object",
                     "properties": {
                         "limit": {
-                            "description": "Количество элементов на странице",
+                            "description": "limit",
                             "type": "integer"
                         },
                         "page": {
-                            "description": "Текущая страница (начинается с 1)",
+                            "description": "page",
                             "type": "integer"
                         },
                         "pages": {
-                            "description": "Общее количество страниц",
+                            "description": "pages",
                             "type": "integer"
                         },
                         "total": {
-                            "description": "Общее количество элементов",
+                            "description": "total",
                             "type": "integer"
                         }
                     }
@@ -2915,19 +2433,19 @@ const docTemplate = `{
                     "type": "object",
                     "properties": {
                         "limit": {
-                            "description": "Количество элементов на странице",
+                            "description": "limit",
                             "type": "integer"
                         },
                         "page": {
-                            "description": "Текущая страница (начинается с 1)",
+                            "description": "page",
                             "type": "integer"
                         },
                         "pages": {
-                            "description": "Общее количество страниц",
+                            "description": "pages",
                             "type": "integer"
                         },
                         "total": {
-                            "description": "Общее количество элементов",
+                            "description": "total",
                             "type": "integer"
                         }
                     }
@@ -2951,19 +2469,19 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "limit": {
-                    "description": "Количество элементов на странице",
+                    "description": "limit",
                     "type": "integer"
                 },
                 "page": {
-                    "description": "Текущая страница (начинается с 1)",
+                    "description": "page",
                     "type": "integer"
                 },
                 "pages": {
-                    "description": "Общее количество страниц",
+                    "description": "pages",
                     "type": "integer"
                 },
                 "total": {
-                    "description": "Общее количество элементов",
+                    "description": "total",
                     "type": "integer"
                 }
             }
@@ -3129,19 +2647,6 @@ const docTemplate = `{
                 }
             }
         },
-        "models.DtoUpdateContextRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "description": "Новое описание контекста",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "Новое имя контекста",
-                    "type": "string"
-                }
-            }
-        },
         "models.DtoUserCreateRequest": {
             "type": "object",
             "properties": {
@@ -3239,18 +2744,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.DtoPaginationMeta"
                         }
                     ]
-                }
-            }
-        },
-        "models.DtoVectroFreePortsResponse": {
-            "type": "object",
-            "properties": {
-                "ports": {
-                    "description": "ports",
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
                 }
             }
         },
@@ -3382,76 +2875,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.ModelsRequestReport"
                         }
                     ]
-                }
-            }
-        },
-        "models.ModelsContext": {
-            "type": "object",
-            "properties": {
-                "admins_count": {
-                    "description": "admins count",
-                    "type": "integer"
-                },
-                "created_at": {
-                    "description": "created at",
-                    "type": "string"
-                },
-                "description": {
-                    "description": "description",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "id",
-                    "type": "string"
-                },
-                "log_input_port": {
-                    "description": "Порт для получения метрик в Vector",
-                    "type": "integer"
-                },
-                "log_input_transport": {
-                    "description": "Протокол транспортного уровня для получения метрик в Vector",
-                    "type": "string"
-                },
-                "logs_limits": {
-                    "description": "logs limits",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.ModelsDataLimits"
-                        }
-                    ]
-                },
-                "metric_limits": {
-                    "description": "metric limits",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.ModelsDataLimits"
-                        }
-                    ]
-                },
-                "metrics_input_port": {
-                    "description": "metrics input port",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "name",
-                    "type": "string"
-                },
-                "operators_count": {
-                    "description": "operators count",
-                    "type": "integer"
-                }
-            }
-        },
-        "models.ModelsDataLimits": {
-            "type": "object",
-            "properties": {
-                "disk_storage": {
-                    "description": "disk storage",
-                    "type": "integer"
-                },
-                "retention_duration": {
-                    "description": "retention duration",
-                    "type": "integer"
                 }
             }
         },

@@ -20,7 +20,7 @@
             <tbody class="table__body">
               <tr v-for="item in props.data" :key="item.hostname" class="table__row">
                 <td class="table__cell table__cell--name">
-                  <span class="table__text">{{ item.hostname }}</span>
+                  <span class="table__text">{{ item.hostname || '–' }}</span>
                 </td>
                 <td class="table__cell table__cell--traffic">
                   <div class="traffic">
@@ -37,28 +37,28 @@
                 </td>
                 <td class="table__cell table__cell--anomalies">
                   <span class="metric">
-                    {{ item.anomaly_block_stat.anomalies }}/{{ item.anomaly_block_stat.all }}
+                    {{ item.anomaly_block_stat.anomalies || '–' }}/{{ item.anomaly_block_stat.all || '–' }}
                     <span class="metric__percent">{{ calculatePercent(item.anomaly_block_stat.anomalies, item.anomaly_block_stat.all) }}</span>
                   </span>
                 </td>
                 <td class="table__cell table__cell--blocks">
                   <span class="metric">
-                    {{ item.anomaly_block_stat.blocks }}/{{ item.anomaly_block_stat.all }}
+                    {{ item.anomaly_block_stat.blocks || '–' }}/{{ item.anomaly_block_stat.all || '–' }}
                     <span class="metric__percent">{{ calculatePercent(item.anomaly_block_stat.blocks, item.anomaly_block_stat.all) }}</span>
                   </span>
                 </td>
                 <td class="table__cell table__cell--detections">
                   <div class="detections">
-                    <span class="detections__count">{{ item.detections.all }}</span>
+                    <span class="detections__count">{{ item.detections.all || '–' }}</span>
                     <div class="detections__badges">
-                      <span class="badge badge--allowed" :title="`Разрешено: ${item.detections.allowed}`">
-                        ● {{ item.detections.allowed }}
+                      <span class="badge badge--allowed" :title="`Разрешено: ${item.detections.allowed || '–'}`">
+                        ● {{ item.detections.allowed || '0' }}
                       </span>
-                      <span class="badge badge--blocked" :title="`Заблокировано: ${item.detections.blocked}`">
-                        ● {{ item.detections.blocked }}
+                      <span class="badge badge--blocked" :title="`Заблокировано: ${item.detections.blocked || '–'}`">
+                        ● {{ item.detections.blocked || '0' }}
                       </span>
-                      <span class="badge badge--unresolved" :title="`Неопределено: ${item.detections.unresolved}`">
-                        ● {{ item.detections.unresolved }}
+                      <span class="badge badge--unresolved" :title="`Неопределено: ${item.detections.unresolved || '–'}`">
+                        ● {{ item.detections.unresolved || '0' }}
                       </span>
                     </div>
                   </div>

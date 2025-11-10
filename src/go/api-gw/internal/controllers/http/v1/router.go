@@ -62,17 +62,6 @@ func (s *Server) configureRouter() {
 		roles.GET("/count", s.getRolesCount) // SA
 	}
 
-	ctxcontrol := apiRouter.Group("/api/v1/contexts")
-	{
-		ctxcontrol.GET("", s.getContexts)                   // SA
-		ctxcontrol.POST("", s.createContext)                // SA
-		ctxcontrol.GET("/count", s.getContextsCount)        // SA
-		ctxcontrol.GET("/:context_id", s.getContextByID)    // SA, CA
-		ctxcontrol.PUT("/:context_id", s.updateContextByID) // SA, CA
-		ctxcontrol.DELETE("/:context_id", s.deleteContext)  // SA
-		ctxcontrol.GET("/free-ports", s.getFreePorts)
-	}
-
 	blog := apiRouter.Group("/api/v1")
 	{
 		blog.GET("/logs", s.logs) // SA, CA

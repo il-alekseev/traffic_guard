@@ -17,16 +17,16 @@ import (
 // swagger:model dto.PaginationMeta
 type DtoPaginationMeta struct {
 
-	// Количество элементов на странице
+	// limit
 	Limit int64 `json:"limit,omitempty"`
 
-	// Текущая страница (начинается с 1)
+	// page
 	Page int64 `json:"page,omitempty"`
 
-	// Общее количество страниц
+	// pages
 	Pages int64 `json:"pages,omitempty"`
 
-	// Общее количество элементов
+	// total
 	Total int64 `json:"total,omitempty"`
 }
 

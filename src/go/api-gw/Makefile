@@ -5,7 +5,6 @@ BINARY_NAME=api-gateway.exe
 
 ANALYTICS_URL="http://127.0.0.1:7000/swagger/doc.json"
 USERCONTROL_URL="http://127.0.0.1:8002/swagger/doc.json"
-CTXCONTROL_URL="http://127.0.0.1:8003/swagger/doc.json"
 BLOG_SERV_URL="http://127.0.0.1:8004/swagger/doc.json"
 
 # Цель по умолчанию
@@ -14,19 +13,18 @@ all: generate build
 # Генерация кода из OpenAPI спецификации
 .PHONY: gen-a
 gen-a:
-	swagger generate client -c analytics -f $(USERCONTROL_URL) -A analytics -t pkg
+	swagger generate client -c analytics -f $(ANALYTICS_URL) -A analytics -t pkg
+	# swagger generate client -c analytics -f ../tg-analytics/docs/swagger.json -A analytics -t pkg
 
 .PHONY: gen-u 
 gen-u:
 	swagger generate client -c usercontrol -f $(USERCONTROL_URL) -A usercontrol -t pkg
-
-.PHONY: gen-c 
-gen-c:
-	swagger generate client -c ctxcontrol -f $(CTXCONTROL_URL) -A ctxcontrol -t pkg
+	#swagger generate client -c usercontrol -f ../userctrl/docs/swagger.json -A usercontrol -t pkg
 
 .PHONY: gen-b 
 gen-b:
 	swagger generate client -c blogserv -f $(BLOG_SERV_URL) -A blogserv -t pkg
+	#swagger generate client -c blogserv -f ../blog/docs/swagger.json -A blogserv -t pkg
 
 run:
 	go run cmd/server/main.go
@@ -40,6 +38,9 @@ clean:
 .PHONY: swagger
 swagger:
 	swag init -g ./internal/controllers/http/v1/server.go -o ./docs
+	# убирает поле omitempty которое добавляется при кодогенерации клиентов
+	#find pkg -type f -name '*.go' -exec sed -i '' 's/,omitempty//' {} + # для macos
+    #find pkg -type f -name '*.go' -exec sed -i 's/,omitempty//' {} + # для Linux
 
 .PHONY: vet
 vet:

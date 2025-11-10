@@ -6,8 +6,8 @@ postgres:
   pool_max: 2
   host: "192.168.130.112"
   port: "5433"
-  user: "blog_user"
-  password: "blog_password"
+  user: "config_user"
+  password: "config_password"
   dbname: "blog"
   sslmode: "disable"
 

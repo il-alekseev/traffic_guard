@@ -47,8 +47,8 @@
             class="dashboard__request"
             title="Разрешенные запросы"
             :data="{
-              currentValue: dashboardData?.requests?.allowed?.data?.Data?.at(-1) ?? 0,
-              oldValue: dashboardData?.requests?.allowed?.data?.Data?.at(-2) ?? 0
+              currentValue: dashboardData?.requests?.allowed?.data?.data?.at(-1) ?? 0,
+              oldValue: dashboardData?.requests?.allowed?.data?.data?.at(-2) ?? 0
             }"
           >
             <template v-if="loading.requests" #LoadingData>
@@ -68,8 +68,8 @@
             class="dashboard__request"
             title="Запросы до блокировки"
             :data="{
-              currentValue: dashboardData?.requests?.before_block?.data?.Data?.at(-1) ?? 0,
-              oldValue: dashboardData?.requests?.before_block?.data?.Data?.at(-2) ?? 0
+              currentValue: dashboardData?.requests?.before_block?.data?.data?.at(-1) ?? 0,
+              oldValue: dashboardData?.requests?.before_block?.data?.data?.at(-2) ?? 0
             }"  
           >
             <template v-if="loading.requests" #LoadingData>
@@ -89,8 +89,8 @@
             class="dashboard__request"
             title="Заблокированные запросы"
             :data="{
-              currentValue: dashboardData?.requests?.blocked?.data?.Data?.at(-1) ?? 0,
-              oldValue: dashboardData?.requests?.blocked?.data?.Data?.at(-2) ?? 0
+              currentValue: dashboardData?.requests?.blocked?.data?.data?.at(-1) ?? 0,
+              oldValue: dashboardData?.requests?.blocked?.data?.data?.at(-2) ?? 0
             }"  
           >
             <template v-if="loading.requests" #LoadingData>
@@ -110,8 +110,8 @@
             class="dashboard__request"
             title="Запросы в ожидании"
             :data="{
-              currentValue: dashboardData?.requests?.pending?.data?.Data?.at(-1) ?? 0,
-              oldValue: dashboardData?.requests?.pending?.data?.Data?.at(-2) ?? 0
+              currentValue: dashboardData?.requests?.pending?.data?.data?.at(-1) ?? 0,
+              oldValue: dashboardData?.requests?.pending?.data?.data?.at(-2) ?? 0
             }"  
           >
             <template v-if="loading.requests" #LoadingData>
@@ -156,10 +156,23 @@
             <p class="empty-data">Данные отсутствуют</p>
           </template>
         </DashboardCard>
+        
+        <DashboardCard class="dashboard__anomalies" title="Аномалии" link="/sessions">
+          <template v-if="loading.anomalies" #LoadingData>
+            <p class="loading-data">Загрузка...</p>
+          </template>
+          <template v-else-if="fetchError.anomalies !== ''" #ErrorData>
+            <p class="error-data">{{ fetchError.anomalies }}</p>
+          </template>
+          <template v-else-if="dashboardData.anomalies && dashboardData.anomalies.host_anomalies.length > 0" #DashboardStatistic>
+            <DashboardAnomalies :anomaliesData="dashboardData.anomalies!" :graphHeight="'260px'"/>
+            <!-- <DashboardTopDetections :detections="dashboardData.topDetections!" /> -->
+          </template>
+          <template v-else-if="!dashboardData.topDetections || dashboardData.topDetections.length == 0" #EmptyData>
+            <p class="empty-data">Данные отсутствуют</p>
+          </template>
+        </DashboardCard>
         <!--
-        <div class="dashboard__anomalies">
-          DASHBOARD TOP ANOMALIES
-        </div>
         <div class="dashboard__proh-activity">
           DASHBOARD TOP PROH ACTIVITY
         </div>
@@ -201,6 +214,7 @@ import RequestGraph from '~/components/dashboard-grid/RequestGraph.vue';
 import DashboardTopCategories from "~/components/dashboard-grid/TopCategories.vue"
 import DashboardTopDetections from "~/components/dashboard-grid/TopDetections.vue"
 import DashboardTrafficChart from "~/components/dashboard-grid/TrafficSplineChart.vue"
+import DashboardAnomalies from '~/components/dashboard-grid/DashboardAnomalies.vue';
 import ReloadIcon from "~/assets/img/reload.svg"
 import FilterIcon from "~/assets/img/filter-icon.svg"
 import { getCurrentDateWithOffset, isValidDateString } from '~/helpers';
@@ -313,6 +327,15 @@ const fetchData = async () => {
         .catch((error: Error) => {
           loading.value.requests = false;
           fetchError.value.requests = error.message;
+        }),
+      
+      dashboardStore.fetchAnomalies(from, to, hostname)
+        .then(() => {
+          loading.value.anomalies = false;
+        })
+        .catch((error: Error) => {
+          loading.value.anomalies = false;
+          fetchError.value.anomalies = error.message;
         }),
     ]);
 
@@ -453,6 +476,7 @@ watch(dateRange, () => {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
+  overflow: hidden;
 }
 
 
@@ -533,6 +557,13 @@ watch(dateRange, () => {
 
 .dashboard__trafic {
   min-height: 14.25rem;
+}
+
+@media screen and (max-width: 1440px) {
+  .dashboard__trafic {
+    max-width: 1040px;
+    width: 100%;
+  }
 }
 
 .dashboard__requests {

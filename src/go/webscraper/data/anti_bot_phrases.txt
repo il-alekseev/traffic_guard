@@ -19,3 +19,4 @@ Access denied | Error 1020
 recaptcha verification required
 I am not a robot
 To continue, please prove you are not a robot
+Возникла проблема при открытии сайта

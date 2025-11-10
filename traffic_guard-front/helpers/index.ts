@@ -209,6 +209,8 @@ export function isSessionTypes(value: unknown): value is SessionTypes {
 }
 
 export const calculatePercent = (value: number, total: number): string => {
+  if (!value || !total) return '0%';
+
   if (total === 0) return "0%";
   
   const percent = (value / total) * 100;
@@ -220,7 +222,9 @@ export const calculatePercent = (value: number, total: number): string => {
   return `${Math.round(percent)}%`;
 };
 
-export const formatTraffic = (bytes: number): string => {
+export const formatTraffic = (bytes: number | undefined): string => {
+  if (!bytes) return '–';
+
   if (bytes >= 1000000) {
     return `${(bytes / 1000000).toFixed(0)}M`;
   }
