@@ -1,5 +1,6 @@
 export interface ApiRequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean>;
+  // useQuery?: boolean;
   headers?: Record<string, string>;
 }
 

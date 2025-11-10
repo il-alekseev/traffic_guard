@@ -57,7 +57,7 @@
     </div>
 
     <div class="resource-card__footer">
-      <div :class="['resource-card__status', `resource-card__status--`]">
+      <div :class="['resource-card__status', `resource-card__status--${getStatusNameByAction(item.action)}`]">
         <span class="resource-card__status-dot"></span>
         {{ item.action }}
       </div>
@@ -79,7 +79,7 @@
           Отклонить
         </BaseButton>
       </div>
-      <div v-else-if="item.action === 'Разрешено'" class="resource-card__blocked">
+      <div v-else-if="item.action === 'Разрешено'" class="resource-card__accepted">
         Доступ разрешен
       </div>
       <div v-else-if="item.action === 'Заблокировано'" class="resource-card__blocked">
@@ -93,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { getModificatorByCategory } from '~/helpers';
+import { getModificatorByCategory, getStatusNameByAction } from '~/helpers';
 import BaseButton from '~/components/ui/BaseButton.vue';
 import EmojiFlag from "~/components/ui/EmojiFlag.vue"
 import { useDeviceColors } from '~/composables/useDeviceColors';
@@ -335,9 +335,14 @@ const deviceColors = generateColor(props.item.hostname || 'Неизвестно'
     line-height: 1rem;
     font-weight: 500;
 
-    &--blocking {
+    &--blocked {
       background: #FFE2E2;
       color: #C10007;
+    }
+
+    &--accepted {
+      color: #059669;
+      background-color: #DCFCE7;
     }
 
     &--verification {
@@ -396,6 +401,16 @@ const deviceColors = generateColor(props.item.hostname || 'Неизвестно'
     padding: 0.5rem 0.75rem;
     color: #C10007;
     background-color: #FFE2E2;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    border-radius: 6px;
+  }
+
+  &__accepted {
+    padding: 0.5rem 0.75rem;
+    color: #059669;
+    background-color: #DCFCE7;
     font-size: 0.875rem;
     line-height: 1.25rem;
     font-weight: 600;

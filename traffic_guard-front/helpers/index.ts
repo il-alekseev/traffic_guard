@@ -265,3 +265,13 @@ export const isValidDateString = (val: string | null | undefined) => {
   const d = new Date(val);
   return !isNaN(d.getTime());
 };
+
+export const getStatusNameByAction = (action: ActionType): string => {
+  if (action == 'Заблокировано') {
+    return 'blocked'
+  } else if (action === 'Разрешено') {
+    return 'accepted'
+  } else {
+    return '';
+  }
+}
