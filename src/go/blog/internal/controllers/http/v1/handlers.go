@@ -152,7 +152,7 @@ func (s *Server) postAddRecord(c *gin.Context) {
 	}
 	if rawNewValue, ok := dtoBusinessLog.NewValue.(map[string]interface{}); ok {
 		newValue := models.JSONB(rawNewValue)
-		businessLog.OldValue = newValue
+		businessLog.NewValue = newValue
 	}
 
 	err = s.serv.AddRecordToRepo(c.Request.Context(), businessLog)
