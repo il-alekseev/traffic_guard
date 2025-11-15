@@ -12,10 +12,13 @@ import (
 	"tg-an/internal/models"
 	postresql "tg-an/internal/repo/postgresql"
 	"tg-an/internal/usecase"
+	"tg-an/pkg/blog"
 	"tg-an/pkg/cslogger"
 	"tg-an/pkg/pgorm/pgorm"
 	"tg-an/pkg/slogger/wsl"
 	"time"
+
+	httptransport "github.com/go-openapi/runtime/client"
 )
 
 func getDSN(host, user, pass, dbname, port, sslmode string) string {
@@ -74,7 +77,17 @@ func Run(cfg *config.Config) {
 		logger.ErrorContext(ctx, "analytics service", wsl.String("create mdb connection error", err.Error()))
 		return
 	}
-	u := usecase.New(db, mdb, logger)
+	// Инициализация клиента для бизнес-логов
+	blclient := blog.New(
+		httptransport.New(
+			cfg.BlogServ.Host+":"+cfg.BlogServ.Port,
+			"/",
+			[]string{cfg.BlogServ.Proto},
+		),
+		nil,
+	)
+
+	u := usecase.New(db, mdb, blclient, logger)
 
 	server := httpserver.New(cfg, logger, u)
 

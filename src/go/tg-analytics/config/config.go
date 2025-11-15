@@ -10,12 +10,13 @@ import (
 type (
 	// Config -.
 	Config struct {
-		App     `yaml:"app"`
-		Log     `yaml:"logger"`
-		ETL     `yaml:"etl"`
-		HTTP    `yaml:"http"`
-		Swagger `yaml:"swagger"`
-		Metrics `yaml:"metrics"`
+		App      `yaml:"app"`
+		Log      `yaml:"logger"`
+		ETL      `yaml:"etl"`
+		HTTP     `yaml:"http"`
+		Swagger  `yaml:"swagger"`
+		Metrics  `yaml:"metrics"`
+		BlogServ `yaml:"blog_serv"`
 	}
 	// App -.
 	App struct {
@@ -56,6 +57,12 @@ type (
 		Pass    string `env-required:"true" yaml:"pass" env:"AN_METRICS_PASS"`
 		DBName  string `env-required:"true" yaml:"dbname" env:"AN_METRICS_DBNAME"`
 		SSLMode string `env-required:"true" yaml:"sslmode" env:"AN_METRICS_SSLMODE"`
+	}
+
+	BlogServ struct {
+		Proto string `env-required:"true" yaml:"proto" env:"AN_BLOG_SERV_PROTO"`
+		Host  string `env-required:"true" yaml:"host" env:"AN_BLOG_SERV_HOST"`
+		Port  string `env-required:"true" yaml:"port" env:"AN_BLOG_SERV_PORT"`
 	}
 )
 

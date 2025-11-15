@@ -2,6 +2,8 @@ package postgresql
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"tg-an/internal/controllers/http/v1/dto"
 	models "tg-an/internal/models"
@@ -169,7 +171,7 @@ func (r *RepoPG) Act(ctx context.Context, username, action, path string) error {
 			Action:    detectionType.String(),
 			CreatedAt: time.Now(),
 			CreatedBy: username,
-			// TODO: добавить в поле действий ID домена, на который это действие применено
+			DomainID:  domain.ID,
 		}
 		if err := tx.Create(&actionRecord).Error; err != nil {
 			return fmt.Errorf("failed to create action: %w", err)
@@ -188,4 +190,27 @@ func (r *RepoPG) Act(ctx context.Context, username, action, path string) error {
 		}
 		return nil
 	})
+}
+
+func (r *RepoPG) GetDomainAction(ctx context.Context, path string) (string, error) {
+	var action sql.NullString
+
+	err := r.db.GetDB().WithContext(ctx).Table("domains").
+		Joins("LEFT JOIN actions ON domains.action_id = actions.id").
+		Where("domains.path = ?", path).
+		Select("actions.action").
+		Pluck("actions.action", &action).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return "", fmt.Errorf("domain with path %s not found", path)
+		}
+		return "", fmt.Errorf("failed to get domain action: %w", err)
+	}
+
+	if !action.Valid {
+		return "", nil
+	}
+
+	return action.String, nil
 }

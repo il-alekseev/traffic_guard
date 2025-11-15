@@ -51,6 +51,7 @@ type Action struct {
 	Action    string    `gorm:"type:varchar" json:"action"`
 	CreatedAt time.Time `gorm:"column:created_at" json:"created_at"`
 	CreatedBy string    `gorm:"column:created_by" json:"created_by"`
+	DomainID  uint      `gorm:"type:integer;not null;index" json:"domain_id"`
 }
 
 type DomainControlLists struct {

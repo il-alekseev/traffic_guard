@@ -54,9 +54,9 @@ func ActionTypeStringValues() []string {
 // ParseActionType преобразует строку в ActionType
 func ParseActionType(str string) (ActionType, error) {
 	switch strings.ToLower(strings.TrimSpace(str)) {
-	case "allow":
+	case "разрешено", "allow":
 		return ActionTypeAllow, nil
-	case "deny":
+	case "заблокировано", "deny":
 		return ActionTypeDeny, nil
 	default:
 		return "", fmt.Errorf("invalid ActionType: %s", str)

@@ -10,6 +10,7 @@ import (
 	"tg-an/internal/controllers/http/v1/validation"
 	"tg-an/internal/models"
 	"tg-an/pkg/slogger"
+	"tg-an/pkg/slogger/wsl"
 	"tg-an/pkg/trparser"
 	"time"
 
@@ -696,6 +697,12 @@ func (s *Server) Act(c *gin.Context) {
 		return
 	}
 
+	authInfo, err := utils.GetAuthInfo(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+		return
+	}
+
 	// Валидация запроса
 	var req validation.ActRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -713,8 +720,9 @@ func (s *Server) Act(c *gin.Context) {
 		return
 	}
 
-	err = s.u.Act(c.Request.Context(), userMeta, req.Action, req.Path)
+	err = s.u.Act(c.Request.Context(), userMeta, authInfo, req.Action, req.Path)
 	if err != nil {
+		s.l.ErrorContext(c.Request.Context(), "act", wsl.Err(err))
 		// Проверяем тип ошибки для определения статуса
 		if strings.Contains(err.Error(), "does not have permission") {
 			c.JSON(http.StatusForbidden, gin.H{

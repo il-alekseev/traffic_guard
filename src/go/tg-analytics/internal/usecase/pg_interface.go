@@ -24,6 +24,7 @@ type RepoPGInterface interface {
 	GetDetectionStat(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter) (dto.DetectionStat, error)
 	// Actions
 	Act(ctx context.Context, username, action, path string) error
+	GetDomainAction(ctx context.Context, path string) (string, error)
 	// Reports
 	GetCategories(ctx context.Context, tr *trparser.TimeRange) ([]models.CategoryStat, error)
 	GetResourses(ctx context.Context, tr *trparser.TimeRange) ([]models.ResourceStat, error)
