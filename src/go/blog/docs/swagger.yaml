@@ -1,5 +1,55 @@
 basePath: /
 definitions:
+  dto.DtoBusinessLog:
+    properties:
+      context:
+        type: string
+      context_str:
+        type: string
+      description:
+        type: string
+      entity:
+        description: user, context
+        type: string
+      entity_id:
+        description: userID or ContextID
+        type: string
+      event_type:
+        description: Timestamp   time.Time `json:"timestamp,omitzero" gorm:"column:timestamp;type:timestamp
+          with time zone;not null"`
+        type: string
+      new_value:
+        $ref: '#/definitions/dto.Value'
+      old_value:
+        $ref: '#/definitions/dto.Value'
+      user_name:
+        type: string
+      user_role:
+        description: SA, CA
+        type: string
+    type: object
+  dto.SuccessResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  dto.Value:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      login:
+        type: string
+      patronymic:
+        type: string
+      role:
+        type: string
+      user_id:
+        type: string
+    type: object
   models.APIError:
     properties:
       code:
@@ -38,12 +88,6 @@ definitions:
         description: SA, CA
         type: string
     type: object
-  models.DtoSuccessResponse:
-    properties:
-      message:
-        description: message
-        type: string
-    type: object
   models.JSONB:
     additionalProperties: true
     type: object
@@ -73,13 +117,38 @@ info:
   title: app for get logs
   version: "1.0"
 paths:
+  /api/v1/add:
+    post:
+      parameters:
+      - description: Структура записи бизнес лога
+        in: body
+        name: record
+        required: true
+        schema:
+          $ref: '#/definitions/dto.DtoBusinessLog'
+      responses:
+        "200":
+          description: Успех
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+        "400":
+          description: query params is not valid
+          schema:
+            $ref: '#/definitions/models.APIError'
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/models.APIError'
+      security:
+      - BearerAuth: []
+      summary: Добавление логов в БД
   /api/v1/healthcheck:
     get:
       responses:
         "200":
           description: ready
           schema:
-            $ref: '#/definitions/models.DtoSuccessResponse'
+            $ref: '#/definitions/dto.SuccessResponse'
       summary: Проверка здоровья сервиса
   /api/v1/logs:
     get:

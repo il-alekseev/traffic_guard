@@ -1,14 +1,14 @@
 package middleware
 
 import (
+	"fiermon-blog/internal/controllers/http/v1/dto"
+	"fiermon-blog/internal/controllers/http/v1/utils"
 	"fiermon-blog/pkg/fslog/wsl"
 	"log/slog"
 	"net/http"
 	"strings"
 
 	"fiermon-blog/internal/models"
-	"fiermon-blog/internal/server/dto"
-	"fiermon-blog/internal/server/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"

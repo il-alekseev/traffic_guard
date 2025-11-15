@@ -15,6 +15,47 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/add": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "summary": "Добавление логов в БД",
+                "parameters": [
+                    {
+                        "description": "Структура записи бизнес лога",
+                        "name": "record",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.DtoBusinessLog"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успех",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "query params is not valid",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "internal error",
+                        "schema": {
+                            "$ref": "#/definitions/models.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/healthcheck": {
             "get": {
                 "summary": "Проверка здоровья сервиса",
@@ -22,7 +63,7 @@ const docTemplate = `{
                     "200": {
                         "description": "ready",
                         "schema": {
-                            "$ref": "#/definitions/models.DtoSuccessResponse"
+                            "$ref": "#/definitions/dto.SuccessResponse"
                         }
                     }
                 }
@@ -95,6 +136,79 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.DtoBusinessLog": {
+            "type": "object",
+            "properties": {
+                "context": {
+                    "type": "string"
+                },
+                "context_str": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "entity": {
+                    "description": "user, context",
+                    "type": "string"
+                },
+                "entity_id": {
+                    "description": "userID or ContextID",
+                    "type": "string"
+                },
+                "event_type": {
+                    "description": "Timestamp   time.Time ` + "`" + `json:\"timestamp,omitzero\" gorm:\"column:timestamp;type:timestamp with time zone;not null\"` + "`" + `",
+                    "type": "string"
+                },
+                "new_value": {
+                    "$ref": "#/definitions/dto.Value"
+                },
+                "old_value": {
+                    "$ref": "#/definitions/dto.Value"
+                },
+                "user_name": {
+                    "type": "string"
+                },
+                "user_role": {
+                    "description": "SA, CA",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.Value": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "login": {
+                    "type": "string"
+                },
+                "patronymic": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "models.APIError": {
             "type": "object",
             "properties": {
@@ -147,15 +261,6 @@ const docTemplate = `{
                 },
                 "user_role": {
                     "description": "SA, CA",
-                    "type": "string"
-                }
-            }
-        },
-        "models.DtoSuccessResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "description": "message",
                     "type": "string"
                 }
             }

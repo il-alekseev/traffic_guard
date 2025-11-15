@@ -11,15 +11,20 @@ import (
 type Read interface {
 	GetRecord(ctx context.Context, meta *models.UserMeta, page, limit int, role, contextID, search string) ([]models.BusinessLog, models.Meta, error)
 }
+type Write interface {
+	InsertRecord(ctx context.Context, businessLog *models.BusinessLog) error
+}
 type Service struct {
-	log  *slog.Logger
-	repo Read
+	log   *slog.Logger
+	repoR Read
+	repoW Write
 }
 
-func NewService(repo Read, log *slog.Logger) *Service {
+func NewService(repoR Read, repoW Write, log *slog.Logger) *Service {
 	log = log.With(wsl.Label("layer", "service"))
 	return &Service{
-		repo: repo,
-		log:  log,
+		repoR: repoR,
+		repoW: repoW,
+		log:   log,
 	}
 }

@@ -23,4 +23,4 @@ stop:
 
 .PHONY: swagger
 swagger:
-	swag init -g ./internal/server/server.go -o ./docs
+	swag init -g ./internal/controllers/http/v1/server.go -o ./docs
