@@ -151,10 +151,7 @@ func (r *RepoPG) Act(ctx context.Context, username, action, path string) error {
 		if err != nil {
 			return fmt.Errorf("failed to find domain with path %s: %w", path, err)
 		}
-		// Проверяем, есть ли уже действия для домена
-		if domain.ActionID != 0 {
-			return fmt.Errorf("domain already acted")
-		}
+
 		// Обрабатываем Action
 		detectionType, err := models.ParseDetectionStatus(action)
 		if err != nil {
@@ -172,6 +169,7 @@ func (r *RepoPG) Act(ctx context.Context, username, action, path string) error {
 			Action:    detectionType.String(),
 			CreatedAt: time.Now(),
 			CreatedBy: username,
+			// TODO: добавить в поле действий ID домена, на который это действие применено
 		}
 		if err := tx.Create(&actionRecord).Error; err != nil {
 			return fmt.Errorf("failed to create action: %w", err)

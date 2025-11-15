@@ -676,17 +676,17 @@ func (s *Server) GetAnomalies(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// @Summary Выполнение действия над доменом
-// @Description Устанавливает действие (разрешить/заблокировать) для указанного домена
+// @Summary Выполнение действия над выявлением
+// @Description Устанавливает действие (разрешить/заблокировать) для указанного домена.
 // @Tags actions
 // @Accept json
 // @Produce json
-// @Param action query string true "Тип действия" Enums(allow, deny) default(allow)
-// @Param path query string true "Путь домена"
+// @Param request body dto.DetectionActRequest true "Данные для выполнения действия над доменом"
 // @Security BearerAuth
 // @Success 200 {object} dto.SuccessResponse "Действие успешно применено к домену"
 // @Failure 400 {object} dto.ErrorResponse "Неверные параметры запроса"
 // @Failure 403 {object} dto.ErrorResponse "Недостаточно прав для выполнения действия"
+// @Failure 404 {object} dto.ErrorResponse "Домен не найден"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/detections/act [patch]
 func (s *Server) Act(c *gin.Context) {
@@ -698,9 +698,9 @@ func (s *Server) Act(c *gin.Context) {
 
 	// Валидация запроса
 	var req validation.ActRequest
-	if err := c.ShouldBindQuery(&req); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Invalid query parameters: %v", err),
+			"error": fmt.Sprintf("Invalid JSON parameters: %v", err),
 		})
 		return
 	}
@@ -718,6 +718,10 @@ func (s *Server) Act(c *gin.Context) {
 		// Проверяем тип ошибки для определения статуса
 		if strings.Contains(err.Error(), "does not have permission") {
 			c.JSON(http.StatusForbidden, gin.H{
+				"error": err.Error(),
+			})
+		} else if strings.Contains(err.Error(), "failed to find domain") {
+			c.JSON(http.StatusNotFound, gin.H{
 				"error": err.Error(),
 			})
 		} else {

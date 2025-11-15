@@ -30,6 +30,13 @@ definitions:
       request_count:
         type: integer
     type: object
+  dto.DetectionActRequest:
+    properties:
+      action:
+        type: string
+      path:
+        type: string
+    type: object
   dto.DetectionStat:
     properties:
       accepted:
@@ -878,22 +885,14 @@ paths:
       consumes:
       - application/json
       description: Устанавливает действие (разрешить/заблокировать) для указанного
-        домена
+        домена.
       parameters:
-      - default: allow
-        description: Тип действия
-        enum:
-        - allow
-        - deny
-        in: query
-        name: action
+      - description: Данные для выполнения действия над доменом
+        in: body
+        name: request
         required: true
-        type: string
-      - description: Путь домена
-        in: query
-        name: path
-        required: true
-        type: string
+        schema:
+          $ref: '#/definitions/dto.DetectionActRequest'
       produces:
       - application/json
       responses:
@@ -909,13 +908,17 @@ paths:
           description: Недостаточно прав для выполнения действия
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Домен не найден
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
         "500":
           description: Внутренняя ошибка сервера
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Выполнение действия над доменом
+      summary: Выполнение действия над выявлением
       tags:
       - actions
   /api/v1/detections/stat:

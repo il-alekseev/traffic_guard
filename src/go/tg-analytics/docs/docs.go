@@ -616,7 +616,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Устанавливает действие (разрешить/заблокировать) для указанного домена",
+                "description": "Устанавливает действие (разрешить/заблокировать) для указанного домена.",
                 "consumes": [
                     "application/json"
                 ],
@@ -626,26 +626,16 @@ const docTemplate = `{
                 "tags": [
                     "actions"
                 ],
-                "summary": "Выполнение действия над доменом",
+                "summary": "Выполнение действия над выявлением",
                 "parameters": [
                     {
-                        "enum": [
-                            "allow",
-                            "deny"
-                        ],
-                        "type": "string",
-                        "default": "allow",
-                        "description": "Тип действия",
-                        "name": "action",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Путь домена",
-                        "name": "path",
-                        "in": "query",
-                        "required": true
+                        "description": "Данные для выполнения действия над доменом",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.DetectionActRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -663,6 +653,12 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "Недостаточно прав для выполнения действия",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Домен не найден",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -1194,6 +1190,17 @@ const docTemplate = `{
                 },
                 "request_count": {
                     "type": "integer"
+                }
+            }
+        },
+        "dto.DetectionActRequest": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
                 }
             }
         },
