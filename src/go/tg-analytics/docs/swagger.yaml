@@ -85,15 +85,17 @@ definitions:
     type: object
   dto.GetSessionsResponse:
     properties:
+      count:
+        description: Число сессий в ответе
+        type: integer
       data:
         description: Список сессий
         items:
           $ref: '#/definitions/dto.Session'
         type: array
-      meta:
-        allOf:
-        - $ref: '#/definitions/dto.PaginationMeta'
-        description: Метаданные пагинации
+      total:
+        description: Общее количество сессийы
+        type: integer
     type: object
   dto.PaginationMeta:
     properties:
@@ -1189,18 +1191,12 @@ paths:
         in: query
         name: search
         type: string
-      - default: 1
-        description: Номер страницы
+      - default: 25
+        description: Количество возвращаемых сессий
         in: query
+        maximum: 500
         minimum: 1
-        name: page
-        type: integer
-      - default: 10
-        description: Количество записей на странице
-        in: query
-        maximum: 100
-        minimum: 1
-        name: limit
+        name: count
         type: integer
       - default: datetime_utc
         description: Поле для сортировки

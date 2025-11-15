@@ -13,7 +13,7 @@ type UseCaseInterface interface {
 	GetContentCategories(ctx context.Context) ([]string, error)
 
 	// Sessions
-	GetSessions(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.SessionFilter, search string, p models.Pagination, s models.Sorting) ([]dto.Session, int64, error)
+	GetSessions(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.SessionFilter, search string, count uint, s models.Sorting) ([]dto.Session, int64, error)
 
 	// Dashboards
 	GetTopCategories(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.CategoryFilter, count int) ([]dto.Category, error)

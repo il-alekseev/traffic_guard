@@ -1064,20 +1064,12 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "maximum": 500,
                         "minimum": 1,
                         "type": "integer",
-                        "default": 1,
-                        "description": "Номер страницы",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "maximum": 100,
-                        "minimum": 1,
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Количество записей на странице",
-                        "name": "limit",
+                        "default": 25,
+                        "description": "Количество возвращаемых сессий",
+                        "name": "count",
                         "in": "query"
                     },
                     {
@@ -1291,6 +1283,10 @@ const docTemplate = `{
         "dto.GetSessionsResponse": {
             "type": "object",
             "properties": {
+                "count": {
+                    "description": "Число сессий в ответе",
+                    "type": "integer"
+                },
                 "data": {
                     "description": "Список сессий",
                     "type": "array",
@@ -1298,13 +1294,9 @@ const docTemplate = `{
                         "$ref": "#/definitions/dto.Session"
                     }
                 },
-                "meta": {
-                    "description": "Метаданные пагинации",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/dto.PaginationMeta"
-                        }
-                    ]
+                "total": {
+                    "description": "Общее количество сессийы",
+                    "type": "integer"
                 }
             }
         },
