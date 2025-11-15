@@ -2,9 +2,8 @@ package utils
 
 import (
 	"errors"
+	"fiermon-blog/internal/controllers/http/v1/values"
 	"fiermon-blog/internal/models"
-	"fiermon-blog/internal/server/values"
-
 	"github.com/gin-gonic/gin"
 )
 

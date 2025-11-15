@@ -1,8 +1,7 @@
 package utils
 
 import (
-	"fiermon-blog/internal/server/values"
-
+	"fiermon-blog/internal/controllers/http/v1/values"
 	"github.com/gin-gonic/gin"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"

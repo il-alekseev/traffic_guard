@@ -1264,23 +1264,45 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/healthcheck": {
-            "get": {
-                "tags": [
-                    "healthcheck"
+        "/api/v1/blog/add": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
                 ],
-                "summary": "Проверка состояния сервера",
+                "tags": [
+                    "logs"
+                ],
+                "summary": "Добавление логов в БД",
+                "parameters": [
+                    {
+                        "description": "Структура записи бизнес лога",
+                        "name": "record",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoDtoBusinessLog"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "Отфильтрованные логи",
+                        "description": "Успех",
                         "schema": {
                             "$ref": "#/definitions/models.DtoSuccessResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "internal error",
+                        "schema": {
+                            "$ref": "#/definitions/models.ModelsAPIError"
                         }
                     }
                 }
             }
         },
-        "/api/v1/logs": {
+        "/api/v1/blog/logs": {
             "get": {
                 "security": [
                     {
@@ -1343,6 +1365,22 @@ const docTemplate = `{
                         "description": "internal error",
                         "schema": {
                             "$ref": "#/definitions/models.ModelsAPIError"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/healthcheck": {
+            "get": {
+                "tags": [
+                    "healthcheck"
+                ],
+                "summary": "Проверка состояния сервера",
+                "responses": {
+                    "200": {
+                        "description": "Отфильтрованные логи",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoSuccessResponse"
                         }
                     }
                 }
@@ -2355,6 +2393,59 @@ const docTemplate = `{
                 }
             }
         },
+        "models.DtoDtoBusinessLog": {
+            "type": "object",
+            "properties": {
+                "context": {
+                    "description": "context",
+                    "type": "string"
+                },
+                "context_str": {
+                    "description": "context str",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "description",
+                    "type": "string"
+                },
+                "entity": {
+                    "description": "user, context",
+                    "type": "string"
+                },
+                "entity_id": {
+                    "description": "userID or ContextID",
+                    "type": "string"
+                },
+                "event_type": {
+                    "description": "Timestamp   time.Time ` + "`" + `json:\"timestamp,omitzero\" gorm:\"column:timestamp;type:timestamp with time zone;not null\"` + "`" + `",
+                    "type": "string"
+                },
+                "new_value": {
+                    "description": "new value",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.DtoValue"
+                        }
+                    ]
+                },
+                "old_value": {
+                    "description": "old value",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.DtoValue"
+                        }
+                    ]
+                },
+                "user_name": {
+                    "description": "user name",
+                    "type": "string"
+                },
+                "user_role": {
+                    "description": "SA, CA",
+                    "type": "string"
+                }
+            }
+        },
         "models.DtoErrorResponse": {
             "type": "object",
             "properties": {
@@ -2744,6 +2835,39 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.DtoPaginationMeta"
                         }
                     ]
+                }
+            }
+        },
+        "models.DtoValue": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "description": "email",
+                    "type": "string"
+                },
+                "first_name": {
+                    "description": "first name",
+                    "type": "string"
+                },
+                "last_name": {
+                    "description": "last name",
+                    "type": "string"
+                },
+                "login": {
+                    "description": "login",
+                    "type": "string"
+                },
+                "patronymic": {
+                    "description": "patronymic",
+                    "type": "string"
+                },
+                "role": {
+                    "description": "role",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "user id",
+                    "type": "string"
                 }
             }
         },

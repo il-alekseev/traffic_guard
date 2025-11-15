@@ -14,10 +14,10 @@ type (
 		Log         `yaml:"logger"`
 		Swagger     `yaml:"swagger"`
 		UserControl `yaml:"usercontrol"`
-		CtxControl  `yaml:"ctxcontrol"`
-		BlogServ    `yaml:"blog_serv"`
-		Analytics   `yaml:"analytics"`
-		KeyCloak    `yaml:"keycloak"`
+		
+		BlogServ  `yaml:"blog_serv"`
+		Analytics `yaml:"analytics"`
+		KeyCloak  `yaml:"keycloak"`
 	}
 
 	// App - contains basic application metadata.
@@ -47,13 +47,6 @@ type (
 		Proto string `env-required:"true" yaml:"proto" env:"API_GW_USERCONTROL_PROTO"`
 		Host  string `env-required:"true" yaml:"host" env:"API_GW_USERCONTROL_HOST"`
 		Port  string `env-required:"true" yaml:"port" env:"API_GW_USERCONTROL_PORT"`
-	}
-
-	// CtxControl - параметры ContextControl сервиса
-	CtxControl struct {
-		Proto string `env-required:"true" yaml:"proto" env:"API_GW_CONTEXTCONTROL_PROTO"`
-		Host  string `env-required:"true" yaml:"host" env:"API_GW_CONTEXTCONTROL_HOST"`
-		Port  string `env-required:"true" yaml:"port" env:"API_GW_CONTEXTCONTROL_PORT"`
 	}
 
 	// BlogServ - параметры BlogServ сервиса

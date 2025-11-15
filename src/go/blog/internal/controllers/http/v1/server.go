@@ -1,13 +1,13 @@
-package server
+package v1
 
 import (
+	"fiermon-blog/internal/controllers/http/v1/dto"
 	"fiermon-blog/pkg/fslog/wsl"
 	"fmt"
 	"log/slog"
 	"net/http"
 
 	"fiermon-blog/config"
-	"fiermon-blog/internal/server/dto"
 	"fiermon-blog/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -32,7 +32,7 @@ type Server struct {
 
 func NewServer(cfg config.HTTP, log *slog.Logger, serv *service.Service) *Server {
 	log = log.With(wsl.Label("layer", "http_server"))
-	
+
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 

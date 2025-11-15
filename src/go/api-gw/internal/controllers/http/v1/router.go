@@ -62,9 +62,10 @@ func (s *Server) configureRouter() {
 		roles.GET("/count", s.getRolesCount) // SA
 	}
 
-	blog := apiRouter.Group("/api/v1")
+	blog := apiRouter.Group("/api/v1/blog")
 	{
-		blog.GET("/logs", s.logs) // SA, CA
+		blog.GET("/logs", s.logs)          // SA, CA
+		blog.POST("/add", s.postAddRecord) // SA, CA
 	}
 
 	analytics := apiRouter.Group("/api/v1/analytics")

@@ -91,6 +91,42 @@ definitions:
           type: string
         type: array
     type: object
+  models.DtoDtoBusinessLog:
+    properties:
+      context:
+        description: context
+        type: string
+      context_str:
+        description: context str
+        type: string
+      description:
+        description: description
+        type: string
+      entity:
+        description: user, context
+        type: string
+      entity_id:
+        description: userID or ContextID
+        type: string
+      event_type:
+        description: Timestamp   time.Time `json:"timestamp,omitzero" gorm:"column:timestamp;type:timestamp
+          with time zone;not null"`
+        type: string
+      new_value:
+        allOf:
+        - $ref: '#/definitions/models.DtoValue'
+        description: new value
+      old_value:
+        allOf:
+        - $ref: '#/definitions/models.DtoValue'
+        description: old value
+      user_name:
+        description: user name
+        type: string
+      user_role:
+        description: SA, CA
+        type: string
+    type: object
   models.DtoErrorResponse:
     properties:
       error:
@@ -398,6 +434,30 @@ definitions:
         allOf:
         - $ref: '#/definitions/models.DtoPaginationMeta'
         description: meta
+    type: object
+  models.DtoValue:
+    properties:
+      email:
+        description: email
+        type: string
+      first_name:
+        description: first name
+        type: string
+      last_name:
+        description: last name
+        type: string
+      login:
+        description: login
+        type: string
+      patronymic:
+        description: patronymic
+        type: string
+      role:
+        description: role
+        type: string
+      user_id:
+        description: user id
+        type: string
     type: object
   models.ModelsAPIError:
     properties:
@@ -1806,17 +1866,30 @@ paths:
       summary: Выход пользователя из системы
       tags:
       - auth
-  /api/v1/healthcheck:
-    get:
+  /api/v1/blog/add:
+    post:
+      parameters:
+      - description: Структура записи бизнес лога
+        in: body
+        name: record
+        required: true
+        schema:
+          $ref: '#/definitions/models.DtoDtoBusinessLog'
       responses:
         "200":
-          description: Отфильтрованные логи
+          description: Успех
           schema:
             $ref: '#/definitions/models.DtoSuccessResponse'
-      summary: Проверка состояния сервера
+        "500":
+          description: internal error
+          schema:
+            $ref: '#/definitions/models.ModelsAPIError'
+      security:
+      - BearerAuth: []
+      summary: Добавление логов в БД
       tags:
-      - healthcheck
-  /api/v1/logs:
+      - logs
+  /api/v1/blog/logs:
     get:
       description: Получение бизнес логов с возможностью фильтрации и пагинации
       parameters:
@@ -1860,6 +1933,16 @@ paths:
       summary: Получение бизнес логов
       tags:
       - logs
+  /api/v1/healthcheck:
+    get:
+      responses:
+        "200":
+          description: Отфильтрованные логи
+          schema:
+            $ref: '#/definitions/models.DtoSuccessResponse'
+      summary: Проверка состояния сервера
+      tags:
+      - healthcheck
   /api/v1/roles:
     get:
       description: Возвращает список ролей с возможностью пагинации и фильтрации по
