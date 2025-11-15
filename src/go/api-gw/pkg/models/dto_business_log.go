@@ -12,10 +12,10 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// ModelsBusinessLog models business log
+// DtoBusinessLog dto business log
 //
-// swagger:model models.BusinessLog
-type ModelsBusinessLog struct {
+// swagger:model dto.BusinessLog
+type DtoBusinessLog struct {
 
 	// context
 	Context string `json:"context,omitempty"`
@@ -32,17 +32,11 @@ type ModelsBusinessLog struct {
 	// CREATE, UPDATE, DELETE
 	EventType string `json:"event_type,omitempty"`
 
-	// id
-	ID int64 `json:"id,omitempty"`
-
 	// new value
-	NewValue ModelsJSONB `json:"new_value,omitempty"`
+	NewValue interface{} `json:"new_value,omitempty"`
 
 	// old value
-	OldValue ModelsJSONB `json:"old_value,omitempty"`
-
-	// timestamp
-	Timestamp string `json:"timestamp,omitempty"`
+	OldValue interface{} `json:"old_value,omitempty"`
 
 	// user name
 	UserName string `json:"user_name,omitempty"`
@@ -51,18 +45,18 @@ type ModelsBusinessLog struct {
 	UserRole string `json:"user_role,omitempty"`
 }
 
-// Validate validates this models business log
-func (m *ModelsBusinessLog) Validate(formats strfmt.Registry) error {
+// Validate validates this dto business log
+func (m *DtoBusinessLog) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validates this models business log based on context it is used
-func (m *ModelsBusinessLog) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validates this dto business log based on context it is used
+func (m *DtoBusinessLog) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *ModelsBusinessLog) MarshalBinary() ([]byte, error) {
+func (m *DtoBusinessLog) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -70,8 +64,8 @@ func (m *ModelsBusinessLog) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *ModelsBusinessLog) UnmarshalBinary(b []byte) error {
-	var res ModelsBusinessLog
+func (m *DtoBusinessLog) UnmarshalBinary(b []byte) error {
+	var res DtoBusinessLog
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

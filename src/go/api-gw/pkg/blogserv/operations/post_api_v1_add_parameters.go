@@ -67,7 +67,7 @@ type PostAPIV1AddParams struct {
 
 	   Структура записи бизнес лога
 	*/
-	Record *models.DtoDtoBusinessLog
+	Record *models.DtoBusinessLog
 
 	timeout    time.Duration
 	Context    context.Context
@@ -123,13 +123,13 @@ func (o *PostAPIV1AddParams) SetHTTPClient(client *http.Client) {
 }
 
 // WithRecord adds the record to the post API v1 add params
-func (o *PostAPIV1AddParams) WithRecord(record *models.DtoDtoBusinessLog) *PostAPIV1AddParams {
+func (o *PostAPIV1AddParams) WithRecord(record *models.DtoBusinessLog) *PostAPIV1AddParams {
 	o.SetRecord(record)
 	return o
 }
 
 // SetRecord adds the record to the post API v1 add params
-func (o *PostAPIV1AddParams) SetRecord(record *models.DtoDtoBusinessLog) {
+func (o *PostAPIV1AddParams) SetRecord(record *models.DtoBusinessLog) {
 	o.Record = record
 }
 

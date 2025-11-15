@@ -14,12 +14,11 @@ type BusinessLog struct {
 	Entity      string    `json:"entity,omitempty" gorm:"column:entity;type:varchar(40);not null"`         // user, context
 	Username    string    `json:"user_name,omitempty" gorm:"column:user_name;type:varchar(36);not null"`
 	UserRole    string    `json:"user_role,omitempty" gorm:"column:user_role;type:varchar(10);not null"` // SA, CA
-	ContextID   string    `json:"context,omitempty" gorm:"column:context;type:varchar(50)"`
+	Context     string    `json:"context,omitempty" gorm:"column:context;type:varchar(50)"`
 	EntityID    string    `json:"entity_id,omitempty" gorm:"column:entity_id;type:varchar(50);not null"` // userID or ContextID
 	OldValue    JSONB     `json:"old_value,omitempty" gorm:"column:old_value;type:jsonb"`
 	NewValue    JSONB     `json:"new_value,omitempty" gorm:"column:new_value;type:jsonb"`
 	Description string    `json:"description,omitempty" gorm:"column:description;type:text"`
-	ContextStr  string    `json:"context_str,omitempty" gorm:"column:context_str;type:text"`
 }
 
 // JSONB тип для работы с jsonb в GORM

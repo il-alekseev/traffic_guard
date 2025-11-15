@@ -82,7 +82,7 @@ func (s *Server) postAddRecord(c *gin.Context) {
 		return
 	}
 
-	var body models.DtoDtoBusinessLog
+	var body models.DtoBusinessLog
 	if err := c.ShouldBindJSON(&body); err != nil {
 		s.ErrorResponse(c, http.StatusBadRequest, "invalid json body", err)
 		return

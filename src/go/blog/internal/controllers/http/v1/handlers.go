@@ -1,11 +1,9 @@
 package v1
 
 import (
-	"encoding/json"
 	"errors"
 	"fiermon-blog/internal/controllers/http/v1/dto"
 	"fiermon-blog/internal/controllers/http/v1/utils"
-	"io"
 	"net/http"
 
 	_ "fiermon-blog/docs"
@@ -51,7 +49,7 @@ func (s *Server) getLogs(c *gin.Context) {
 		})
 	}
 
-	validReq := reqAny.(dto.ValidateQuery)
+	validReq := reqAny.(dto.FilterLogs)
 
 	var (
 		records []models.BusinessLog
@@ -109,7 +107,7 @@ func (s *Server) getLogs(c *gin.Context) {
 
 // postAddRecord - ручка для вставки записей в БД
 // @Summary      Добавление логов в БД
-// @Param record body dto.DtoBusinessLog true "Структура записи бизнес лога"
+// @Param record body dto.BusinessLog true "Структура записи бизнес лога"
 // @Success      200  {object}  dto.SuccessResponse "Успех"
 // @Security BearerAuth
 // @Failure 400 {object} models.APIError "query params is not valid"
@@ -131,69 +129,40 @@ func (s *Server) postAddRecord(c *gin.Context) {
 		return
 	}
 
-	dtoBody, err := io.ReadAll(c.Request.Body)
+	var dtoBusinessLog dto.BusinessLog
+	err = c.ShouldBindJSON(&dtoBusinessLog)
 	if err != nil {
-		log.ErrorContext(c.Request.Context(), "failed to read body", wsl.Err(err))
-		s.ErrorResponse(c, http.StatusBadRequest, "utils.ReadAll", err)
+		log.ErrorContext(c.Request.Context(), "failed to bind json body", wsl.Err(err))
+		s.ErrorResponse(c, http.StatusBadRequest, "c.BindJSON", err)
 		return
 	}
 
-	var dtoBuisnesLog dto.DtoBusinessLog
-	err = json.Unmarshal(dtoBody, &dtoBuisnesLog)
-	if err != nil {
-		log.ErrorContext(c.Request.Context(), "failed to unmarshal body", wsl.Err(err))
-		s.ErrorResponse(c, http.StatusBadRequest, "utils.Unmarshal", err)
-		return
+	businessLog := &models.BusinessLog{
+		EventType:   dtoBusinessLog.EventType,
+		Entity:      dtoBusinessLog.Entity,
+		Username:    dtoBusinessLog.Username,
+		UserRole:    dtoBusinessLog.UserRole,
+		Context:     dtoBusinessLog.Context,
+		EntityID:    dtoBusinessLog.EntityID,
+		Description: dtoBusinessLog.Description,
+	}
+	if rawOldValue, ok := dtoBusinessLog.OldValue.(map[string]interface{}); ok {
+		oldValue := models.JSONB(rawOldValue)
+		businessLog.OldValue = oldValue
+	}
+	if rawNewValue, ok := dtoBusinessLog.NewValue.(map[string]interface{}); ok {
+		newValue := models.JSONB(rawNewValue)
+		businessLog.OldValue = newValue
 	}
 
-	var oldValueMap, newValueMap models.JSONB
-	if dtoBuisnesLog.OldValue != (dto.Value{}) {
-		data, err := json.Marshal(dtoBuisnesLog.OldValue)
-		if err != nil {
-			s.ErrorResponse(c, http.StatusInternalServerError, "failed to marshal OldValue", err)
-			return
-		}
-		err = json.Unmarshal(data, &oldValueMap)
-		if err != nil {
-			s.ErrorResponse(c, http.StatusInternalServerError, "failed to unmarshal OldValue", err)
-			return
-		}
-	}
-
-	if dtoBuisnesLog.NewValue != (dto.Value{}) {
-		data, err := json.Marshal(dtoBuisnesLog.NewValue)
-		if err != nil {
-			s.ErrorResponse(c, http.StatusInternalServerError, "failed to marshal NewValue", err)
-			return
-		}
-		err = json.Unmarshal(data, &newValueMap)
-		if err != nil {
-			s.ErrorResponse(c, http.StatusInternalServerError, "failed to unmarshal NewValue", err)
-			return
-		}
-	}
-
-	buisnessLog := &models.BusinessLog{
-		EventType:   dtoBuisnesLog.EventType,
-		Entity:      dtoBuisnesLog.Entity,
-		Username:    dtoBuisnesLog.Username,
-		UserRole:    dtoBuisnesLog.UserRole,
-		ContextID:   dtoBuisnesLog.ContextID,
-		EntityID:    dtoBuisnesLog.EntityID,
-		OldValue:    oldValueMap,
-		NewValue:    newValueMap,
-		Description: dtoBuisnesLog.Description,
-		ContextStr:  dtoBuisnesLog.ContextStr,
-	}
-
-	err = s.serv.AddRecordToRepo(c.Request.Context(), buisnessLog)
+	err = s.serv.AddRecordToRepo(c.Request.Context(), businessLog)
 	if err != nil {
 		log.ErrorContext(c.Request.Context(), "failed to add record", wsl.Err(err))
 		s.ErrorResponse(c, http.StatusInternalServerError, "utils.AddRecordToRepo", err)
 		return
 	}
 
-	response := models.DtoSuccessResponse{
+	response := dto.SuccessResponse{
 		Message: "ok",
 	}
 	c.JSON(http.StatusOK, response)
@@ -204,7 +173,7 @@ func (s *Server) postAddRecord(c *gin.Context) {
 // @Success      200  {object}  dto.SuccessResponse "ready"
 // @Router       /api/v1/healthcheck [get]
 func (s *Server) healthcheck(c *gin.Context) {
-	response := models.DtoSuccessResponse{
+	response := dto.SuccessResponse{
 		Message: "ready",
 	}
 	c.JSON(http.StatusOK, response)

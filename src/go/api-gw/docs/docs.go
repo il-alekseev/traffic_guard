@@ -2941,10 +2941,6 @@ const docTemplate = `{
                     "description": "context",
                     "type": "string"
                 },
-                "context_str": {
-                    "description": "context str",
-                    "type": "string"
-                },
                 "description": {
                     "description": "description",
                     "type": "string"
