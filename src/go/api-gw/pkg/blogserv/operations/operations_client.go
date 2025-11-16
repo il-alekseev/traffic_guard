@@ -60,7 +60,7 @@ type ClientService interface {
 
 	GetAPIV1Logs(params *GetAPIV1LogsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1LogsOK, error)
 
-	PostAPIV1Add(params *PostAPIV1AddParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1AddOK, error)
+	PostAPIV1Add(params *PostAPIV1AddParams, opts ...ClientOption) (*PostAPIV1AddOK, error)
 
 	SetTransport(transport runtime.ClientTransport)
 }
@@ -147,7 +147,7 @@ func (a *Client) GetAPIV1Logs(params *GetAPIV1LogsParams, authInfo runtime.Clien
 /*
 PostAPIV1Add добавлениеs логов в б д
 */
-func (a *Client) PostAPIV1Add(params *PostAPIV1AddParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAPIV1AddOK, error) {
+func (a *Client) PostAPIV1Add(params *PostAPIV1AddParams, opts ...ClientOption) (*PostAPIV1AddOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostAPIV1AddParams()
@@ -161,7 +161,6 @@ func (a *Client) PostAPIV1Add(params *PostAPIV1AddParams, authInfo runtime.Clien
 		Schemes:            []string{"http"},
 		Params:             params,
 		Reader:             &PostAPIV1AddReader{formats: a.formats},
-		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
 	}

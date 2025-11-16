@@ -10,13 +10,24 @@
     "paths": {
         "/api/v1/add": {
             "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "summary": "Добавление логов в БД",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "default": "user-service",
+                        "description": "Имя вызывающего микросервиса",
+                        "name": "X-Caller-Service",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "req-abc123-def456",
+                        "description": "Уникальный ID (UUID) запроса",
+                        "name": "X-Request-ID",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "Структура записи бизнес лога",
                         "name": "record",

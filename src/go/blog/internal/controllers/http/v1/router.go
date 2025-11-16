@@ -13,16 +13,15 @@ func (s *Server) initRouter() {
 	s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	api := s.router.Group("/api/v1")
+	api.Use(middleware2.RecoveryMiddleware())
 	api.Use(middleware2.CorsMiddleware())
 	api.Use(middleware2.RequestIDMiddleware())
 	api.Use(middleware2.LoggingMiddleware(s.logger))
-	api.Use(middleware2.RecoveryMiddleware())
 	//Use(s.authMiddleware())
-	api.Use(middleware2.CheckAuthHeader())
-	api.Use(middleware2.SetUserMetaData(s.logger))
+	//api.Use(middleware2.SetUserMetaData(s.logger))
 
 	{
-		api.POST("/add", s.postAddRecord)
-		api.GET("/logs", s.validateParams(), s.getLogs)
+		api.POST("/add", middleware2.SetServiceMeta(s.logger), s.postAddRecord)
+		api.GET("/logs", middleware2.SetUserMetaData(s.logger), middleware2.CheckAuthHeader(), s.validateParams(), s.getLogs)
 	}
 }

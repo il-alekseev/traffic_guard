@@ -2,9 +2,11 @@ package v1
 
 import (
 	"api-gateway/internal/controllers/http/v1/utils"
+	"api-gateway/internal/controllers/http/v1/values"
 	"api-gateway/pkg/blogserv/operations"
 	"api-gateway/pkg/models"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"net/http"
 	"strconv"
 )
@@ -69,17 +71,22 @@ func (s *Server) logs(c *gin.Context) {
 // postAddRecord - ручка для вставки записей в БД
 // @Summary      Добавление логов в БД
 // @Tags logs
-// @Security BearerAuth
+// @Security 	 BearerAuth
 // @Param record body models.DtoDtoBusinessLog true "Структура записи бизнес лога"
 // @Success      200  {object}  models.DtoSuccessResponse "Успех"
 // @Failure 500 {object} models.ModelsAPIError "internal error"
 // @Router       /api/v1/blog/add [post]
 func (s *Server) postAddRecord(c *gin.Context) {
 	// Создаем authInfoWriter для передачи токена
-	authInfo, err := utils.GetAuthInfo(c)
-	if err != nil {
-		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-		return
+	//authInfo, err := utils.GetAuthInfo(c)
+	//if err != nil {
+	//	s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+	//	return
+	//}
+
+	uuidStr := c.GetHeader(values.RequestIDHeader)
+	if uuidStr == "" {
+		uuidStr = uuid.New().String()
 	}
 
 	var body models.DtoBusinessLog
@@ -89,9 +96,11 @@ func (s *Server) postAddRecord(c *gin.Context) {
 	}
 
 	status, err := s.blogCL.Operations.PostAPIV1Add(&operations.PostAPIV1AddParams{
-		Context: c,
-		Record:  &body,
-	}, authInfo)
+		XCallerService: values.ThisServiceName,
+		XRequestID:     uuidStr,
+		Context:        c,
+		Record:         &body,
+	})
 	if err != nil {
 		s.ErrorResponse(c, http.StatusInternalServerError, "s.blogCL.Operations.PostAPIV1Add", err)
 		return

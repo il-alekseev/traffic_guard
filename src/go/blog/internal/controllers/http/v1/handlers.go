@@ -107,23 +107,24 @@ func (s *Server) getLogs(c *gin.Context) {
 
 // postAddRecord - ручка для вставки записей в БД
 // @Summary      Добавление логов в БД
+// @Param X-Caller-Service header string true "Имя вызывающего микросервиса" default(user-service)
+// @Param X-Request-ID header string true "Уникальный ID (UUID) запроса" default(req-abc123-def456)
 // @Param record body dto.BusinessLog true "Структура записи бизнес лога"
 // @Success      200  {object}  dto.SuccessResponse "Успех"
-// @Security BearerAuth
 // @Failure 400 {object} models.APIError "query params is not valid"
 // @Failure 500 {object} models.APIError "internal error"
 // @Router       /api/v1/add [post]
 func (s *Server) postAddRecord(c *gin.Context) {
 	log := s.logger.With("method", "postAddRecord")
 
-	userMeta, err := utils.GetUserMeta(c)
+	serviceMeta, err := utils.GetServiceMeta(c)
 	if err != nil {
 		log.ErrorContext(c.Request.Context(), "failed to get userMeta", wsl.Err(err))
 		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetUserMeta", err)
 		return
 	}
 
-	if userMeta.UUID == "" {
+	if serviceMeta.UUID == "" {
 		log.ErrorContext(c.Request.Context(), "failed to get userMeta.UUID", wsl.Err(err))
 		s.ErrorResponse(c, http.StatusBadRequest, "token param", errors.New("userID in token is not exists"))
 		return

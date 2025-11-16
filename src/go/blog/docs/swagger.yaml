@@ -96,6 +96,18 @@ paths:
   /api/v1/add:
     post:
       parameters:
+      - default: user-service
+        description: Имя вызывающего микросервиса
+        in: header
+        name: X-Caller-Service
+        required: true
+        type: string
+      - default: req-abc123-def456
+        description: Уникальный ID (UUID) запроса
+        in: header
+        name: X-Request-ID
+        required: true
+        type: string
       - description: Структура записи бизнес лога
         in: body
         name: record
@@ -115,8 +127,6 @@ paths:
           description: internal error
           schema:
             $ref: '#/definitions/models.APIError'
-      security:
-      - BearerAuth: []
       summary: Добавление логов в БД
   /api/v1/healthcheck:
     get:
