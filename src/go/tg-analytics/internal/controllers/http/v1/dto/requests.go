@@ -5,3 +5,8 @@ package dto
 type SearchRequest struct {
 	Like string `form:"like" binding:"omitempty"` // Строка для поиска по шаблону (LIKE)
 }
+
+type DetectionActRequest struct {
+	Action string `form:"action"`
+	Path   string `form:"path"`
+}

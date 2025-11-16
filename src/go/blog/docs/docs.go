@@ -17,20 +17,31 @@ const docTemplate = `{
     "paths": {
         "/api/v1/add": {
             "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
                 "summary": "Добавление логов в БД",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "default": "user-service",
+                        "description": "Имя вызывающего микросервиса",
+                        "name": "X-Caller-Service",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "default": "req-abc123-def456",
+                        "description": "Уникальный ID (UUID) запроса",
+                        "name": "X-Request-ID",
+                        "in": "header",
+                        "required": true
+                    },
                     {
                         "description": "Структура записи бизнес лога",
                         "name": "record",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.DtoBusinessLog"
+                            "$ref": "#/definitions/dto.BusinessLog"
                         }
                     }
                 ],
@@ -136,13 +147,10 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.DtoBusinessLog": {
+        "dto.BusinessLog": {
             "type": "object",
             "properties": {
                 "context": {
-                    "type": "string"
-                },
-                "context_str": {
                     "type": "string"
                 },
                 "description": {
@@ -157,15 +165,11 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "event_type": {
-                    "description": "Timestamp   time.Time ` + "`" + `json:\"timestamp,omitzero\" gorm:\"column:timestamp;type:timestamp with time zone;not null\"` + "`" + `",
+                    "description": "CREATE, UPDATE, DELETE",
                     "type": "string"
                 },
-                "new_value": {
-                    "$ref": "#/definitions/dto.Value"
-                },
-                "old_value": {
-                    "$ref": "#/definitions/dto.Value"
-                },
+                "new_value": {},
+                "old_value": {},
                 "user_name": {
                     "type": "string"
                 },
@@ -179,32 +183,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.Value": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "first_name": {
-                    "type": "string"
-                },
-                "last_name": {
-                    "type": "string"
-                },
-                "login": {
-                    "type": "string"
-                },
-                "patronymic": {
-                    "type": "string"
-                },
-                "role": {
-                    "type": "string"
-                },
-                "user_id": {
                     "type": "string"
                 }
             }
@@ -224,9 +202,6 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "context": {
-                    "type": "string"
-                },
-                "context_str": {
                     "type": "string"
                 },
                 "description": {

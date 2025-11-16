@@ -63,11 +63,27 @@ PostAPIV1AddParams contains all the parameters to send to the API endpoint
 */
 type PostAPIV1AddParams struct {
 
+	/* XCallerService.
+
+	   Имя вызывающего микросервиса
+
+	   Default: "user-service"
+	*/
+	XCallerService string
+
+	/* XRequestID.
+
+	   Уникальный ID (UUID) запроса
+
+	   Default: "req-abc123-def456"
+	*/
+	XRequestID string
+
 	/* Record.
 
 	   Структура записи бизнес лога
 	*/
-	Record *models.DtoDtoBusinessLog
+	Record *models.DtoBusinessLog
 
 	timeout    time.Duration
 	Context    context.Context
@@ -86,7 +102,21 @@ func (o *PostAPIV1AddParams) WithDefaults() *PostAPIV1AddParams {
 //
 // All values with no default are reset to their zero value.
 func (o *PostAPIV1AddParams) SetDefaults() {
-	// no default values defined for this parameter
+	var (
+		xCallerServiceDefault = string("user-service")
+
+		xRequestIDDefault = string("req-abc123-def456")
+	)
+
+	val := PostAPIV1AddParams{
+		XCallerService: xCallerServiceDefault,
+		XRequestID:     xRequestIDDefault,
+	}
+
+	val.timeout = o.timeout
+	val.Context = o.Context
+	val.HTTPClient = o.HTTPClient
+	*o = val
 }
 
 // WithTimeout adds the timeout to the post API v1 add params
@@ -122,14 +152,36 @@ func (o *PostAPIV1AddParams) SetHTTPClient(client *http.Client) {
 	o.HTTPClient = client
 }
 
+// WithXCallerService adds the xCallerService to the post API v1 add params
+func (o *PostAPIV1AddParams) WithXCallerService(xCallerService string) *PostAPIV1AddParams {
+	o.SetXCallerService(xCallerService)
+	return o
+}
+
+// SetXCallerService adds the xCallerService to the post API v1 add params
+func (o *PostAPIV1AddParams) SetXCallerService(xCallerService string) {
+	o.XCallerService = xCallerService
+}
+
+// WithXRequestID adds the xRequestID to the post API v1 add params
+func (o *PostAPIV1AddParams) WithXRequestID(xRequestID string) *PostAPIV1AddParams {
+	o.SetXRequestID(xRequestID)
+	return o
+}
+
+// SetXRequestID adds the xRequestId to the post API v1 add params
+func (o *PostAPIV1AddParams) SetXRequestID(xRequestID string) {
+	o.XRequestID = xRequestID
+}
+
 // WithRecord adds the record to the post API v1 add params
-func (o *PostAPIV1AddParams) WithRecord(record *models.DtoDtoBusinessLog) *PostAPIV1AddParams {
+func (o *PostAPIV1AddParams) WithRecord(record *models.DtoBusinessLog) *PostAPIV1AddParams {
 	o.SetRecord(record)
 	return o
 }
 
 // SetRecord adds the record to the post API v1 add params
-func (o *PostAPIV1AddParams) SetRecord(record *models.DtoDtoBusinessLog) {
+func (o *PostAPIV1AddParams) SetRecord(record *models.DtoBusinessLog) {
 	o.Record = record
 }
 
@@ -140,6 +192,16 @@ func (o *PostAPIV1AddParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.
 		return err
 	}
 	var res []error
+
+	// header param X-Caller-Service
+	if err := r.SetHeaderParam("X-Caller-Service", o.XCallerService); err != nil {
+		return err
+	}
+
+	// header param X-Request-ID
+	if err := r.SetHeaderParam("X-Request-ID", o.XRequestID); err != nil {
+		return err
+	}
 	if o.Record != nil {
 		if err := r.SetBodyParam(o.Record); err != nil {
 			return err

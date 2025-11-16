@@ -7,3 +7,6 @@ const UserMetaKey = "user_meta"
 const SystemAdmin = "SA"
 const ContextAdmin = "CA"
 const ContextOperator = "CO"
+
+const XCallerServiceHeader = "X-Caller-Service"
+const ServiceMetaKey = "service_meta"

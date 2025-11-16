@@ -7,3 +7,8 @@ type UserMeta struct {
 	ShortRole  string `json:"short_role"`
 	ContextID  string `json:"context_id"`
 }
+
+type ServiceMeta struct {
+	UUID        string
+	ServiceName string
+}

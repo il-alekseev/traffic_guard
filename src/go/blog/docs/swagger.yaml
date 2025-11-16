@@ -1,10 +1,8 @@
 basePath: /
 definitions:
-  dto.DtoBusinessLog:
+  dto.BusinessLog:
     properties:
       context:
-        type: string
-      context_str:
         type: string
       description:
         type: string
@@ -15,13 +13,10 @@ definitions:
         description: userID or ContextID
         type: string
       event_type:
-        description: Timestamp   time.Time `json:"timestamp,omitzero" gorm:"column:timestamp;type:timestamp
-          with time zone;not null"`
+        description: CREATE, UPDATE, DELETE
         type: string
-      new_value:
-        $ref: '#/definitions/dto.Value'
-      old_value:
-        $ref: '#/definitions/dto.Value'
+      new_value: {}
+      old_value: {}
       user_name:
         type: string
       user_role:
@@ -31,23 +26,6 @@ definitions:
   dto.SuccessResponse:
     properties:
       message:
-        type: string
-    type: object
-  dto.Value:
-    properties:
-      email:
-        type: string
-      first_name:
-        type: string
-      last_name:
-        type: string
-      login:
-        type: string
-      patronymic:
-        type: string
-      role:
-        type: string
-      user_id:
         type: string
     type: object
   models.APIError:
@@ -60,8 +38,6 @@ definitions:
   models.BusinessLog:
     properties:
       context:
-        type: string
-      context_str:
         type: string
       description:
         type: string
@@ -120,12 +96,24 @@ paths:
   /api/v1/add:
     post:
       parameters:
+      - default: user-service
+        description: Имя вызывающего микросервиса
+        in: header
+        name: X-Caller-Service
+        required: true
+        type: string
+      - default: req-abc123-def456
+        description: Уникальный ID (UUID) запроса
+        in: header
+        name: X-Request-ID
+        required: true
+        type: string
       - description: Структура записи бизнес лога
         in: body
         name: record
         required: true
         schema:
-          $ref: '#/definitions/dto.DtoBusinessLog'
+          $ref: '#/definitions/dto.BusinessLog'
       responses:
         "200":
           description: Успех
@@ -139,8 +127,6 @@ paths:
           description: internal error
           schema:
             $ref: '#/definitions/models.APIError'
-      security:
-      - BearerAuth: []
       summary: Добавление логов в БД
   /api/v1/healthcheck:
     get:

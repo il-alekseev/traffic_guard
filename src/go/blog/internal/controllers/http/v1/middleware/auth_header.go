@@ -3,7 +3,9 @@ package middleware
 import (
 	"fiermon-blog/internal/controllers/http/v1/dto"
 	"fiermon-blog/internal/controllers/http/v1/utils"
+	"fiermon-blog/internal/controllers/http/v1/values"
 	"fiermon-blog/pkg/fslog/wsl"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -128,6 +130,37 @@ func SetUserMetaData(l *slog.Logger) gin.HandlerFunc {
 		)
 
 		utils.SetUserMeta(c, userMeta)
+		c.Next()
+	}
+}
+
+func SetServiceMeta(l *slog.Logger) gin.HandlerFunc {
+
+	//X-Caller-Service
+	//X-Request-ID
+	return func(c *gin.Context) {
+		UUID := c.GetHeader(values.RequestIDHeader)
+		serviceName := c.GetHeader(values.XCallerServiceHeader)
+
+		if UUID == "" || serviceName == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.ErrorResponse{Error: fmt.Sprintf("invalid request id or empty service name")})
+			return
+		}
+
+		// Передаем userID в контекст
+		serviceMeta := models.ServiceMeta{
+			UUID:        UUID,
+			ServiceName: serviceName,
+		}
+
+		l.InfoContext(
+			c.Request.Context(),
+			"service info",
+			wsl.Label("serviceName", serviceMeta.ServiceName),
+			wsl.Label("serviceID", serviceMeta.UUID),
+		)
+
+		utils.SetServiceMeta(c, serviceMeta)
 		c.Next()
 	}
 }

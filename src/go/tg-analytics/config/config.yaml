@@ -37,3 +37,8 @@ metrics:
   dbname: "ksu_mon"
   port: "5432"
   sslmode: "disable"
+
+blog_serv:
+  proto: "http"
+  host: "127.0.0.1"
+  port: "8004"

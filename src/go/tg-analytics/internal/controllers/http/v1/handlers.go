@@ -10,6 +10,7 @@ import (
 	"tg-an/internal/controllers/http/v1/validation"
 	"tg-an/internal/models"
 	"tg-an/pkg/slogger"
+	"tg-an/pkg/slogger/wsl"
 	"tg-an/pkg/trparser"
 	"time"
 
@@ -41,8 +42,7 @@ func (s *Server) Version(c *gin.Context) {
 // @Param category query string false "Фильтр по категории" Enums(Неизвестный класс, Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депрессивный контент, Алкоголь и табак, Положительная категория)
 // @Param type query string false "Фильтр по типу сессии" Enums(Разрешен, Запрещен, VPN)
 // @Param search query string false "Поиск по URL или имени пользователя"
-// @Param page query int false "Номер страницы" default(1) minimum(1)
-// @Param limit query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
+// @Param count query int false "Количество возвращаемых сессий" default(25) minimum(1) maximum(500)
 // @Param order_by query string false "Поле для сортировки" default(datetime_utc) Enums(id, datetime_utc, type, status, url, proto, hostname, src_ip, src_country, username, dst_ip, dst_port, dst_country, category)
 // @Param order_dir query string false "Направление сортировки (asc/desc)" default(desc) Enums(asc, desc)
 // @Security BearerAuth
@@ -88,16 +88,12 @@ func (s *Server) GetSessions(c *gin.Context) {
 		Category: req.Category,
 		Type:     req.Type,
 	}
-	pagination := models.Pagination{
-		Page:  req.Page,
-		Limit: req.Limit,
-	}
 	sorting := models.Sorting{
 		OrderBy:  req.OrderBy,
 		OrderDir: req.OrderDir,
 	}
 	// Получаем данные из usecase
-	sessions, total, err := s.u.GetSessions(c, userMeta, timeRange, filter, req.Search, pagination, sorting)
+	sessions, total, err := s.u.GetSessions(c, userMeta, timeRange, filter, req.Search, req.Count, sorting)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "ошибка при получении сессий",
@@ -105,14 +101,10 @@ func (s *Server) GetSessions(c *gin.Context) {
 		return
 	}
 	// Формируем ответ
-	response := dto.ListResponse{
-		Data: sessions,
-		Meta: dto.PaginationMeta{
-			Page:  req.Page,
-			Limit: req.Limit,
-			Total: total,
-			Pages: int(math.Ceil(float64(total) / float64(req.Limit))),
-		},
+	response := dto.GetSessionsResponse{
+		Data:  sessions,
+		Count: uint(len(sessions)),
+		Total: uint(total),
 	}
 	c.JSON(http.StatusOK, response)
 }
@@ -685,17 +677,17 @@ func (s *Server) GetAnomalies(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-// @Summary Выполнение действия над доменом
-// @Description Устанавливает действие (разрешить/заблокировать) для указанного домена
+// @Summary Выполнение действия над выявлением
+// @Description Устанавливает действие (разрешить/заблокировать) для указанного домена.
 // @Tags actions
 // @Accept json
 // @Produce json
-// @Param action query string true "Тип действия" Enums(allow, deny) default(allow)
-// @Param path query string true "Путь домена"
+// @Param request body dto.DetectionActRequest true "Данные для выполнения действия над доменом"
 // @Security BearerAuth
 // @Success 200 {object} dto.SuccessResponse "Действие успешно применено к домену"
 // @Failure 400 {object} dto.ErrorResponse "Неверные параметры запроса"
 // @Failure 403 {object} dto.ErrorResponse "Недостаточно прав для выполнения действия"
+// @Failure 404 {object} dto.ErrorResponse "Домен не найден"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/detections/act [patch]
 func (s *Server) Act(c *gin.Context) {
@@ -705,11 +697,17 @@ func (s *Server) Act(c *gin.Context) {
 		return
 	}
 
+	authInfo, err := utils.GetAuthInfo(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+		return
+	}
+
 	// Валидация запроса
 	var req validation.ActRequest
-	if err := c.ShouldBindQuery(&req); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Invalid query parameters: %v", err),
+			"error": fmt.Sprintf("Invalid JSON parameters: %v", err),
 		})
 		return
 	}
@@ -722,11 +720,16 @@ func (s *Server) Act(c *gin.Context) {
 		return
 	}
 
-	err = s.u.Act(c.Request.Context(), userMeta, req.Action, req.Path)
+	err = s.u.Act(c.Request.Context(), userMeta, authInfo, req.Action, req.Path)
 	if err != nil {
+		s.l.ErrorContext(c.Request.Context(), "act", wsl.Err(err))
 		// Проверяем тип ошибки для определения статуса
 		if strings.Contains(err.Error(), "does not have permission") {
 			c.JSON(http.StatusForbidden, gin.H{
+				"error": err.Error(),
+			})
+		} else if strings.Contains(err.Error(), "failed to find domain") {
+			c.JSON(http.StatusNotFound, gin.H{
 				"error": err.Error(),
 			})
 		} else {

@@ -57,7 +57,7 @@ func (s *Server) validateParams() gin.HandlerFunc {
 
 		// объединяем переменные в структуру и записываем для следующих обработчиков
 		if role == allowedRoleSA || role == allowedRoleCA || role == "" || role == allowedRoleCO { //|| role == "CO"
-			dtoObj := dto.ValidateQuery{
+			dtoObj := dto.FilterLogs{
 				Page:      page,
 				Limit:     limit,
 				Role:      role,
