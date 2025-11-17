@@ -5,8 +5,6 @@ import (
 	"tg-an/internal/controllers/http/v1/dto"
 	"tg-an/internal/models"
 	"tg-an/pkg/trparser"
-
-	"github.com/go-openapi/runtime"
 )
 
 type UseCaseInterface interface {
@@ -30,9 +28,9 @@ type UseCaseInterface interface {
 	GetDetectionStat(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.DetectionFilter) (dto.DetectionStat, error)
 
 	// Actions
-	Act(ctx context.Context, userMeta *models.UserMeta, authInfo runtime.ClientAuthInfoWriter, action, path string) error
+	Act(ctx context.Context, userMeta *models.UserMeta, action, path string) error
 
 	// Reports
-	CreateReport(ctx context.Context, userMeta *models.UserMeta, authInfo runtime.ClientAuthInfoWriter, tr *trparser.TimeRange) (models.Report, error)
-	CreateReportForDevice(ctx context.Context, userMeta *models.UserMeta, authInfo runtime.ClientAuthInfoWriter, tr *trparser.TimeRange, hostname string) (models.ReportForDevice, error)
+	CreateReport(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange) (models.Report, error)
+	CreateReportForDevice(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, hostname string) (models.ReportForDevice, error)
 }

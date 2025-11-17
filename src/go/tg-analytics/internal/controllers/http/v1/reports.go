@@ -32,12 +32,6 @@ func (s *Server) CreateReport(c *gin.Context) {
 		return
 	}
 
-	authInfo, err := utils.GetAuthInfo(c)
-	if err != nil {
-		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-		return
-	}
-
 	// Валидация запроса
 	var req validation.GetAnomaliesRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -66,7 +60,7 @@ func (s *Server) CreateReport(c *gin.Context) {
 		return
 	}
 
-	report, err := s.u.CreateReport(c.Request.Context(), userMeta, authInfo, timeRange)
+	report, err := s.u.CreateReport(c.Request.Context(), userMeta, timeRange)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Ошибка при создании отчета",
@@ -132,13 +126,6 @@ func (s *Server) CreateReportForDevice(c *gin.Context) {
 		return
 	}
 
-	// Получаем параметры авторизации
-	authInfo, err := utils.GetAuthInfo(c)
-	if err != nil {
-		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-		return
-	}
-
 	// Валидация запроса
 	var req validation.GetAnomaliesRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -167,7 +154,7 @@ func (s *Server) CreateReportForDevice(c *gin.Context) {
 		return
 	}
 
-	report, err := s.u.CreateReportForDevice(c.Request.Context(), userMeta, authInfo, timeRange, hostname)
+	report, err := s.u.CreateReportForDevice(c.Request.Context(), userMeta, timeRange, hostname)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Ошибка при создании отчета для устройства",

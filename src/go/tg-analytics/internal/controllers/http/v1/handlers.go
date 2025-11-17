@@ -697,12 +697,6 @@ func (s *Server) Act(c *gin.Context) {
 		return
 	}
 
-	authInfo, err := utils.GetAuthInfo(c)
-	if err != nil {
-		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-		return
-	}
-
 	// Валидация запроса
 	var req validation.ActRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -720,7 +714,7 @@ func (s *Server) Act(c *gin.Context) {
 		return
 	}
 
-	err = s.u.Act(c.Request.Context(), userMeta, authInfo, req.Action, req.Path)
+	err = s.u.Act(c.Request.Context(), userMeta, req.Action, req.Path)
 	if err != nil {
 		s.l.ErrorContext(c.Request.Context(), "act", wsl.Err(err))
 		// Проверяем тип ошибки для определения статуса

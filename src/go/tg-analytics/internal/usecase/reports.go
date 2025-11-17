@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"tg-an/internal/controllers/http/v1/values"
 	"tg-an/internal/models"
 	"tg-an/pkg/blog/operations"
 	pkg "tg-an/pkg/models"
@@ -11,10 +12,10 @@ import (
 	"tg-an/pkg/trparser"
 	"time"
 
-	"github.com/go-openapi/runtime"
+	"github.com/google/uuid"
 )
 
-func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, authInfo runtime.ClientAuthInfoWriter, tr *trparser.TimeRange) (models.Report, error) {
+func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange) (models.Report, error) {
 	method := "CreateReport"
 	u.l.InfoContext(ctx,
 		method,
@@ -146,6 +147,8 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, a
 	report.TopCategoriesPage.Categories = cs
 
 	// Запись события в бизнес-лог
+	uuidStr := uuid.New().String()
+
 	newValue := make(map[string]any)
 	newValue["from"] = tr.From
 	newValue["to"] = tr.To
@@ -162,10 +165,11 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, a
 	}
 
 	_, err = u.blclient.Operations.PostAPIV1Add(&operations.PostAPIV1AddParams{
-		Record:  &record,
-		Context: ctx,
+		XCallerService: values.ThisServiceName,
+		XRequestID:     uuidStr,
+		Record:         &record,
+		Context:        ctx,
 	},
-		authInfo,
 	)
 	if err != nil {
 		err = fmt.Errorf("%s: failed to blog event: %w", method, err)
@@ -179,6 +183,7 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, a
 
 	u.l.InfoContext(ctx, "report created",
 		slog.String("method", method),
+		slog.String("blog uuid", uuidStr),
 		slog.Int("categories_count", len(cats)),
 		slog.Int("resources_count", len(rs)),
 		slog.Int("devices_count", len(dv)),
@@ -189,7 +194,7 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, a
 	return report, nil
 }
 
-func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.UserMeta, authInfo runtime.ClientAuthInfoWriter, tr *trparser.TimeRange, hostname string) (models.ReportForDevice, error) {
+func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, hostname string) (models.ReportForDevice, error) {
 	method := "CreateReportForDevice"
 	u.l.InfoContext(ctx,
 		method,
@@ -358,6 +363,8 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.Us
 	report.CategoriesPage.Categories = cs
 
 	// Запись события в бизнес-лог
+	uuidStr := uuid.New().String()
+
 	newValue := make(map[string]any)
 	newValue["from"] = tr.From
 	newValue["to"] = tr.To
@@ -375,15 +382,17 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.Us
 	}
 
 	_, err = u.blclient.Operations.PostAPIV1Add(&operations.PostAPIV1AddParams{
-		Record:  &record,
-		Context: ctx,
+		XCallerService: values.ThisServiceName,
+		XRequestID:     uuidStr,
+		Record:         &record,
+		Context:        ctx,
 	},
-		authInfo,
 	)
 	if err != nil {
 		err = fmt.Errorf("%s: failed to blog event: %w", method, err)
 		u.l.ErrorContext(ctx, "failed to blog event",
 			wsl.String("method", method),
+			wsl.String("blog uuid", uuidStr),
 			wsl.String("error", err.Error()),
 		)
 		return report, err
