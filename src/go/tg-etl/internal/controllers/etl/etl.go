@@ -31,9 +31,6 @@ func New(cfg config.Config,
 func (e *EtlController) Start(ctx context.Context) {
 	e.l.InfoContext(ctx, "starting IDS log processor service",
 		wsl.Int("refresh interval", int(e.refresh)))
-	// Создаем таймер для соблюдения интервала
-	ticker := time.NewTicker(e.refresh)
-	defer ticker.Stop()
 
 	for {
 		select {
@@ -41,9 +38,28 @@ func (e *EtlController) Start(ctx context.Context) {
 			e.l.InfoContext(ctx, "stopping etl processor controller")
 			return
 
-		case <-ticker.C:
-			if err := e.u.ProcessNewLogs(ctx); err != nil {
+		default:
+			immediate, err := e.u.ProcessNewLogs(ctx)
+			if err != nil {
 				e.l.ErrorContext(ctx, "failed to process logs", wsl.Err(err))
+			}
+
+			// Если нужно немедленное выполнение, не ждем таймер
+			if immediate {
+				e.l.DebugContext(ctx, "immediate processing requested, continuing without delay")
+				continue
+			}
+
+			// Создаем таймер для соблюдения интервала
+			ticker := time.NewTicker(e.refresh)
+
+			select {
+			case <-ctx.Done():
+				ticker.Stop()
+				e.l.InfoContext(ctx, "stopping etl processor controller")
+				return
+			case <-ticker.C:
+				ticker.Stop()
 			}
 		}
 	}

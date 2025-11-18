@@ -18,17 +18,18 @@ import (
 )
 
 // processNewLogs обрабатывает новые записи из IdsLogs
-func (uc *UseCase) ProcessNewLogs(ctx context.Context) error {
+func (uc *UseCase) ProcessNewLogs(ctx context.Context) (bool, error) {
 	uc.processingLock.Lock()
 	defer uc.processingLock.Unlock()
+	var logsAfterExists = false
 	// Получаем новые записи
 	logs, err := uc.q.GetLogs(ctx, uc.lastLog, uc.batchSize)
 	if err != nil {
-		return fmt.Errorf("failed to get new logs: %w", err)
+		return logsAfterExists, fmt.Errorf("failed to get new logs: %w", err)
 	}
 	if len(logs) == 0 {
 		uc.l.InfoContext(ctx, "new logs for process not found")
-		return nil
+		return logsAfterExists, nil
 	}
 	var lastIDSLog *models.IdsLog
 	// Обрабатываем каждую запись
@@ -64,7 +65,11 @@ func (uc *UseCase) ProcessNewLogs(ctx context.Context) error {
 		wsl.Int("processed_count", len(logs)),
 		wsl.Int("last_log id", id),
 	)
-	return nil
+	// Если получили логов столько же сколько батчсайз, значит логи еще есть, выполняем без перерыва
+	if len(logs) == int(uc.batchSize) {
+		logsAfterExists = true
+	}
+	return logsAfterExists, nil
 }
 
 // processLog обрабатывает одну запись лога
@@ -306,7 +311,7 @@ func (uc *UseCase) createURLForDomain(ctx context.Context, log models.IdsLog, do
 		if err := uc.kc.SendAnalysisRequest(ctx, req); err != nil {
 			return nil, nil, fmt.Errorf("failed to send URL request to Kafka: %w", err)
 		}
-		uc.l.Debug("url content analysis sent", wsl.String("url", newURL.Path), wsl.String("request_id", newURL.RequestID.String()))
+		//uc.l.Debug("url content analysis sent", wsl.String("url", newURL.Path), wsl.String("request_id", newURL.RequestID.String()))
 	}
 
 	if err := uc.q.CreateURL(ctx, newURL); err != nil {
@@ -377,7 +382,7 @@ func (uc *UseCase) createNewDomainAndURL(ctx context.Context, log models.IdsLog,
 	if err := uc.kc.SendAnalysisRequest(ctx, req); err != nil {
 		return nil, nil, fmt.Errorf("failed to send URL request to Kafka: %w", err)
 	}
-	uc.l.Debug("url content analysis sent", wsl.String("url", url.Path), wsl.String("request_id", url.RequestID.String()))
+	//uc.l.Debug("url content analysis sent", wsl.String("url", url.Path), wsl.String("request_id", url.RequestID.String()))
 	return domain, url, nil
 }
 

@@ -14,7 +14,7 @@ type UsecaseInterface interface {
 
 // UseCaseInterface определяет методы для обработки ETL данных
 type ProcessorUseCase interface {
-	ProcessNewLogs(ctx context.Context) error
+	ProcessNewLogs(ctx context.Context) (bool, error)
 }
 
 // QueryUsecase - композитный интерфейс для всех запросов
