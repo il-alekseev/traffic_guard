@@ -71,6 +71,12 @@ func (r *GetSessionsRequest) Validate() error {
 		return fmt.Errorf("invalid order_by field")
 	}
 
+	// Валидация направления сортировки
+	allowedOrderDirs := []string{"desc", "asc", ""}
+	if !contains(allowedOrderDirs, r.OrderDir) {
+		return fmt.Errorf("invalid order_by field")
+	}
+
 	// Валидация типа сессии
 	allowedTypes := []string{"Заблокирован", "Запрещен", "Ожидает", "Разрешен", ""}
 	if r.Type != "" && !contains(allowedTypes, r.Type) {

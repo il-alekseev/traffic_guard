@@ -22,9 +22,31 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, t
 		slog.Any("time_range", tr),
 	)
 
-	var report models.Report
-	report.From = tr.From
-	report.To = tr.To
+	// Инициализируем отчет с пустыми структурами вместо nil
+	report := models.Report{
+		From: tr.From,
+		To:   tr.To,
+		MainActivityPage: models.MainActivityPage{
+			TopCategories: []models.CategoryStat{},
+			TopResources:  []models.ResourceStat{},
+			Traffic: models.TrafficStatData{
+				Data:  models.TrafficStat{}, // Убедитесь, что это правильный тип
+				Count: 20,
+			},
+		},
+		DeviceAnalyticsPage: models.DevicesAnalyticsPage{
+			Analytics: []models.DeviceReport{},
+		},
+		AnomaliesListPage: models.DevicesAnomaliesListPage{
+			Anomalies: []models.DeviceAnomaly{},
+		},
+		TopAnomaliesPage: models.TopAnomaliesPage{
+			DeviceAnomaly: []models.DeviceAnomalyAnalytics{},
+		},
+		TopCategoriesPage: models.TopCategoriesPage{
+			Categories: []models.TopCategory{},
+		},
+	}
 
 	// Общее время выполнения
 	overallStart := time.Now()
@@ -66,8 +88,11 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, t
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
+	} else {
+		// Преобразуем TopCategory в CategoryStat если необходимо
+		// или убедитесь, что GetCategories возвращает []CategoryStat
+		report.MainActivityPage.TopCategories = cats
 	}
-	report.MainActivityPage.TopCategories = cats
 
 	start = time.Now()
 	rs, err := u.db.GetResourses(ctx, tr)
@@ -78,8 +103,9 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, t
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
+	} else {
+		report.MainActivityPage.TopResources = rs
 	}
-	report.MainActivityPage.TopResources = rs
 
 	start = time.Now()
 	trf, err := u.mdb.GetTrafficStat(ctx, tr, "", 20)
@@ -90,9 +116,11 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, t
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
+	} else {
+		// Убедитесь, что trf имеет правильный тип для TrafficStatData.Data
+		report.MainActivityPage.Traffic.Data = trf
+		report.MainActivityPage.Traffic.Count = 20
 	}
-	report.MainActivityPage.Traffic.Data = trf
-	report.MainActivityPage.Traffic.Count = 20
 
 	// Получаем данные для второй страницы (DevicesAnalyticsPage)
 	start = time.Now()
@@ -104,8 +132,9 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, t
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
+	} else {
+		report.DeviceAnalyticsPage.Analytics = dv
 	}
-	report.DeviceAnalyticsPage.Analytics = dv
 
 	// Получаем данные для третьей страницы (AnomaliesListPage)
 	start = time.Now()
@@ -117,8 +146,9 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, t
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
+	} else {
+		report.AnomaliesListPage.Anomalies = ans
 	}
-	report.AnomaliesListPage.Anomalies = ans
 
 	// Получаем данные для четвертой страницы (TopAnomaliesPage)
 	start = time.Now()
@@ -130,8 +160,9 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, t
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
+	} else {
+		report.TopAnomaliesPage.DeviceAnomaly = anr
 	}
-	report.TopAnomaliesPage.DeviceAnomaly = anr
 
 	// Получаем данные для пятой страницы (TopCategoriesPage)
 	start = time.Now()
@@ -143,8 +174,9 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, t
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
+	} else {
+		report.TopCategoriesPage.Categories = cs
 	}
-	report.TopCategoriesPage.Categories = cs
 
 	// Запись события в бизнес-лог
 	uuidStr := uuid.New().String()
@@ -179,17 +211,16 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, t
 		)
 		return report, err
 	}
-	//
 
 	u.l.InfoContext(ctx, "report created",
 		slog.String("method", method),
 		slog.String("blog uuid", uuidStr),
-		slog.Int("categories_count", len(cats)),
-		slog.Int("resources_count", len(rs)),
-		slog.Int("devices_count", len(dv)),
-		slog.Int("anomalies_count", len(ans)),
-		slog.Int("top_anomalies_count", len(anr)),
-		slog.Int("top_categories_count", len(cs)),
+		slog.Int("categories_count", len(report.MainActivityPage.TopCategories)),
+		slog.Int("resources_count", len(report.MainActivityPage.TopResources)),
+		slog.Int("devices_count", len(report.DeviceAnalyticsPage.Analytics)),
+		slog.Int("anomalies_count", len(report.AnomaliesListPage.Anomalies)),
+		slog.Int("top_anomalies_count", len(report.TopAnomaliesPage.DeviceAnomaly)),
+		slog.Int("top_categories_count", len(report.TopCategoriesPage.Categories)),
 	)
 	return report, nil
 }

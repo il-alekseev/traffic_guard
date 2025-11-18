@@ -24,7 +24,7 @@ type UseCaseInterface interface {
 	GetAnomalies(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, hostname string) (dto.GetAnomaliesResponse, error)
 
 	// Detections
-	GetTopDetections(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.DetectionFilter, action string, p models.Pagination) ([]dto.Detection, int64, error)
+	GetTopDetections(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.DetectionFilter, action string, p models.Pagination, s string, sorting models.Sorting) ([]dto.Detection, int64, error)
 	GetDetectionStat(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.DetectionFilter) (dto.DetectionStat, error)
 
 	// Actions

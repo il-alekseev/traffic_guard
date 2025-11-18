@@ -520,6 +520,10 @@ paths:
           description: Неверный формат параметров
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к статистике аномалий
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
         "500":
           description: Внутренняя ошибка сервера
           schema:
@@ -559,6 +563,10 @@ paths:
             $ref: '#/definitions/dto.DeviceStatResponse'
         "400":
           description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к статистике устройств
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
         "500":
@@ -615,6 +623,10 @@ paths:
             $ref: '#/definitions/dto.RequestStatResponse'
         "400":
           description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к статистике запросов
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
         "500":
@@ -675,6 +687,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к статистике категорий
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -724,6 +740,10 @@ paths:
           description: Неверный формат параметров
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к нерешенным выявлениям
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
         "500":
           description: Внутренняя ошибка сервера
           schema:
@@ -771,6 +791,10 @@ paths:
             $ref: '#/definitions/dto.TrafficStatResponse'
         "400":
           description: Неверный формат параметров запроса
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к статистике трафика
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
         "500":
@@ -860,6 +884,27 @@ paths:
         minimum: 1
         name: limit
         type: integer
+      - description: Поиск по URL или имени пользователя
+        in: query
+        name: search
+        type: string
+      - default: categorized_at
+        description: Поле для сортировки
+        enum:
+        - domain
+        - request_count
+        - categorized_at
+        in: query
+        name: order_by
+        type: string
+      - default: desc
+        description: Направление сортировки (asc/desc)
+        enum:
+        - asc
+        - desc
+        in: query
+        name: order_dir
+        type: string
       produces:
       - application/json
       responses:
@@ -869,6 +914,10 @@ paths:
             $ref: '#/definitions/dto.GetDetectionsResponse'
         "400":
           description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к выявлениям
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
         "500":
@@ -988,6 +1037,10 @@ paths:
           description: Неверный формат временного диапазона
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к статистике выявлений
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
         "500":
           description: Ошибка при получении статистики выявлений
           schema:
@@ -1011,6 +1064,10 @@ paths:
             items:
               type: string
             type: array
+        "403":
+          description: Недостаточно прав для доступа к списку устройств
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
         "500":
           description: Ошибка при получении имен устройств
           schema:
@@ -1238,6 +1295,10 @@ paths:
             $ref: '#/definitions/dto.GetSessionsResponse'
         "400":
           description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к сессиям
           schema:
             $ref: '#/definitions/dto.ErrorResponse'
         "500":

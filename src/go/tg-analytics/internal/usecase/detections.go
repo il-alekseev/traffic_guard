@@ -11,12 +11,15 @@ import (
 	"tg-an/pkg/trparser"
 )
 
-func (u *Usecase) GetTopDetections(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.DetectionFilter, a string, p models.Pagination) ([]dto.Detection, int64, error) {
+func (u *Usecase) GetTopDetections(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.DetectionFilter, a string, p models.Pagination, s string, sorting models.Sorting) ([]dto.Detection, int64, error) {
 	method := "GetTopDetections"
 	u.l.InfoContext(ctx,
 		method,
 		slog.Any("time_range", tr),
 		slog.Any("filter", f),
+		slog.Any("pagination", p),
+		slog.String("search", s),
+		slog.Any("sorting", sorting),
 		slog.Any("pagination", p),
 		slog.String("user", userMeta.Username),
 	)
@@ -27,7 +30,7 @@ func (u *Usecase) GetTopDetections(ctx context.Context, userMeta *models.UserMet
 		f.HostName = userMeta.ContextID
 	}
 
-	detections, total, err := u.db.GetTopDetections(ctx, tr, f, a, p)
+	detections, total, err := u.db.GetTopDetections(ctx, tr, f, a, p, s, sorting)
 	if err != nil {
 		err = fmt.Errorf("%s: failed to get top detections: %w", method, err)
 		u.l.ErrorContext(ctx, "Database operation failed",
