@@ -19,6 +19,7 @@ type (
 		EtlController `yaml:"etl_controller"`
 		Kafka         `yaml:"kafka"`
 		UserControl   `yaml:"usercontrol"`
+		BlogServ      `yaml:"blog_serv"`
 	}
 	// App -.
 	App struct {
@@ -81,6 +82,12 @@ type (
 		Proto string `env-required:"true" yaml:"proto" env:"ETL_USERCONTROL_PROTO"`
 		Host  string `env-required:"true" yaml:"host" env:"ETL_USERCONTROL_HOST"`
 		Port  string `env-required:"true" yaml:"port" env:"ETL_USERCONTROL_PORT"`
+	}
+
+	BlogServ struct {
+		Proto string `env-required:"true" yaml:"proto" env:"AN_BLOG_SERV_PROTO"`
+		Host  string `env-required:"true" yaml:"host" env:"AN_BLOG_SERV_HOST"`
+		Port  string `env-required:"true" yaml:"port" env:"AN_BLOG_SERV_PORT"`
 	}
 )
 

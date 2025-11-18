@@ -4,10 +4,15 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strconv"
+	"tg-etl/internal/controllers/values"
 	"tg-etl/internal/models"
 	"tg-etl/internal/utils"
+	"tg-etl/pkg/blog/operations"
 	"tg-etl/pkg/slogger/wsl"
 	"time"
+
+	pkg "tg-etl/pkg/models"
 
 	"github.com/google/uuid"
 )
@@ -92,6 +97,7 @@ func (uc *UseCase) processLog(ctx context.Context, log models.IdsLog) error {
 
 // getDevice обрабатывает и создает/обновляет запись Device
 func (uc *UseCase) getDevice(ctx context.Context, log models.IdsLog) (*models.Device, error) {
+	method := "getDevice"
 	// Ищем устройство по идентификатору
 	existingDevice, err := uc.q.GetDeviceByID(ctx, log.SensorID)
 	if err != nil {
@@ -132,6 +138,38 @@ func (uc *UseCase) getDevice(ctx context.Context, log models.IdsLog) (*models.De
 		}
 	}
 	uc.l.InfoContext(ctx, "created new device", slog.String("device name", log.Hostname))
+
+	// Запись события в бизнес-лог
+	uuidStr := uuid.New().String()
+
+	newValue := make(map[string]any)
+	newValue["id"] = device.ID
+	newValue["hostname"] = device.HostName
+
+	record := pkg.DtoBusinessLog{
+		Description: "Создание нового устройства",
+		Entity:      "Device",
+		EntityID:    strconv.FormatUint(uint64(device.ID), 10),
+		UserName:    values.ThisServiceName,
+		NewValue:    newValue,
+		EventType:   "CREATE",
+	}
+
+	_, err = uc.blclient.Operations.PostAPIV1Add(&operations.PostAPIV1AddParams{
+		XCallerService: values.ThisServiceName,
+		XRequestID:     uuidStr,
+		Record:         &record,
+		Context:        ctx,
+	},
+	)
+	if err != nil {
+		err = fmt.Errorf("%s: failed to blog event: %w", method, err)
+		uc.l.ErrorContext(ctx, "failed to blog event",
+			wsl.String("method", method),
+			wsl.String("error", err.Error()),
+		)
+		return nil, err
+	}
 
 	// Получаем созданное устройство
 	newDevice, err := uc.q.GetDeviceByID(ctx, log.SensorID)
