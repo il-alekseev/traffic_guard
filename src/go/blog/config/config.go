@@ -95,7 +95,7 @@ func NewConfig() (*Config, error) {
 func fetchConfigPath() (string, error) {
 	var path string
 
-	flag.StringVar(&path, "config", "config/configs.yml", "config file path")
+	flag.StringVar(&path, "config", "config/config.yml", "config file path")
 	flag.Parse()
 
 	if _, err := os.Stat(path); err != nil {
