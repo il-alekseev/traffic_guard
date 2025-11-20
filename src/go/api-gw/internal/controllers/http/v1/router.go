@@ -83,7 +83,7 @@ func (s *Server) configureRouter() {
 		analytics.GET("/dashboards/traffic", s.getDashboardsTraffic)
 
 		//actions
-		analytics.PATCH("/dashboards/act", s.patchV1DashboardsAct)
+		analytics.PATCH("/detections/act", s.patchV1DashboardsAct)
 
 		//detections
 		analytics.GET("/detections", s.getDetections)

@@ -60,6 +60,15 @@ definitions:
         description: request count
         type: integer
     type: object
+  models.DtoDetectionActRequest:
+    properties:
+      action:
+        description: action
+        type: string
+      path:
+        description: path
+        type: string
+    type: object
   models.DtoDetectionStat:
     properties:
       accepted:
@@ -130,7 +139,7 @@ definitions:
   models.DtoErrorResponse:
     properties:
       error:
-        description: error
+        description: Описание ошибки
         type: string
     type: object
   models.DtoGetAnomaliesResponse:
@@ -158,42 +167,32 @@ definitions:
         description: Метаданные пагинации
         properties:
           limit:
-            description: limit
+            description: Количество элементов на странице
             type: integer
           page:
-            description: page
+            description: Текущая страница (начинается с 1)
             type: integer
           pages:
-            description: pages
+            description: Общее количество страниц
             type: integer
           total:
-            description: total
+            description: Общее количество элементов
             type: integer
         type: object
     type: object
   models.DtoGetSessionsResponse:
     properties:
+      count:
+        description: Число сессий в ответе
+        type: integer
       data:
         description: Список сессий
         items:
           $ref: '#/definitions/models.DtoSession'
         type: array
-      meta:
-        description: Метаданные пагинации
-        properties:
-          limit:
-            description: limit
-            type: integer
-          page:
-            description: page
-            type: integer
-          pages:
-            description: pages
-            type: integer
-          total:
-            description: total
-            type: integer
-        type: object
+      total:
+        description: Общее количество сессийы
+        type: integer
     type: object
   models.DtoLogUser:
     properties:
@@ -211,16 +210,16 @@ definitions:
   models.DtoPaginationMeta:
     properties:
       limit:
-        description: limit
+        description: Количество элементов на странице
         type: integer
       page:
-        description: page
+        description: Текущая страница (начинается с 1)
         type: integer
       pages:
-        description: pages
+        description: Общее количество страниц
         type: integer
       total:
-        description: total
+        description: Общее количество элементов
         type: integer
     type: object
   models.DtoRequestStatResponse:
@@ -998,6 +997,10 @@ paths:
             items:
               type: string
             type: array
+        "403":
+          description: Недостаточно прав для доступа к статистике выявлений
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
         "500":
           description: Ошибка при получении списка категорий
           schema:
@@ -1007,47 +1010,6 @@ paths:
       summary: Получение списка категорий контента
       tags:
       - common
-  /api/v1/analytics/dashboards/act:
-    patch:
-      consumes:
-      - application/json
-      description: Устанавливает действие (разрешить/заблокировать) для указанного
-        домена
-      parameters:
-      - default: allow
-        description: Тип действия
-        enum:
-        - allow
-        - deny
-        in: query
-        name: action
-        required: true
-        type: string
-      - description: Путь домена
-        in: query
-        name: path
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Действие успешно применено к домену
-          schema:
-            $ref: '#/definitions/models.DtoSuccessResponse'
-        "400":
-          description: Неверные параметры запроса
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-        "500":
-          description: Внутренняя ошибка сервера
-          schema:
-            $ref: '#/definitions/models.DtoErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Выполнение действия над доменом
-      tags:
-      - actions
   /api/v1/analytics/dashboards/anomalies:
     get:
       description: Получение статистики об аномалиях за указанный период
@@ -1075,6 +1037,10 @@ paths:
             $ref: '#/definitions/models.DtoGetAnomaliesResponse'
         "400":
           description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к статистике выявлений
           schema:
             $ref: '#/definitions/models.DtoErrorResponse'
         "500":
@@ -1116,6 +1082,10 @@ paths:
             $ref: '#/definitions/models.DtoDeviceStatResponse'
         "400":
           description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к статистике выявлений
           schema:
             $ref: '#/definitions/models.DtoErrorResponse'
         "500":
@@ -1172,6 +1142,10 @@ paths:
             $ref: '#/definitions/models.DtoRequestStatResponse'
         "400":
           description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к статистике выявлений
           schema:
             $ref: '#/definitions/models.DtoErrorResponse'
         "500":
@@ -1232,6 +1206,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/models.DtoErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к статистике выявлений
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -1281,6 +1259,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/models.DtoErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к статистике выявлений
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -1328,6 +1310,10 @@ paths:
             $ref: '#/definitions/models.DtoTrafficStatResponse'
         "400":
           description: Неверный формат параметров запроса
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к статистике выявлений
           schema:
             $ref: '#/definitions/models.DtoErrorResponse'
         "500":
@@ -1417,6 +1403,27 @@ paths:
         minimum: 1
         name: limit
         type: integer
+      - description: Поиск по URL или имени пользователя
+        in: query
+        name: search
+        type: string
+      - default: categorized_at
+        description: Поле для сортировки
+        enum:
+        - domain
+        - request_count
+        - categorized_at
+        in: query
+        name: order_by
+        type: string
+      - default: desc
+        description: Направление сортировки (asc/desc)
+        enum:
+        - asc
+        - desc
+        in: query
+        name: order_dir
+        type: string
       produces:
       - application/json
       responses:
@@ -1428,6 +1435,10 @@ paths:
           description: Неверный формат параметров
           schema:
             $ref: '#/definitions/models.DtoErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к выявлениям
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
         "500":
           description: Внутренняя ошибка сервера
           schema:
@@ -1437,6 +1448,47 @@ paths:
       summary: Получение списка выявлений
       tags:
       - detections
+  /api/v1/analytics/detections/act:
+    patch:
+      consumes:
+      - application/json
+      description: Устанавливает действие (разрешить/заблокировать) для указанного
+        домена.
+      parameters:
+      - description: Данные для выполнения действия над доменом
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.DtoDetectionActRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Действие успешно применено к домену
+          schema:
+            $ref: '#/definitions/models.DtoSuccessResponse'
+        "400":
+          description: Неверные параметры запроса
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "403":
+          description: Недостаточно прав для выполнения действия
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "404":
+          description: Домен не найден
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Выполнение действия над выявлением
+      tags:
+      - actions
   /api/v1/analytics/detections/stat:
     get:
       consumes:
@@ -1504,6 +1556,10 @@ paths:
           description: Неверный формат временного диапазона
           schema:
             $ref: '#/definitions/models.DtoErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к статистике выявлений
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
         "500":
           description: Ошибка при получении статистики выявлений
           schema:
@@ -1527,6 +1583,10 @@ paths:
             items:
               type: string
             type: array
+        "403":
+          description: Недостаточно прав для доступа к статистике выявлений
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
         "500":
           description: Ошибка при получении имен устройств
           schema:
@@ -1562,6 +1622,10 @@ paths:
             $ref: '#/definitions/models.ModelsReport'
         "400":
           description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к статистике выявлений
           schema:
             $ref: '#/definitions/models.DtoErrorResponse'
         "500":
@@ -1691,18 +1755,12 @@ paths:
         in: query
         name: search
         type: string
-      - default: 1
-        description: Номер страницы
+      - default: 25
+        description: Количество возвращаемых сессий
         in: query
+        maximum: 500
         minimum: 1
-        name: page
-        type: integer
-      - default: 10
-        description: Количество записей на странице
-        in: query
-        maximum: 100
-        minimum: 1
-        name: limit
+        name: count
         type: integer
       - default: datetime_utc
         description: Поле для сортировки
@@ -1741,6 +1799,10 @@ paths:
             $ref: '#/definitions/models.DtoGetSessionsResponse'
         "400":
           description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к статистике выявлений
           schema:
             $ref: '#/definitions/models.DtoErrorResponse'
         "500":

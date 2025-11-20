@@ -36,6 +36,12 @@ func (o *GetAPIV1DashboardsTopCategoriesReader) ReadResponse(response runtime.Cl
 			return nil, err
 		}
 		return nil, result
+	case 403:
+		result := NewGetAPIV1DashboardsTopCategoriesForbidden()
+		if err := result.readResponse(response, consumer, o.formats); err != nil {
+			return nil, err
+		}
+		return nil, result
 	case 500:
 		result := NewGetAPIV1DashboardsTopCategoriesInternalServerError()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
@@ -174,6 +180,76 @@ func (o *GetAPIV1DashboardsTopCategoriesBadRequest) GetPayload() *models.DtoErro
 }
 
 func (o *GetAPIV1DashboardsTopCategoriesBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+
+	o.Payload = new(models.DtoErrorResponse)
+
+	// response payload
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+		return err
+	}
+
+	return nil
+}
+
+// NewGetAPIV1DashboardsTopCategoriesForbidden creates a GetAPIV1DashboardsTopCategoriesForbidden with default headers values
+func NewGetAPIV1DashboardsTopCategoriesForbidden() *GetAPIV1DashboardsTopCategoriesForbidden {
+	return &GetAPIV1DashboardsTopCategoriesForbidden{}
+}
+
+/*
+GetAPIV1DashboardsTopCategoriesForbidden describes a response with status code 403, with default header values.
+
+Недостаточно прав для доступа к статистике категорий
+*/
+type GetAPIV1DashboardsTopCategoriesForbidden struct {
+	Payload *models.DtoErrorResponse
+}
+
+// IsSuccess returns true when this get Api v1 dashboards top categories forbidden response has a 2xx status code
+func (o *GetAPIV1DashboardsTopCategoriesForbidden) IsSuccess() bool {
+	return false
+}
+
+// IsRedirect returns true when this get Api v1 dashboards top categories forbidden response has a 3xx status code
+func (o *GetAPIV1DashboardsTopCategoriesForbidden) IsRedirect() bool {
+	return false
+}
+
+// IsClientError returns true when this get Api v1 dashboards top categories forbidden response has a 4xx status code
+func (o *GetAPIV1DashboardsTopCategoriesForbidden) IsClientError() bool {
+	return true
+}
+
+// IsServerError returns true when this get Api v1 dashboards top categories forbidden response has a 5xx status code
+func (o *GetAPIV1DashboardsTopCategoriesForbidden) IsServerError() bool {
+	return false
+}
+
+// IsCode returns true when this get Api v1 dashboards top categories forbidden response a status code equal to that given
+func (o *GetAPIV1DashboardsTopCategoriesForbidden) IsCode(code int) bool {
+	return code == 403
+}
+
+// Code gets the status code for the get Api v1 dashboards top categories forbidden response
+func (o *GetAPIV1DashboardsTopCategoriesForbidden) Code() int {
+	return 403
+}
+
+func (o *GetAPIV1DashboardsTopCategoriesForbidden) Error() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[GET /api/v1/dashboards/top-categories][%d] getApiV1DashboardsTopCategoriesForbidden %s", 403, payload)
+}
+
+func (o *GetAPIV1DashboardsTopCategoriesForbidden) String() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[GET /api/v1/dashboards/top-categories][%d] getApiV1DashboardsTopCategoriesForbidden %s", 403, payload)
+}
+
+func (o *GetAPIV1DashboardsTopCategoriesForbidden) GetPayload() *models.DtoErrorResponse {
+	return o.Payload
+}
+
+func (o *GetAPIV1DashboardsTopCategoriesForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	o.Payload = new(models.DtoErrorResponse)
 

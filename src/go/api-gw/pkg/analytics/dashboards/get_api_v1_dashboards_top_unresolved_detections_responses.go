@@ -36,6 +36,12 @@ func (o *GetAPIV1DashboardsTopUnresolvedDetectionsReader) ReadResponse(response 
 			return nil, err
 		}
 		return nil, result
+	case 403:
+		result := NewGetAPIV1DashboardsTopUnresolvedDetectionsForbidden()
+		if err := result.readResponse(response, consumer, o.formats); err != nil {
+			return nil, err
+		}
+		return nil, result
 	case 500:
 		result := NewGetAPIV1DashboardsTopUnresolvedDetectionsInternalServerError()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
@@ -174,6 +180,76 @@ func (o *GetAPIV1DashboardsTopUnresolvedDetectionsBadRequest) GetPayload() *mode
 }
 
 func (o *GetAPIV1DashboardsTopUnresolvedDetectionsBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+
+	o.Payload = new(models.DtoErrorResponse)
+
+	// response payload
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+		return err
+	}
+
+	return nil
+}
+
+// NewGetAPIV1DashboardsTopUnresolvedDetectionsForbidden creates a GetAPIV1DashboardsTopUnresolvedDetectionsForbidden with default headers values
+func NewGetAPIV1DashboardsTopUnresolvedDetectionsForbidden() *GetAPIV1DashboardsTopUnresolvedDetectionsForbidden {
+	return &GetAPIV1DashboardsTopUnresolvedDetectionsForbidden{}
+}
+
+/*
+GetAPIV1DashboardsTopUnresolvedDetectionsForbidden describes a response with status code 403, with default header values.
+
+Недостаточно прав для доступа к нерешенным выявлениям
+*/
+type GetAPIV1DashboardsTopUnresolvedDetectionsForbidden struct {
+	Payload *models.DtoErrorResponse
+}
+
+// IsSuccess returns true when this get Api v1 dashboards top unresolved detections forbidden response has a 2xx status code
+func (o *GetAPIV1DashboardsTopUnresolvedDetectionsForbidden) IsSuccess() bool {
+	return false
+}
+
+// IsRedirect returns true when this get Api v1 dashboards top unresolved detections forbidden response has a 3xx status code
+func (o *GetAPIV1DashboardsTopUnresolvedDetectionsForbidden) IsRedirect() bool {
+	return false
+}
+
+// IsClientError returns true when this get Api v1 dashboards top unresolved detections forbidden response has a 4xx status code
+func (o *GetAPIV1DashboardsTopUnresolvedDetectionsForbidden) IsClientError() bool {
+	return true
+}
+
+// IsServerError returns true when this get Api v1 dashboards top unresolved detections forbidden response has a 5xx status code
+func (o *GetAPIV1DashboardsTopUnresolvedDetectionsForbidden) IsServerError() bool {
+	return false
+}
+
+// IsCode returns true when this get Api v1 dashboards top unresolved detections forbidden response a status code equal to that given
+func (o *GetAPIV1DashboardsTopUnresolvedDetectionsForbidden) IsCode(code int) bool {
+	return code == 403
+}
+
+// Code gets the status code for the get Api v1 dashboards top unresolved detections forbidden response
+func (o *GetAPIV1DashboardsTopUnresolvedDetectionsForbidden) Code() int {
+	return 403
+}
+
+func (o *GetAPIV1DashboardsTopUnresolvedDetectionsForbidden) Error() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[GET /api/v1/dashboards/top-unresolved_detections][%d] getApiV1DashboardsTopUnresolvedDetectionsForbidden %s", 403, payload)
+}
+
+func (o *GetAPIV1DashboardsTopUnresolvedDetectionsForbidden) String() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[GET /api/v1/dashboards/top-unresolved_detections][%d] getApiV1DashboardsTopUnresolvedDetectionsForbidden %s", 403, payload)
+}
+
+func (o *GetAPIV1DashboardsTopUnresolvedDetectionsForbidden) GetPayload() *models.DtoErrorResponse {
+	return o.Payload
+}
+
+func (o *GetAPIV1DashboardsTopUnresolvedDetectionsForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	o.Payload = new(models.DtoErrorResponse)
 
