@@ -62,9 +62,9 @@ type ClientService interface {
 }
 
 /*
-PatchAPIV1DetectionsAct выполнениеs действия над доменом
+PatchAPIV1DetectionsAct выполнениеs действия над выявлением
 
-Устанавливает действие (разрешить/заблокировать) для указанного домена
+Устанавливает действие (разрешить/заблокировать) для указанного домена.
 */
 func (a *Client) PatchAPIV1DetectionsAct(params *PatchAPIV1DetectionsActParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PatchAPIV1DetectionsActOK, error) {
 	// TODO: Validate the params before sending

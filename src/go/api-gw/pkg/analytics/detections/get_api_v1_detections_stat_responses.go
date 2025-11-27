@@ -36,6 +36,12 @@ func (o *GetAPIV1DetectionsStatReader) ReadResponse(response runtime.ClientRespo
 			return nil, err
 		}
 		return nil, result
+	case 403:
+		result := NewGetAPIV1DetectionsStatForbidden()
+		if err := result.readResponse(response, consumer, o.formats); err != nil {
+			return nil, err
+		}
+		return nil, result
 	case 500:
 		result := NewGetAPIV1DetectionsStatInternalServerError()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
@@ -176,6 +182,76 @@ func (o *GetAPIV1DetectionsStatBadRequest) GetPayload() *models.DtoErrorResponse
 }
 
 func (o *GetAPIV1DetectionsStatBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+
+	o.Payload = new(models.DtoErrorResponse)
+
+	// response payload
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+		return err
+	}
+
+	return nil
+}
+
+// NewGetAPIV1DetectionsStatForbidden creates a GetAPIV1DetectionsStatForbidden with default headers values
+func NewGetAPIV1DetectionsStatForbidden() *GetAPIV1DetectionsStatForbidden {
+	return &GetAPIV1DetectionsStatForbidden{}
+}
+
+/*
+GetAPIV1DetectionsStatForbidden describes a response with status code 403, with default header values.
+
+Недостаточно прав для доступа к статистике выявлений
+*/
+type GetAPIV1DetectionsStatForbidden struct {
+	Payload *models.DtoErrorResponse
+}
+
+// IsSuccess returns true when this get Api v1 detections stat forbidden response has a 2xx status code
+func (o *GetAPIV1DetectionsStatForbidden) IsSuccess() bool {
+	return false
+}
+
+// IsRedirect returns true when this get Api v1 detections stat forbidden response has a 3xx status code
+func (o *GetAPIV1DetectionsStatForbidden) IsRedirect() bool {
+	return false
+}
+
+// IsClientError returns true when this get Api v1 detections stat forbidden response has a 4xx status code
+func (o *GetAPIV1DetectionsStatForbidden) IsClientError() bool {
+	return true
+}
+
+// IsServerError returns true when this get Api v1 detections stat forbidden response has a 5xx status code
+func (o *GetAPIV1DetectionsStatForbidden) IsServerError() bool {
+	return false
+}
+
+// IsCode returns true when this get Api v1 detections stat forbidden response a status code equal to that given
+func (o *GetAPIV1DetectionsStatForbidden) IsCode(code int) bool {
+	return code == 403
+}
+
+// Code gets the status code for the get Api v1 detections stat forbidden response
+func (o *GetAPIV1DetectionsStatForbidden) Code() int {
+	return 403
+}
+
+func (o *GetAPIV1DetectionsStatForbidden) Error() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[GET /api/v1/detections/stat][%d] getApiV1DetectionsStatForbidden %s", 403, payload)
+}
+
+func (o *GetAPIV1DetectionsStatForbidden) String() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[GET /api/v1/detections/stat][%d] getApiV1DetectionsStatForbidden %s", 403, payload)
+}
+
+func (o *GetAPIV1DetectionsStatForbidden) GetPayload() *models.DtoErrorResponse {
+	return o.Payload
+}
+
+func (o *GetAPIV1DetectionsStatForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	o.Payload = new(models.DtoErrorResponse)
 

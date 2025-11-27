@@ -40,69 +40,14 @@ const docTemplate = `{
                             }
                         }
                     },
+                    "403": {
+                        "description": "Недостаточно прав для доступа к статистике выявлений",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Ошибка при получении списка категорий",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/analytics/dashboards/act": {
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Устанавливает действие (разрешить/заблокировать) для указанного домена",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "actions"
-                ],
-                "summary": "Выполнение действия над доменом",
-                "parameters": [
-                    {
-                        "enum": [
-                            "allow",
-                            "deny"
-                        ],
-                        "type": "string",
-                        "default": "allow",
-                        "description": "Тип действия",
-                        "name": "action",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Путь домена",
-                        "name": "path",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Действие успешно применено к домену",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoSuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Неверные параметры запроса",
-                        "schema": {
-                            "$ref": "#/definitions/models.DtoErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Внутренняя ошибка сервера",
                         "schema": {
                             "$ref": "#/definitions/models.DtoErrorResponse"
                         }
@@ -156,6 +101,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Недостаточно прав для доступа к статистике выявлений",
                         "schema": {
                             "$ref": "#/definitions/models.DtoErrorResponse"
                         }
@@ -217,6 +168,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Недостаточно прав для доступа к статистике выявлений",
                         "schema": {
                             "$ref": "#/definitions/models.DtoErrorResponse"
                         }
@@ -299,6 +256,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Недостаточно прав для доступа к статистике выявлений",
                         "schema": {
                             "$ref": "#/definitions/models.DtoErrorResponse"
                         }
@@ -388,6 +351,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.DtoErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Недостаточно прав для доступа к статистике выявлений",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -461,6 +430,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.DtoErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Недостаточно прав для доступа к статистике выявлений",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -527,6 +502,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Неверный формат параметров запроса",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Недостаточно прав для доступа к статистике выявлений",
                         "schema": {
                             "$ref": "#/definitions/models.DtoErrorResponse"
                         }
@@ -645,6 +626,35 @@ const docTemplate = `{
                         "description": "Количество записей на странице",
                         "name": "limit",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поиск по URL или имени пользователя",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "domain",
+                            "request_count",
+                            "categorized_at"
+                        ],
+                        "type": "string",
+                        "default": "categorized_at",
+                        "description": "Поле для сортировки",
+                        "name": "order_by",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "default": "desc",
+                        "description": "Направление сортировки (asc/desc)",
+                        "name": "order_dir",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -656,6 +666,75 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Недостаточно прав для доступа к выявлениям",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/analytics/detections/act": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Устанавливает действие (разрешить/заблокировать) для указанного домена.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "actions"
+                ],
+                "summary": "Выполнение действия над выявлением",
+                "parameters": [
+                    {
+                        "description": "Данные для выполнения действия над доменом",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoDetectionActRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Действие успешно применено к домену",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoSuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверные параметры запроса",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Недостаточно прав для выполнения действия",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Домен не найден",
                         "schema": {
                             "$ref": "#/definitions/models.DtoErrorResponse"
                         }
@@ -761,6 +840,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.DtoErrorResponse"
                         }
                     },
+                    "403": {
+                        "description": "Недостаточно прав для доступа к статистике выявлений",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Ошибка при получении статистики выявлений",
                         "schema": {
@@ -796,6 +881,12 @@ const docTemplate = `{
                             "items": {
                                 "type": "string"
                             }
+                        }
+                    },
+                    "403": {
+                        "description": "Недостаточно прав для доступа к статистике выявлений",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
                         }
                     },
                     "500": {
@@ -850,6 +941,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Недостаточно прав для доступа к статистике выявлений",
                         "schema": {
                             "$ref": "#/definitions/models.DtoErrorResponse"
                         }
@@ -1028,20 +1125,12 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "maximum": 500,
                         "minimum": 1,
                         "type": "integer",
-                        "default": 1,
-                        "description": "Номер страницы",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "maximum": 100,
-                        "minimum": 1,
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Количество записей на странице",
-                        "name": "limit",
+                        "default": 25,
+                        "description": "Количество возвращаемых сессий",
+                        "name": "count",
                         "in": "query"
                     },
                     {
@@ -1088,6 +1177,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Недостаточно прав для доступа к статистике выявлений",
                         "schema": {
                             "$ref": "#/definitions/models.DtoErrorResponse"
                         }
@@ -2349,6 +2444,19 @@ const docTemplate = `{
                 }
             }
         },
+        "models.DtoDetectionActRequest": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "description": "action",
+                    "type": "string"
+                },
+                "path": {
+                    "description": "path",
+                    "type": "string"
+                }
+            }
+        },
         "models.DtoDetectionStat": {
             "type": "object",
             "properties": {
@@ -2450,7 +2558,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "error": {
-                    "description": "error",
+                    "description": "Описание ошибки",
                     "type": "string"
                 }
             }
@@ -2490,19 +2598,19 @@ const docTemplate = `{
                     "type": "object",
                     "properties": {
                         "limit": {
-                            "description": "limit",
+                            "description": "Количество элементов на странице",
                             "type": "integer"
                         },
                         "page": {
-                            "description": "page",
+                            "description": "Текущая страница (начинается с 1)",
                             "type": "integer"
                         },
                         "pages": {
-                            "description": "pages",
+                            "description": "Общее количество страниц",
                             "type": "integer"
                         },
                         "total": {
-                            "description": "total",
+                            "description": "Общее количество элементов",
                             "type": "integer"
                         }
                     }
@@ -2512,6 +2620,10 @@ const docTemplate = `{
         "models.DtoGetSessionsResponse": {
             "type": "object",
             "properties": {
+                "count": {
+                    "description": "Число сессий в ответе",
+                    "type": "integer"
+                },
                 "data": {
                     "description": "Список сессий",
                     "type": "array",
@@ -2519,27 +2631,9 @@ const docTemplate = `{
                         "$ref": "#/definitions/models.DtoSession"
                     }
                 },
-                "meta": {
-                    "description": "Метаданные пагинации",
-                    "type": "object",
-                    "properties": {
-                        "limit": {
-                            "description": "limit",
-                            "type": "integer"
-                        },
-                        "page": {
-                            "description": "page",
-                            "type": "integer"
-                        },
-                        "pages": {
-                            "description": "pages",
-                            "type": "integer"
-                        },
-                        "total": {
-                            "description": "total",
-                            "type": "integer"
-                        }
-                    }
+                "total": {
+                    "description": "Общее количество сессийы",
+                    "type": "integer"
                 }
             }
         },
@@ -2560,19 +2654,19 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "limit": {
-                    "description": "limit",
+                    "description": "Количество элементов на странице",
                     "type": "integer"
                 },
                 "page": {
-                    "description": "page",
+                    "description": "Текущая страница (начинается с 1)",
                     "type": "integer"
                 },
                 "pages": {
-                    "description": "pages",
+                    "description": "Общее количество страниц",
                     "type": "integer"
                 },
                 "total": {
-                    "description": "total",
+                    "description": "Общее количество элементов",
                     "type": "integer"
                 }
             }

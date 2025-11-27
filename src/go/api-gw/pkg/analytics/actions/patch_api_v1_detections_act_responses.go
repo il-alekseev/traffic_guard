@@ -42,6 +42,12 @@ func (o *PatchAPIV1DetectionsActReader) ReadResponse(response runtime.ClientResp
 			return nil, err
 		}
 		return nil, result
+	case 404:
+		result := NewPatchAPIV1DetectionsActNotFound()
+		if err := result.readResponse(response, consumer, o.formats); err != nil {
+			return nil, err
+		}
+		return nil, result
 	case 500:
 		result := NewPatchAPIV1DetectionsActInternalServerError()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
@@ -252,6 +258,76 @@ func (o *PatchAPIV1DetectionsActForbidden) GetPayload() *models.DtoErrorResponse
 }
 
 func (o *PatchAPIV1DetectionsActForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+
+	o.Payload = new(models.DtoErrorResponse)
+
+	// response payload
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+		return err
+	}
+
+	return nil
+}
+
+// NewPatchAPIV1DetectionsActNotFound creates a PatchAPIV1DetectionsActNotFound with default headers values
+func NewPatchAPIV1DetectionsActNotFound() *PatchAPIV1DetectionsActNotFound {
+	return &PatchAPIV1DetectionsActNotFound{}
+}
+
+/*
+PatchAPIV1DetectionsActNotFound describes a response with status code 404, with default header values.
+
+Домен не найден
+*/
+type PatchAPIV1DetectionsActNotFound struct {
+	Payload *models.DtoErrorResponse
+}
+
+// IsSuccess returns true when this patch Api v1 detections act not found response has a 2xx status code
+func (o *PatchAPIV1DetectionsActNotFound) IsSuccess() bool {
+	return false
+}
+
+// IsRedirect returns true when this patch Api v1 detections act not found response has a 3xx status code
+func (o *PatchAPIV1DetectionsActNotFound) IsRedirect() bool {
+	return false
+}
+
+// IsClientError returns true when this patch Api v1 detections act not found response has a 4xx status code
+func (o *PatchAPIV1DetectionsActNotFound) IsClientError() bool {
+	return true
+}
+
+// IsServerError returns true when this patch Api v1 detections act not found response has a 5xx status code
+func (o *PatchAPIV1DetectionsActNotFound) IsServerError() bool {
+	return false
+}
+
+// IsCode returns true when this patch Api v1 detections act not found response a status code equal to that given
+func (o *PatchAPIV1DetectionsActNotFound) IsCode(code int) bool {
+	return code == 404
+}
+
+// Code gets the status code for the patch Api v1 detections act not found response
+func (o *PatchAPIV1DetectionsActNotFound) Code() int {
+	return 404
+}
+
+func (o *PatchAPIV1DetectionsActNotFound) Error() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[PATCH /api/v1/detections/act][%d] patchApiV1DetectionsActNotFound %s", 404, payload)
+}
+
+func (o *PatchAPIV1DetectionsActNotFound) String() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[PATCH /api/v1/detections/act][%d] patchApiV1DetectionsActNotFound %s", 404, payload)
+}
+
+func (o *PatchAPIV1DetectionsActNotFound) GetPayload() *models.DtoErrorResponse {
+	return o.Payload
+}
+
+func (o *PatchAPIV1DetectionsActNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	o.Payload = new(models.DtoErrorResponse)
 
