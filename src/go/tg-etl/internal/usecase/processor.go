@@ -4,26 +4,32 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strconv"
+	"tg-etl/internal/controllers/values"
 	"tg-etl/internal/models"
 	"tg-etl/internal/utils"
+	"tg-etl/pkg/blog/operations"
 	"tg-etl/pkg/slogger/wsl"
 	"time"
+
+	pkg "tg-etl/pkg/models"
 
 	"github.com/google/uuid"
 )
 
 // processNewLogs обрабатывает новые записи из IdsLogs
-func (uc *UseCase) ProcessNewLogs(ctx context.Context) error {
+func (uc *UseCase) ProcessNewLogs(ctx context.Context) (bool, error) {
 	uc.processingLock.Lock()
 	defer uc.processingLock.Unlock()
+	var logsAfterExists = false
 	// Получаем новые записи
 	logs, err := uc.q.GetLogs(ctx, uc.lastLog, uc.batchSize)
 	if err != nil {
-		return fmt.Errorf("failed to get new logs: %w", err)
+		return logsAfterExists, fmt.Errorf("failed to get new logs: %w", err)
 	}
 	if len(logs) == 0 {
 		uc.l.InfoContext(ctx, "new logs for process not found")
-		return nil
+		return logsAfterExists, nil
 	}
 	var lastIDSLog *models.IdsLog
 	// Обрабатываем каждую запись
@@ -59,7 +65,11 @@ func (uc *UseCase) ProcessNewLogs(ctx context.Context) error {
 		wsl.Int("processed_count", len(logs)),
 		wsl.Int("last_log id", id),
 	)
-	return nil
+	// Если получили логов столько же сколько батчсайз, значит логи еще есть, выполняем без перерыва
+	if len(logs) == int(uc.batchSize) {
+		logsAfterExists = true
+	}
+	return logsAfterExists, nil
 }
 
 // processLog обрабатывает одну запись лога
@@ -92,6 +102,7 @@ func (uc *UseCase) processLog(ctx context.Context, log models.IdsLog) error {
 
 // getDevice обрабатывает и создает/обновляет запись Device
 func (uc *UseCase) getDevice(ctx context.Context, log models.IdsLog) (*models.Device, error) {
+	method := "getDevice"
 	// Ищем устройство по идентификатору
 	existingDevice, err := uc.q.GetDeviceByID(ctx, log.SensorID)
 	if err != nil {
@@ -132,6 +143,38 @@ func (uc *UseCase) getDevice(ctx context.Context, log models.IdsLog) (*models.De
 		}
 	}
 	uc.l.InfoContext(ctx, "created new device", slog.String("device name", log.Hostname))
+
+	// Запись события в бизнес-лог
+	uuidStr := uuid.New().String()
+
+	newValue := make(map[string]any)
+	newValue["id"] = device.ID
+	newValue["hostname"] = device.HostName
+
+	record := pkg.DtoBusinessLog{
+		Description: "Создание нового устройства",
+		Entity:      "Device",
+		EntityID:    strconv.FormatUint(uint64(device.ID), 10),
+		UserName:    values.ThisServiceName,
+		NewValue:    newValue,
+		EventType:   "CREATE",
+	}
+
+	_, err = uc.blclient.Operations.PostAPIV1Add(&operations.PostAPIV1AddParams{
+		XCallerService: values.ThisServiceName,
+		XRequestID:     uuidStr,
+		Record:         &record,
+		Context:        ctx,
+	},
+	)
+	if err != nil {
+		err = fmt.Errorf("%s: failed to blog event: %w", method, err)
+		uc.l.ErrorContext(ctx, "failed to blog event",
+			wsl.String("method", method),
+			wsl.String("error", err.Error()),
+		)
+		return nil, err
+	}
 
 	// Получаем созданное устройство
 	newDevice, err := uc.q.GetDeviceByID(ctx, log.SensorID)
@@ -268,7 +311,7 @@ func (uc *UseCase) createURLForDomain(ctx context.Context, log models.IdsLog, do
 		if err := uc.kc.SendAnalysisRequest(ctx, req); err != nil {
 			return nil, nil, fmt.Errorf("failed to send URL request to Kafka: %w", err)
 		}
-		uc.l.Debug("url content analysis sent", wsl.String("url", newURL.Path), wsl.String("request_id", newURL.RequestID.String()))
+		//uc.l.Debug("url content analysis sent", wsl.String("url", newURL.Path), wsl.String("request_id", newURL.RequestID.String()))
 	}
 
 	if err := uc.q.CreateURL(ctx, newURL); err != nil {
@@ -339,7 +382,7 @@ func (uc *UseCase) createNewDomainAndURL(ctx context.Context, log models.IdsLog,
 	if err := uc.kc.SendAnalysisRequest(ctx, req); err != nil {
 		return nil, nil, fmt.Errorf("failed to send URL request to Kafka: %w", err)
 	}
-	uc.l.Debug("url content analysis sent", wsl.String("url", url.Path), wsl.String("request_id", url.RequestID.String()))
+	//uc.l.Debug("url content analysis sent", wsl.String("url", url.Path), wsl.String("request_id", url.RequestID.String()))
 	return domain, url, nil
 }
 

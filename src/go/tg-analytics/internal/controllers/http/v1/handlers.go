@@ -48,9 +48,11 @@ func (s *Server) Version(c *gin.Context) {
 // @Security BearerAuth
 // @Success 200 {object} dto.GetSessionsResponse "Успешный ответ"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
+// @Failure 403 {object} dto.ErrorResponse "Недостаточно прав для доступа к сессиям"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/sessions [get]
 func (s *Server) GetSessions(c *gin.Context) {
+	// Получение данных пользователя
 	userMeta, err := utils.GetUserMeta(c)
 	if err != nil {
 		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetUserMeta", slogger.WrapError(c.Request.Context(), err))
@@ -60,16 +62,12 @@ func (s *Server) GetSessions(c *gin.Context) {
 	// Получение данных запроса
 	var req validation.GetSessionsRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Invalid query parameters: %v", err),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "c.ShouldBindQuery", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 	// Нормализация и валидация
 	if err := req.ValidateAndNormalize(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "req.ValidateAndNormalize", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 	// Парсим временной диапазон
@@ -77,9 +75,7 @@ func (s *Server) GetSessions(c *gin.Context) {
 	now := time.Now()
 	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", req.From, req.To), now)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат временного диапазона",
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "parser.Parse", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 	// Преобразуем в доменные модели
@@ -95,9 +91,7 @@ func (s *Server) GetSessions(c *gin.Context) {
 	// Получаем данные из usecase
 	sessions, total, err := s.u.GetSessions(c, userMeta, timeRange, filter, req.Search, req.Count, sorting)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "ошибка при получении сессий",
-		})
+		s.ErrorResponse(c, http.StatusInternalServerError, "s.u.GetSessions", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 	// Формируем ответ
@@ -122,6 +116,7 @@ func (s *Server) GetSessions(c *gin.Context) {
 // @Security BearerAuth
 // @Success 200 {object} []dto.Category
 // @Failure 400 {object} dto.ErrorResponse
+// @Failure 403 {object} dto.ErrorResponse "Недостаточно прав для доступа к статистике категорий"
 // @Failure 500 {object} dto.ErrorResponse
 // @Router /api/v1/dashboards/top-categories [get]
 func (s *Server) GetTopCategories(c *gin.Context) {
@@ -133,16 +128,12 @@ func (s *Server) GetTopCategories(c *gin.Context) {
 	// Валидация запроса
 	var req validation.GetTopCategoriesRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Invalid query parameters: %v", err),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "c.ShouldBindQuery", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 	// Нормализация и валидация
 	if err := req.ValidateAndNormalize(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "req.ValidateAndNormalize", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 	// Парсим временной диапазон
@@ -150,9 +141,7 @@ func (s *Server) GetTopCategories(c *gin.Context) {
 	now := time.Now()
 	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", req.From, req.To), now)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат временного диапазона",
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "parser.Parse", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 	// Преобразуем в доменные модели
@@ -163,9 +152,7 @@ func (s *Server) GetTopCategories(c *gin.Context) {
 	// Получаем данные из usecase
 	categories, err := s.u.GetTopCategories(c.Request.Context(), userMeta, timeRange, filter, req.Count)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Ошибка при получении топ категорий",
-		})
+		s.ErrorResponse(c, http.StatusInternalServerError, "s.u.GetTopCategories", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 	c.JSON(http.StatusOK, categories)
@@ -183,9 +170,13 @@ func (s *Server) GetTopCategories(c *gin.Context) {
 // @Param action query string false "Действие пользователя" Enums(Разрешено, Заблокировано, Не решено)
 // @Param page query int false "Номер страницы" default(1) minimum(1)
 // @Param limit query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
+// @Param search query string false "Поиск по URL или имени пользователя"
+// @Param order_by query string false "Поле для сортировки" default(categorized_at) Enums(domain, request_count, categorized_at)
+// @Param order_dir query string false "Направление сортировки (asc/desc)" default(desc) Enums(asc, desc)
 // @Security BearerAuth
 // @Success 200 {object} dto.GetDetectionsResponse "Успешный ответ"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
+// @Failure 403 {object} dto.ErrorResponse "Недостаточно прав для доступа к выявлениям"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/detections [get]
 func (s *Server) GetDetections(c *gin.Context) {
@@ -198,17 +189,13 @@ func (s *Server) GetDetections(c *gin.Context) {
 	// Валидация запроса
 	var req validation.GetTopDetectionsRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Invalid query parameters: %v", err),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "c.ShouldBindQuery", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
 	// Нормализация и валидация
 	if err := req.ValidateAndNormalize(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "req.ValidateAndNormalize", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
@@ -217,9 +204,7 @@ func (s *Server) GetDetections(c *gin.Context) {
 	now := time.Now()
 	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", req.From, req.To), now)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат временного диапазона",
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "parser.Parse", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
@@ -234,12 +219,15 @@ func (s *Server) GetDetections(c *gin.Context) {
 		Limit: req.Limit,
 	}
 
+	sorting := models.Sorting{
+		OrderBy:  req.OrderBy,
+		OrderDir: req.OrderDir,
+	}
+
 	// Получаем данные из usecase
-	detections, total, err := s.u.GetTopDetections(c.Request.Context(), userMeta, timeRange, filter, req.Action, pagination)
+	detections, total, err := s.u.GetTopDetections(c.Request.Context(), userMeta, timeRange, filter, req.Action, pagination, req.Search, sorting)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "ошибка при получении списка выявлений",
-		})
+		s.ErrorResponse(c, http.StatusInternalServerError, "s.u.GetTopDetections", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
@@ -268,6 +256,7 @@ func (s *Server) GetDetections(c *gin.Context) {
 // @Security BearerAuth
 // @Success 200 {object} dto.DetectionStat "Статистика детекций"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат временного диапазона"
+// @Failure 403 {object} dto.ErrorResponse "Недостаточно прав для доступа к статистике выявлений"
 // @Failure 500 {object} dto.ErrorResponse "Ошибка при получении статистики выявлений"
 // @Router /api/v1/detections/stat [get]
 func (s *Server) GetDetectionStat(c *gin.Context) {
@@ -279,17 +268,13 @@ func (s *Server) GetDetectionStat(c *gin.Context) {
 
 	var req validation.GetDetectionStatRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Invalid query parameters: %v", err),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "c.ShouldBindQuery", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
 	// Нормализация и валидация
 	if err := req.ValidateAndNormalize(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "req.ValidateAndNormalize", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
@@ -298,9 +283,7 @@ func (s *Server) GetDetectionStat(c *gin.Context) {
 	now := time.Now()
 	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", req.From, req.To), now)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат временного диапазона",
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "parser.Parse", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
@@ -313,9 +296,7 @@ func (s *Server) GetDetectionStat(c *gin.Context) {
 	// Получаем данные из usecase
 	stat, err := s.u.GetDetectionStat(c.Request.Context(), userMeta, timeRange, filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "ошибка при получении статистики выявлений",
-		})
+		s.ErrorResponse(c, http.StatusInternalServerError, "s.u.GetDetectionStat", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
@@ -335,6 +316,7 @@ func (s *Server) GetDetectionStat(c *gin.Context) {
 // @Security BearerAuth
 // @Success 200 {object} dto.RequestStatResponse "Статистика запросов (массив чисел)"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
+// @Failure 403 {object} dto.ErrorResponse "Недостаточно прав для доступа к статистике запросов"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/dashboards/requests [get]
 func (s *Server) GetRequestStat(c *gin.Context) {
@@ -346,17 +328,13 @@ func (s *Server) GetRequestStat(c *gin.Context) {
 
 	var req validation.GetRequestStatRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Invalid query parameters: %v", err),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "c.ShouldBindQuery", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
 	// Нормализация и валидация
 	if err := req.ValidateAndNormalize(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "req.ValidateAndNormalize", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
@@ -365,18 +343,14 @@ func (s *Server) GetRequestStat(c *gin.Context) {
 	now := time.Now()
 	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", req.From, req.To), now)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат временного диапазона",
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "parser.Parse", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
 	// Получаем данные
 	stat, err := s.u.GetRequestStat(c.Request.Context(), userMeta, timeRange, req.HostName, req.RequestType, req.Count)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "ошибка при получении статистики запросов",
-		})
+		s.ErrorResponse(c, http.StatusInternalServerError, "s.u.GetRequestStat", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
@@ -395,6 +369,7 @@ func (s *Server) GetRequestStat(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Success 200 {array} string "Список имен устройств"
+// @Failure 403 {object} dto.ErrorResponse "Недостаточно прав для доступа к списку устройств"
 // @Failure 500 {object} map[string]string "Ошибка при получении имен устройств"
 // @Router /api/v1/devices [get]
 func (s *Server) GetDevices(c *gin.Context) {
@@ -407,9 +382,7 @@ func (s *Server) GetDevices(c *gin.Context) {
 	// Получаем данные
 	devices, err := s.u.GetDevices(c.Request.Context(), userMeta)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "ошибка при получении имен устройств",
-		})
+		s.ErrorResponse(c, http.StatusInternalServerError, "s.u.GetDevices", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 	c.JSON(http.StatusOK, devices)
@@ -427,9 +400,7 @@ func (s *Server) GetContentCategories(c *gin.Context) {
 	// Получем данные
 	devices, err := s.u.GetContentCategories(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "ошибка при получении списка всех категорий",
-		})
+		s.ErrorResponse(c, http.StatusInternalServerError, "s.u.GetContentCategories", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 	c.JSON(http.StatusOK, devices)
@@ -447,6 +418,7 @@ func (s *Server) GetContentCategories(c *gin.Context) {
 // @Security BearerAuth
 // @Success 200 {object} dto.TrafficStatResponse "Успешный ответ со статистикой трафика"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров запроса"
+// @Failure 403 {object} dto.ErrorResponse "Недостаточно прав для доступа к статистике трафика"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера при получении статистики"
 // @Router /api/v1/dashboards/traffic [get]
 func (s *Server) GetTrafficStat(c *gin.Context) {
@@ -459,17 +431,13 @@ func (s *Server) GetTrafficStat(c *gin.Context) {
 	// Валидация запроса
 	var req validation.GetTrafficStatRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Invalid query parameters: %v", err),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "c.ShouldBindQuery", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
 	// Нормализация и валидация
 	if err := req.ValidateAndNormalize(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "req.ValidateAndNormalize", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
@@ -478,18 +446,14 @@ func (s *Server) GetTrafficStat(c *gin.Context) {
 	now := time.Now()
 	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", req.From, req.To), now)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат временного диапазона",
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "parser.Parse", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
 	// Получаем данные из usecase
 	stat, err := s.u.GetTrafficStat(c.Request.Context(), userMeta, timeRange, req.HostName, req.Count)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "ошибка при получении статистики трафика",
-		})
+		s.ErrorResponse(c, http.StatusInternalServerError, "s.u.GetTrafficStat", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
@@ -513,6 +477,7 @@ func (s *Server) GetTrafficStat(c *gin.Context) {
 // @Security BearerAuth
 // @Success 200 {array} dto.UnresolvedDetection "Успешный ответ со списком нерешенных выявлений"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
+// @Failure 403 {object} dto.ErrorResponse "Недостаточно прав для доступа к нерешенным выявлениям"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/dashboards/top-unresolved_detections [get]
 func (s *Server) GetTopUnresolvedDetections(c *gin.Context) {
@@ -525,17 +490,13 @@ func (s *Server) GetTopUnresolvedDetections(c *gin.Context) {
 	// Валидация запроса
 	var req validation.GetTopCategoriesRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Invalid query parameters: %v", err),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "c.ShouldBindQuery", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
 	// Нормализация и валидация
 	if err := req.ValidateAndNormalize(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "req.ValidateAndNormalize", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
@@ -544,18 +505,14 @@ func (s *Server) GetTopUnresolvedDetections(c *gin.Context) {
 	now := time.Now()
 	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", req.From, req.To), now)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат временного диапазона",
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "parser.Parse", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
 	// Получаем данные из usecase
 	unresolvedDetections, err := s.u.GetTopUnresolvedDetections(c.Request.Context(), userMeta, timeRange, req.HostName, req.Count)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Ошибка при получении топ нерешенных выявлений",
-		})
+		s.ErrorResponse(c, http.StatusInternalServerError, "s.u.GetTopUnresolvedDetections", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 	c.JSON(http.StatusOK, unresolvedDetections)
@@ -571,6 +528,7 @@ func (s *Server) GetTopUnresolvedDetections(c *gin.Context) {
 // @Security BearerAuth
 // @Success 200 {object} dto.DeviceStatResponse "Статистика по устройствам"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
+// @Failure 403 {object} dto.ErrorResponse "Недостаточно прав для доступа к статистике устройств"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/dashboards/devices [get]
 func (s *Server) GetDeviceStat(c *gin.Context) {
@@ -583,17 +541,13 @@ func (s *Server) GetDeviceStat(c *gin.Context) {
 	// Валидация запроса
 	var req validation.GetDeviceStatRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Invalid query parameters: %v", err),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "c.ShouldBindQuery", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
 	// Нормализация и валидация
 	if err := req.ValidateAndNormalize(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "req.ValidateAndNormalize", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
@@ -602,18 +556,14 @@ func (s *Server) GetDeviceStat(c *gin.Context) {
 	now := time.Now()
 	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", req.From, req.To), now)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат временного диапазона",
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "parser.Parse", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
 	// Получаем данные из usecase
 	response, err := s.u.GetDeviceStat(c.Request.Context(), userMeta, timeRange, req.Count)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Ошибка при получении статистики сетевых узлов",
-		})
+		s.ErrorResponse(c, http.StatusInternalServerError, "s.u.GetDeviceStat", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 	c.JSON(http.StatusOK, response)
@@ -629,6 +579,7 @@ func (s *Server) GetDeviceStat(c *gin.Context) {
 // @Security BearerAuth
 // @Success 200 {object} dto.GetAnomaliesResponse "Статистика обнаруженных аномалий"
 // @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров"
+// @Failure 403 {object} dto.ErrorResponse "Недостаточно прав для доступа к статистике аномалий"
 // @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера"
 // @Router /api/v1/dashboards/anomalies [get]
 func (s *Server) GetAnomalies(c *gin.Context) {
@@ -641,17 +592,13 @@ func (s *Server) GetAnomalies(c *gin.Context) {
 	// Валидация запроса
 	var req validation.GetAnomaliesRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Invalid query parameters: %v", err),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "c.ShouldBindQuery", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
 	// Нормализация и валидация
 	if err := req.ValidateAndNormalize(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "req.ValidateAndNormalize", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
@@ -660,18 +607,14 @@ func (s *Server) GetAnomalies(c *gin.Context) {
 	now := time.Now()
 	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", req.From, req.To), now)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Неверный формат временного диапазона",
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "parser.Parse", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
 	// Получаем данные из usecase
 	response, err := s.u.GetAnomalies(c.Request.Context(), userMeta, timeRange, req.HostName)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Ошибка при получении статистики аномалий",
-		})
+		s.ErrorResponse(c, http.StatusInternalServerError, "s.u.GetAnomalies", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 	c.JSON(http.StatusOK, response)
@@ -697,45 +640,29 @@ func (s *Server) Act(c *gin.Context) {
 		return
 	}
 
-	authInfo, err := utils.GetAuthInfo(c)
-	if err != nil {
-		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
-		return
-	}
-
 	// Валидация запроса
 	var req validation.ActRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("Invalid JSON parameters: %v", err),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "c.ShouldBindJSON", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
 	// Нормализация и валидация
 	if err := req.ValidateAndNormalize(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		s.ErrorResponse(c, http.StatusBadRequest, "req.ValidateAndNormalize", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 
-	err = s.u.Act(c.Request.Context(), userMeta, authInfo, req.Action, req.Path)
+	err = s.u.Act(c.Request.Context(), userMeta, req.Action, req.Path)
 	if err != nil {
 		s.l.ErrorContext(c.Request.Context(), "act", wsl.Err(err))
 		// Проверяем тип ошибки для определения статуса
 		if strings.Contains(err.Error(), "does not have permission") {
-			c.JSON(http.StatusForbidden, gin.H{
-				"error": err.Error(),
-			})
+			s.ErrorResponse(c, http.StatusForbidden, "s.u.Act", slogger.WrapError(c.Request.Context(), err))
 		} else if strings.Contains(err.Error(), "failed to find domain") {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": err.Error(),
-			})
+			s.ErrorResponse(c, http.StatusNotFound, "s.u.Act", slogger.WrapError(c.Request.Context(), err))
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Ошибка при установке значения действия к домену",
-			})
+			s.ErrorResponse(c, http.StatusInternalServerError, "s.u.Act", slogger.WrapError(c.Request.Context(), err))
 		}
 		return
 	}

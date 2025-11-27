@@ -20,7 +20,7 @@ type RepoPGInterface interface {
 	GetDeviceStat(ctx context.Context, tr *trparser.TimeRange, hostname string, count uint) (dto.DeviceStatResponse, error)
 	GetAnomalies(ctx context.Context, tr *trparser.TimeRange, hostname string) (dto.GetAnomaliesResponse, error)
 	// Detections
-	GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, action string, p models.Pagination) ([]dto.Detection, int64, error)
+	GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, action string, p models.Pagination, s string, sorting models.Sorting) ([]dto.Detection, int64, error)
 	GetDetectionStat(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter) (dto.DetectionStat, error)
 	// Actions
 	Act(ctx context.Context, username, action, path string) error

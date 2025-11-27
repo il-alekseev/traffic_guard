@@ -96,6 +96,22 @@ type GetAPIV1DetectionsParams struct {
 	*/
 	Limit *int64
 
+	/* OrderBy.
+
+	   Поле для сортировки
+
+	   Default: "categorized_at"
+	*/
+	OrderBy *string
+
+	/* OrderDir.
+
+	   Направление сортировки (asc/desc)
+
+	   Default: "desc"
+	*/
+	OrderDir *string
+
 	/* Page.
 
 	   Номер страницы
@@ -103,6 +119,12 @@ type GetAPIV1DetectionsParams struct {
 	   Default: 1
 	*/
 	Page *int64
+
+	/* Search.
+
+	   Поиск по URL или имени пользователя
+	*/
+	Search *string
 
 	/* To.
 
@@ -134,16 +156,22 @@ func (o *GetAPIV1DetectionsParams) SetDefaults() {
 
 		limitDefault = int64(10)
 
+		orderByDefault = string("categorized_at")
+
+		orderDirDefault = string("desc")
+
 		pageDefault = int64(1)
 
 		toDefault = string("now")
 	)
 
 	val := GetAPIV1DetectionsParams{
-		From:  &fromDefault,
-		Limit: &limitDefault,
-		Page:  &pageDefault,
-		To:    &toDefault,
+		From:     &fromDefault,
+		Limit:    &limitDefault,
+		OrderBy:  &orderByDefault,
+		OrderDir: &orderDirDefault,
+		Page:     &pageDefault,
+		To:       &toDefault,
 	}
 
 	val.timeout = o.timeout
@@ -240,6 +268,28 @@ func (o *GetAPIV1DetectionsParams) SetLimit(limit *int64) {
 	o.Limit = limit
 }
 
+// WithOrderBy adds the orderBy to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) WithOrderBy(orderBy *string) *GetAPIV1DetectionsParams {
+	o.SetOrderBy(orderBy)
+	return o
+}
+
+// SetOrderBy adds the orderBy to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) SetOrderBy(orderBy *string) {
+	o.OrderBy = orderBy
+}
+
+// WithOrderDir adds the orderDir to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) WithOrderDir(orderDir *string) *GetAPIV1DetectionsParams {
+	o.SetOrderDir(orderDir)
+	return o
+}
+
+// SetOrderDir adds the orderDir to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) SetOrderDir(orderDir *string) {
+	o.OrderDir = orderDir
+}
+
 // WithPage adds the page to the get API v1 detections params
 func (o *GetAPIV1DetectionsParams) WithPage(page *int64) *GetAPIV1DetectionsParams {
 	o.SetPage(page)
@@ -249,6 +299,17 @@ func (o *GetAPIV1DetectionsParams) WithPage(page *int64) *GetAPIV1DetectionsPara
 // SetPage adds the page to the get API v1 detections params
 func (o *GetAPIV1DetectionsParams) SetPage(page *int64) {
 	o.Page = page
+}
+
+// WithSearch adds the search to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) WithSearch(search *string) *GetAPIV1DetectionsParams {
+	o.SetSearch(search)
+	return o
+}
+
+// SetSearch adds the search to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) SetSearch(search *string) {
+	o.Search = search
 }
 
 // WithTo adds the to to the get API v1 detections params
@@ -355,6 +416,40 @@ func (o *GetAPIV1DetectionsParams) WriteToRequest(r runtime.ClientRequest, reg s
 		}
 	}
 
+	if o.OrderBy != nil {
+
+		// query param order_by
+		var qrOrderBy string
+
+		if o.OrderBy != nil {
+			qrOrderBy = *o.OrderBy
+		}
+		qOrderBy := qrOrderBy
+		if qOrderBy != "" {
+
+			if err := r.SetQueryParam("order_by", qOrderBy); err != nil {
+				return err
+			}
+		}
+	}
+
+	if o.OrderDir != nil {
+
+		// query param order_dir
+		var qrOrderDir string
+
+		if o.OrderDir != nil {
+			qrOrderDir = *o.OrderDir
+		}
+		qOrderDir := qrOrderDir
+		if qOrderDir != "" {
+
+			if err := r.SetQueryParam("order_dir", qOrderDir); err != nil {
+				return err
+			}
+		}
+	}
+
 	if o.Page != nil {
 
 		// query param page
@@ -367,6 +462,23 @@ func (o *GetAPIV1DetectionsParams) WriteToRequest(r runtime.ClientRequest, reg s
 		if qPage != "" {
 
 			if err := r.SetQueryParam("page", qPage); err != nil {
+				return err
+			}
+		}
+	}
+
+	if o.Search != nil {
+
+		// query param search
+		var qrSearch string
+
+		if o.Search != nil {
+			qrSearch = *o.Search
+		}
+		qSearch := qrSearch
+		if qSearch != "" {
+
+			if err := r.SetQueryParam("search", qSearch); err != nil {
 				return err
 			}
 		}

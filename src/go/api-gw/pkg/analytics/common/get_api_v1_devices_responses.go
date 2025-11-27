@@ -12,6 +12,8 @@ import (
 
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
+
+	"api-gateway/pkg/models"
 )
 
 // GetAPIV1DevicesReader is a Reader for the GetAPIV1Devices structure.
@@ -28,6 +30,12 @@ func (o *GetAPIV1DevicesReader) ReadResponse(response runtime.ClientResponse, co
 			return nil, err
 		}
 		return result, nil
+	case 403:
+		result := NewGetAPIV1DevicesForbidden()
+		if err := result.readResponse(response, consumer, o.formats); err != nil {
+			return nil, err
+		}
+		return nil, result
 	case 500:
 		result := NewGetAPIV1DevicesInternalServerError()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
@@ -101,6 +109,76 @@ func (o *GetAPIV1DevicesOK) readResponse(response runtime.ClientResponse, consum
 
 	// response payload
 	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+		return err
+	}
+
+	return nil
+}
+
+// NewGetAPIV1DevicesForbidden creates a GetAPIV1DevicesForbidden with default headers values
+func NewGetAPIV1DevicesForbidden() *GetAPIV1DevicesForbidden {
+	return &GetAPIV1DevicesForbidden{}
+}
+
+/*
+GetAPIV1DevicesForbidden describes a response with status code 403, with default header values.
+
+Недостаточно прав для доступа к списку устройств
+*/
+type GetAPIV1DevicesForbidden struct {
+	Payload *models.DtoErrorResponse
+}
+
+// IsSuccess returns true when this get Api v1 devices forbidden response has a 2xx status code
+func (o *GetAPIV1DevicesForbidden) IsSuccess() bool {
+	return false
+}
+
+// IsRedirect returns true when this get Api v1 devices forbidden response has a 3xx status code
+func (o *GetAPIV1DevicesForbidden) IsRedirect() bool {
+	return false
+}
+
+// IsClientError returns true when this get Api v1 devices forbidden response has a 4xx status code
+func (o *GetAPIV1DevicesForbidden) IsClientError() bool {
+	return true
+}
+
+// IsServerError returns true when this get Api v1 devices forbidden response has a 5xx status code
+func (o *GetAPIV1DevicesForbidden) IsServerError() bool {
+	return false
+}
+
+// IsCode returns true when this get Api v1 devices forbidden response a status code equal to that given
+func (o *GetAPIV1DevicesForbidden) IsCode(code int) bool {
+	return code == 403
+}
+
+// Code gets the status code for the get Api v1 devices forbidden response
+func (o *GetAPIV1DevicesForbidden) Code() int {
+	return 403
+}
+
+func (o *GetAPIV1DevicesForbidden) Error() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[GET /api/v1/devices][%d] getApiV1DevicesForbidden %s", 403, payload)
+}
+
+func (o *GetAPIV1DevicesForbidden) String() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[GET /api/v1/devices][%d] getApiV1DevicesForbidden %s", 403, payload)
+}
+
+func (o *GetAPIV1DevicesForbidden) GetPayload() *models.DtoErrorResponse {
+	return o.Payload
+}
+
+func (o *GetAPIV1DevicesForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+
+	o.Payload = new(models.DtoErrorResponse)
+
+	// response payload
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 

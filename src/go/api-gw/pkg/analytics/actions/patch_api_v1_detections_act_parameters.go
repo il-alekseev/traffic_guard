@@ -14,6 +14,8 @@ import (
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
+
+	"api-gateway/pkg/models"
 )
 
 // NewPatchAPIV1DetectionsActParams creates a new PatchAPIV1DetectionsActParams object,
@@ -61,19 +63,11 @@ PatchAPIV1DetectionsActParams contains all the parameters to send to the API end
 */
 type PatchAPIV1DetectionsActParams struct {
 
-	/* Action.
+	/* Request.
 
-	   Тип действия
-
-	   Default: "allow"
+	   Данные для выполнения действия над доменом
 	*/
-	Action string
-
-	/* Path.
-
-	   Путь домена
-	*/
-	Path string
+	Request *models.DtoDetectionActRequest
 
 	timeout    time.Duration
 	Context    context.Context
@@ -92,18 +86,7 @@ func (o *PatchAPIV1DetectionsActParams) WithDefaults() *PatchAPIV1DetectionsActP
 //
 // All values with no default are reset to their zero value.
 func (o *PatchAPIV1DetectionsActParams) SetDefaults() {
-	var (
-		actionDefault = string("allow")
-	)
-
-	val := PatchAPIV1DetectionsActParams{
-		Action: actionDefault,
-	}
-
-	val.timeout = o.timeout
-	val.Context = o.Context
-	val.HTTPClient = o.HTTPClient
-	*o = val
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the patch API v1 detections act params
@@ -139,26 +122,15 @@ func (o *PatchAPIV1DetectionsActParams) SetHTTPClient(client *http.Client) {
 	o.HTTPClient = client
 }
 
-// WithAction adds the action to the patch API v1 detections act params
-func (o *PatchAPIV1DetectionsActParams) WithAction(action string) *PatchAPIV1DetectionsActParams {
-	o.SetAction(action)
+// WithRequest adds the request to the patch API v1 detections act params
+func (o *PatchAPIV1DetectionsActParams) WithRequest(request *models.DtoDetectionActRequest) *PatchAPIV1DetectionsActParams {
+	o.SetRequest(request)
 	return o
 }
 
-// SetAction adds the action to the patch API v1 detections act params
-func (o *PatchAPIV1DetectionsActParams) SetAction(action string) {
-	o.Action = action
-}
-
-// WithPath adds the path to the patch API v1 detections act params
-func (o *PatchAPIV1DetectionsActParams) WithPath(path string) *PatchAPIV1DetectionsActParams {
-	o.SetPath(path)
-	return o
-}
-
-// SetPath adds the path to the patch API v1 detections act params
-func (o *PatchAPIV1DetectionsActParams) SetPath(path string) {
-	o.Path = path
+// SetRequest adds the request to the patch API v1 detections act params
+func (o *PatchAPIV1DetectionsActParams) SetRequest(request *models.DtoDetectionActRequest) {
+	o.Request = request
 }
 
 // WriteToRequest writes these params to a swagger request
@@ -168,23 +140,8 @@ func (o *PatchAPIV1DetectionsActParams) WriteToRequest(r runtime.ClientRequest, 
 		return err
 	}
 	var res []error
-
-	// query param action
-	qrAction := o.Action
-	qAction := qrAction
-	if qAction != "" {
-
-		if err := r.SetQueryParam("action", qAction); err != nil {
-			return err
-		}
-	}
-
-	// query param path
-	qrPath := o.Path
-	qPath := qrPath
-	if qPath != "" {
-
-		if err := r.SetQueryParam("path", qPath); err != nil {
+	if o.Request != nil {
+		if err := r.SetBodyParam(o.Request); err != nil {
 			return err
 		}
 	}

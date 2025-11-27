@@ -19,9 +19,9 @@ type CategoryCount struct {
 }
 
 type TrafficStat struct {
-	Time   []time.Time
-	Input  []uint
-	Output []uint
+	Time   []time.Time `json:"time"`
+	Input  []uint      `json:"input"`
+	Output []uint      `json:"output"`
 }
 
 type RequestStat struct {

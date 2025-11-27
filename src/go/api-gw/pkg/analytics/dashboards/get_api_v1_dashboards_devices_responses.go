@@ -36,6 +36,12 @@ func (o *GetAPIV1DashboardsDevicesReader) ReadResponse(response runtime.ClientRe
 			return nil, err
 		}
 		return nil, result
+	case 403:
+		result := NewGetAPIV1DashboardsDevicesForbidden()
+		if err := result.readResponse(response, consumer, o.formats); err != nil {
+			return nil, err
+		}
+		return nil, result
 	case 500:
 		result := NewGetAPIV1DashboardsDevicesInternalServerError()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
@@ -176,6 +182,76 @@ func (o *GetAPIV1DashboardsDevicesBadRequest) GetPayload() *models.DtoErrorRespo
 }
 
 func (o *GetAPIV1DashboardsDevicesBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
+
+	o.Payload = new(models.DtoErrorResponse)
+
+	// response payload
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+		return err
+	}
+
+	return nil
+}
+
+// NewGetAPIV1DashboardsDevicesForbidden creates a GetAPIV1DashboardsDevicesForbidden with default headers values
+func NewGetAPIV1DashboardsDevicesForbidden() *GetAPIV1DashboardsDevicesForbidden {
+	return &GetAPIV1DashboardsDevicesForbidden{}
+}
+
+/*
+GetAPIV1DashboardsDevicesForbidden describes a response with status code 403, with default header values.
+
+Недостаточно прав для доступа к статистике устройств
+*/
+type GetAPIV1DashboardsDevicesForbidden struct {
+	Payload *models.DtoErrorResponse
+}
+
+// IsSuccess returns true when this get Api v1 dashboards devices forbidden response has a 2xx status code
+func (o *GetAPIV1DashboardsDevicesForbidden) IsSuccess() bool {
+	return false
+}
+
+// IsRedirect returns true when this get Api v1 dashboards devices forbidden response has a 3xx status code
+func (o *GetAPIV1DashboardsDevicesForbidden) IsRedirect() bool {
+	return false
+}
+
+// IsClientError returns true when this get Api v1 dashboards devices forbidden response has a 4xx status code
+func (o *GetAPIV1DashboardsDevicesForbidden) IsClientError() bool {
+	return true
+}
+
+// IsServerError returns true when this get Api v1 dashboards devices forbidden response has a 5xx status code
+func (o *GetAPIV1DashboardsDevicesForbidden) IsServerError() bool {
+	return false
+}
+
+// IsCode returns true when this get Api v1 dashboards devices forbidden response a status code equal to that given
+func (o *GetAPIV1DashboardsDevicesForbidden) IsCode(code int) bool {
+	return code == 403
+}
+
+// Code gets the status code for the get Api v1 dashboards devices forbidden response
+func (o *GetAPIV1DashboardsDevicesForbidden) Code() int {
+	return 403
+}
+
+func (o *GetAPIV1DashboardsDevicesForbidden) Error() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[GET /api/v1/dashboards/devices][%d] getApiV1DashboardsDevicesForbidden %s", 403, payload)
+}
+
+func (o *GetAPIV1DashboardsDevicesForbidden) String() string {
+	payload, _ := json.Marshal(o.Payload)
+	return fmt.Sprintf("[GET /api/v1/dashboards/devices][%d] getApiV1DashboardsDevicesForbidden %s", 403, payload)
+}
+
+func (o *GetAPIV1DashboardsDevicesForbidden) GetPayload() *models.DtoErrorResponse {
+	return o.Payload
+}
+
+func (o *GetAPIV1DashboardsDevicesForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	o.Payload = new(models.DtoErrorResponse)
 

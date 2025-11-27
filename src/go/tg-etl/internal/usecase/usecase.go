@@ -8,6 +8,7 @@ import (
 	"tg-etl/config"
 	"tg-etl/internal/models"
 	"tg-etl/internal/repo/kafka"
+	"tg-etl/pkg/blog"
 	"tg-etl/pkg/usercontrol"
 )
 
@@ -20,9 +21,10 @@ type UseCase struct {
 	processingLock sync.Mutex
 	l              slog.Logger
 	userCl         *usercontrol.Usercontrol
+	blclient       *blog.Blog
 }
 
-func New(cfg *config.Config, q QueryUsecase, kc kafka.Client, l slog.Logger, userCl *usercontrol.Usercontrol) (*UseCase, error) {
+func New(cfg *config.Config, q QueryUsecase, kc kafka.Client, l slog.Logger, userCl *usercontrol.Usercontrol, blclient *blog.Blog) (*UseCase, error) {
 	ctx := context.Background()
 	// Заполняем вспомогательные таблицы для ETL
 	// Проверяем, пуста ли таблица с категориями, если пуста, то добавляем категории
@@ -48,6 +50,7 @@ func New(cfg *config.Config, q QueryUsecase, kc kafka.Client, l slog.Logger, use
 		kc:        kc,
 		l:         l,
 		userCl:    userCl,
+		blclient:  blclient,
 	}
 	return &uc, nil
 }

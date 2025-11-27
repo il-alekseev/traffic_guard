@@ -19,6 +19,7 @@ import (
 	"tg-etl/internal/usecase"
 	"tg-etl/internal/usecase/handlers"
 	q "tg-etl/internal/usecase/query"
+	"tg-etl/pkg/blog"
 	"tg-etl/pkg/cslogger"
 	"tg-etl/pkg/pgorm"
 	"tg-etl/pkg/slogger/wsl"
@@ -148,8 +149,18 @@ func Run(cfg *config.Config) {
 		nil,
 	)
 
+	// Инициализация клиента для бизнес-логов
+	blclient := blog.New(
+		httptransport.New(
+			cfg.BlogServ.Host+":"+cfg.BlogServ.Port,
+			"/",
+			[]string{cfg.BlogServ.Proto},
+		),
+		nil,
+	)
+
 	//Инициализация ProcessorUsecase для обработки данных
-	p, err := usecase.New(cfg, q, kc, logger, userCl)
+	p, err := usecase.New(cfg, q, kc, logger, userCl, blclient)
 	if err != nil {
 		logger.ErrorContext(ctx, "ETL service", wsl.String("failed to create usecase", err.Error()))
 		return

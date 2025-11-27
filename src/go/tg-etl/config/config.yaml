@@ -48,3 +48,8 @@ usercontrol:
   proto: "http"
   host: "192.168.130.112"
   port: "8002"
+
+blog_serv:
+  proto: "http"
+  host: "127.0.0.1"
+  port: "8004"

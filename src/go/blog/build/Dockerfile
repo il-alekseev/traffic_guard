@@ -20,6 +20,6 @@ RUN apk --no-cache add ca-certificates && mkdir config
 
 COPY --from=builder /app/bisLog .
 COPY --from=builder /app/docs .
-COPY ../config/config.yml ./config/config.yml
+#COPY ../config/config.yml ./config/config.yml
 
 CMD ["./bisLog"]

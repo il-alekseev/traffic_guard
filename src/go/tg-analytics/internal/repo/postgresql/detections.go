@@ -14,8 +14,8 @@ import (
 	"gorm.io/gorm"
 )
 
-// GetTopDetections возвращает список детекций с пагинацией
-func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, action string, p models.Pagination) ([]dto.Detection, int64, error) {
+// GetTopDetections возвращает список детекций с пагинацией с сортировкой и поиском
+func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, action string, p models.Pagination, search string, sorting models.Sorting) ([]dto.Detection, int64, error) {
 	var detections []dto.Detection
 	var total int64
 
@@ -62,18 +62,35 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 		}
 	}
 
+	// Применяем поиск по полям path и ip
+	if search != "" {
+		searchPattern := "%" + search + "%"
+		query = query.Where("domains.path ILIKE ? OR domains.ip ILIKE ?", searchPattern, searchPattern)
+	}
+
 	// Группируем по уникальным детекциям
 	query = query.Group(fmt.Sprintf(`
     domains.ip, domains.port, domains.country, domains.path, domains.categorized_at,
     devices.hostname, categories.name, COALESCE(actions.action, '%s')
 `, pkg.ActionTypeUnresolved.String()))
+
 	// Получаем общее количество записей (до пагинации)
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, fmt.Errorf("failed to count detections: %w", err)
 	}
 
-	// Сортируем по количеству доступов (по убыванию) и по времени определения категории
-	query = query.Order("request_count DESC, categorized_at DESC")
+	// Применяем сортировку
+	if sorting.OrderBy != "" {
+		orderField := getDetectionOrderField(sorting.OrderBy)
+		orderDirection := "ASC"
+		if sorting.OrderDir == "desc" {
+			orderDirection = "DESC"
+		}
+		query = query.Order(orderField + " " + orderDirection)
+	} else {
+		// Сортируем по количеству запросов (по убыванию) и по времени определения категории по умолчанию
+		query = query.Order("request_count DESC, categorized_at DESC")
+	}
 
 	// Применяем пагинацию
 	if p.Limit > 0 {
@@ -90,6 +107,19 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 	}
 
 	return detections, total, nil
+}
+
+func getDetectionOrderField(orderBy string) string {
+	switch orderBy {
+	case "domain":
+		return "domains.path"
+	case "request_count":
+		return "request_count"
+	case "categorized_at":
+		return "domains.categorized_at"
+	default:
+		return "request_count" // поле по умолчанию
+	}
 }
 
 // GetDetectionStat возвращает статистику по детекциям

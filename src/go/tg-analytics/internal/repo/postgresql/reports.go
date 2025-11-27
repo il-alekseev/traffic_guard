@@ -46,11 +46,16 @@ func (r *RepoPG) GetCategories(ctx context.Context, tr *trparser.TimeRange) ([]m
 		Find(&tempResults).Error
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to get categories for report: %w", err)
+		return []models.CategoryStat{}, fmt.Errorf("failed to get categories for report: %w", err)
+	}
+
+	// Если нет данных, возвращаем пустой слайс
+	if tempResults == nil {
+		return []models.CategoryStat{}, nil
 	}
 
 	// Преобразуем в конечный формат
-	var categories []models.CategoryStat
+	categories := make([]models.CategoryStat, 0, len(tempResults))
 	for _, temp := range tempResults {
 		categories = append(categories, models.CategoryStat{
 			Category: temp.Category,
@@ -103,11 +108,16 @@ func (r *RepoPG) GetResourses(ctx context.Context, tr *trparser.TimeRange) ([]mo
 		Find(&tempResults).Error
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to get resources for report: %w", err)
+		return []models.ResourceStat{}, fmt.Errorf("failed to get resources for report: %w", err)
+	}
+
+	// Если нет данных, возвращаем пустой слайс
+	if tempResults == nil {
+		return []models.ResourceStat{}, nil
 	}
 
 	// Преобразуем результат в нужный формат
-	var result []models.ResourceStat
+	result := make([]models.ResourceStat, 0, len(tempResults))
 	for _, res := range tempResults {
 		result = append(result, models.ResourceStat{
 			Resource:   res.Resource,
@@ -178,11 +188,16 @@ func (r *RepoPG) GetDevicesAnalytics(ctx context.Context, tr *trparser.TimeRange
 		Find(&tempResults).Error
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to get devices analytics: %w", err)
+		return []models.DeviceReport{}, fmt.Errorf("failed to get devices analytics: %w", err)
+	}
+
+	// Если нет данных, возвращаем пустой слайс
+	if tempResults == nil {
+		return []models.DeviceReport{}, nil
 	}
 
 	// Преобразуем результат в нужный формат
-	var result []models.DeviceReport
+	result := make([]models.DeviceReport, 0, len(tempResults))
 	for _, device := range tempResults {
 		result = append(result, models.DeviceReport{
 			HostName: device.HostName,
@@ -259,7 +274,12 @@ func (r *RepoPG) GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, h
 		Find(&tempResults).Error
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to get anomalies list: %w", err)
+		return []models.DeviceAnomaly{}, fmt.Errorf("failed to get anomalies list: %w", err)
+	}
+
+	// Если нет данных, возвращаем пустой слайс
+	if tempResults == nil {
+		return []models.DeviceAnomaly{}, nil
 	}
 
 	// Группируем по устройствам
@@ -304,7 +324,7 @@ func (r *RepoPG) GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, h
 	}
 
 	// Преобразуем в конечный формат
-	var result []models.DeviceAnomaly
+	result := make([]models.DeviceAnomaly, 0, len(deviceAnomalies))
 	for hostname, anomalies := range deviceAnomalies {
 		result = append(result, models.DeviceAnomaly{
 			HostName:    hostname,
@@ -368,7 +388,12 @@ func (r *RepoPG) GetTopAnomalies(ctx context.Context, tr *trparser.TimeRange) ([
 		Find(&tempResults).Error
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to get top anomalies: %w", err)
+		return []models.DeviceAnomalyAnalytics{}, fmt.Errorf("failed to get top anomalies: %w", err)
+	}
+
+	// Если нет данных, возвращаем пустой слайс
+	if tempResults == nil {
+		return []models.DeviceAnomalyAnalytics{}, nil
 	}
 
 	// Получаем количество уникальных аномальных ресурсов для каждого устройства
@@ -393,7 +418,7 @@ func (r *RepoPG) GetTopAnomalies(ctx context.Context, tr *trparser.TimeRange) ([
 	}
 
 	// Преобразуем результат в нужный формат
-	var result []models.DeviceAnomalyAnalytics
+	result := make([]models.DeviceAnomalyAnalytics, 0, len(tempResults))
 	for _, device := range tempResults {
 		result = append(result, models.DeviceAnomalyAnalytics{
 			HostName: device.HostName,
@@ -460,11 +485,16 @@ func (r *RepoPG) GetTopCategoriesForReport(ctx context.Context, tr *trparser.Tim
 		Find(&tempResults).Error
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to get top categories for report: %w", err)
+		return []models.TopCategory{}, fmt.Errorf("failed to get top categories for report: %w", err)
+	}
+
+	// Если нет данных, возвращаем пустой слайс вместо nil
+	if tempResults == nil {
+		return []models.TopCategory{}, nil
 	}
 
 	// Преобразуем результат в нужный формат
-	var result []models.TopCategory
+	result := make([]models.TopCategory, 0, len(tempResults))
 	for _, category := range tempResults {
 		result = append(result, models.TopCategory{
 			Category: category.Category,

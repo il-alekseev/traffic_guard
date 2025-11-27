@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"tg-an/internal/controllers/http/v1/values"
 	"tg-an/internal/models"
 	"tg-an/pkg/blog/operations"
 	pkg "tg-an/pkg/models"
@@ -11,19 +12,41 @@ import (
 	"tg-an/pkg/trparser"
 	"time"
 
-	"github.com/go-openapi/runtime"
+	"github.com/google/uuid"
 )
 
-func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, authInfo runtime.ClientAuthInfoWriter, tr *trparser.TimeRange) (models.Report, error) {
+func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange) (models.Report, error) {
 	method := "CreateReport"
 	u.l.InfoContext(ctx,
 		method,
 		slog.Any("time_range", tr),
 	)
 
-	var report models.Report
-	report.From = tr.From
-	report.To = tr.To
+	// Инициализируем отчет с пустыми структурами вместо nil
+	report := models.Report{
+		From: tr.From,
+		To:   tr.To,
+		MainActivityPage: models.MainActivityPage{
+			TopCategories: []models.CategoryStat{},
+			TopResources:  []models.ResourceStat{},
+			Traffic: models.TrafficStatData{
+				Data:  models.TrafficStat{},
+				Count: 20,
+			},
+		},
+		DeviceAnalyticsPage: models.DevicesAnalyticsPage{
+			Analytics: []models.DeviceReport{},
+		},
+		AnomaliesListPage: models.DevicesAnomaliesListPage{
+			Anomalies: []models.DeviceAnomaly{},
+		},
+		TopAnomaliesPage: models.TopAnomaliesPage{
+			DeviceAnomaly: []models.DeviceAnomalyAnalytics{},
+		},
+		TopCategoriesPage: models.TopCategoriesPage{
+			Categories: []models.TopCategory{},
+		},
+	}
 
 	// Общее время выполнения
 	overallStart := time.Now()
@@ -65,8 +88,9 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, a
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
+	} else {
+		report.MainActivityPage.TopCategories = cats
 	}
-	report.MainActivityPage.TopCategories = cats
 
 	start = time.Now()
 	rs, err := u.db.GetResourses(ctx, tr)
@@ -77,8 +101,9 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, a
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
+	} else {
+		report.MainActivityPage.TopResources = rs
 	}
-	report.MainActivityPage.TopResources = rs
 
 	start = time.Now()
 	trf, err := u.mdb.GetTrafficStat(ctx, tr, "", 20)
@@ -89,9 +114,10 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, a
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
+	} else {
+		report.MainActivityPage.Traffic.Data = trf
+		report.MainActivityPage.Traffic.Count = 20
 	}
-	report.MainActivityPage.Traffic.Data = trf
-	report.MainActivityPage.Traffic.Count = 20
 
 	// Получаем данные для второй страницы (DevicesAnalyticsPage)
 	start = time.Now()
@@ -103,8 +129,9 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, a
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
+	} else {
+		report.DeviceAnalyticsPage.Analytics = dv
 	}
-	report.DeviceAnalyticsPage.Analytics = dv
 
 	// Получаем данные для третьей страницы (AnomaliesListPage)
 	start = time.Now()
@@ -116,8 +143,9 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, a
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
+	} else {
+		report.AnomaliesListPage.Anomalies = ans
 	}
-	report.AnomaliesListPage.Anomalies = ans
 
 	// Получаем данные для четвертой страницы (TopAnomaliesPage)
 	start = time.Now()
@@ -129,8 +157,9 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, a
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
+	} else {
+		report.TopAnomaliesPage.DeviceAnomaly = anr
 	}
-	report.TopAnomaliesPage.DeviceAnomaly = anr
 
 	// Получаем данные для пятой страницы (TopCategoriesPage)
 	start = time.Now()
@@ -142,10 +171,13 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, a
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
+	} else {
+		report.TopCategoriesPage.Categories = cs
 	}
-	report.TopCategoriesPage.Categories = cs
 
 	// Запись события в бизнес-лог
+	uuidStr := uuid.New().String()
+
 	newValue := make(map[string]any)
 	newValue["from"] = tr.From
 	newValue["to"] = tr.To
@@ -162,10 +194,11 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, a
 	}
 
 	_, err = u.blclient.Operations.PostAPIV1Add(&operations.PostAPIV1AddParams{
-		Record:  &record,
-		Context: ctx,
+		XCallerService: values.ThisServiceName,
+		XRequestID:     uuidStr,
+		Record:         &record,
+		Context:        ctx,
 	},
-		authInfo,
 	)
 	if err != nil {
 		err = fmt.Errorf("%s: failed to blog event: %w", method, err)
@@ -175,21 +208,21 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, a
 		)
 		return report, err
 	}
-	//
 
 	u.l.InfoContext(ctx, "report created",
 		slog.String("method", method),
-		slog.Int("categories_count", len(cats)),
-		slog.Int("resources_count", len(rs)),
-		slog.Int("devices_count", len(dv)),
-		slog.Int("anomalies_count", len(ans)),
-		slog.Int("top_anomalies_count", len(anr)),
-		slog.Int("top_categories_count", len(cs)),
+		slog.String("blog uuid", uuidStr),
+		slog.Int("categories_count", len(report.MainActivityPage.TopCategories)),
+		slog.Int("resources_count", len(report.MainActivityPage.TopResources)),
+		slog.Int("devices_count", len(report.DeviceAnalyticsPage.Analytics)),
+		slog.Int("anomalies_count", len(report.AnomaliesListPage.Anomalies)),
+		slog.Int("top_anomalies_count", len(report.TopAnomaliesPage.DeviceAnomaly)),
+		slog.Int("top_categories_count", len(report.TopCategoriesPage.Categories)),
 	)
 	return report, nil
 }
 
-func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.UserMeta, authInfo runtime.ClientAuthInfoWriter, tr *trparser.TimeRange, hostname string) (models.ReportForDevice, error) {
+func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, hostname string) (models.ReportForDevice, error) {
 	method := "CreateReportForDevice"
 	u.l.InfoContext(ctx,
 		method,
@@ -197,10 +230,42 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.Us
 		wsl.String("hostname", hostname),
 	)
 
-	var report models.ReportForDevice
-	report.From = tr.From
-	report.To = tr.To
-	report.HostName = hostname
+	// Инициализируем отчет с пустыми структурами вместо nil
+	report := models.ReportForDevice{
+		From:     tr.From,
+		To:       tr.To,
+		HostName: hostname,
+		DeviceAnalyticsPage: models.DeviceAnalyticsPage{
+			Traffic: models.TrafficStatData{
+				Data:  models.TrafficStat{},
+				Count: 20,
+			},
+			RequestsAnalytics: models.RequestsAnalytics{
+				Allowed: models.RequestStatData{
+					Time:  []time.Time{},
+					Data:  []uint{},
+					Count: 20,
+				},
+				Blocked: models.RequestStatData{
+					Time:  []time.Time{},
+					Data:  []uint{},
+					Count: 20,
+				},
+				Pending: models.RequestStatData{
+					Time:  []time.Time{},
+					Data:  []uint{},
+					Count: 20,
+				},
+			},
+			AnomalyBlockStat: models.AnomalyBlockStat{},
+		},
+		AnomaliesListPage: models.TopAnomaliesPage{
+			DeviceAnomaly: []models.DeviceAnomalyAnalytics{},
+		},
+		CategoriesPage: models.TopCategoriesPage{
+			Categories: []models.TopCategory{},
+		},
+	}
 
 	// Общее время выполнения
 	overallStart := time.Now()
@@ -243,9 +308,10 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.Us
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
+	} else {
+		report.DeviceAnalyticsPage.Traffic.Data = trf
+		report.DeviceAnalyticsPage.Traffic.Count = 20
 	}
-	report.DeviceAnalyticsPage.Traffic.Data = trf
-	report.DeviceAnalyticsPage.Traffic.Count = 20
 
 	// Получаем статистику запросов
 	start = time.Now()
@@ -257,11 +323,12 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.Us
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
-	}
-	report.DeviceAnalyticsPage.RequestsAnalytics.Allowed = models.RequestStatData{
-		Time:  allowed.Time,
-		Data:  allowed.Data,
-		Count: 20,
+	} else {
+		report.DeviceAnalyticsPage.RequestsAnalytics.Allowed = models.RequestStatData{
+			Time:  allowed.Time,
+			Data:  allowed.Data,
+			Count: 20,
+		}
 	}
 
 	start = time.Now()
@@ -273,11 +340,12 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.Us
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
-	}
-	report.DeviceAnalyticsPage.RequestsAnalytics.Blocked = models.RequestStatData{
-		Time:  blocked.Time,
-		Data:  blocked.Data,
-		Count: 20,
+	} else {
+		report.DeviceAnalyticsPage.RequestsAnalytics.Blocked = models.RequestStatData{
+			Time:  blocked.Time,
+			Data:  blocked.Data,
+			Count: 20,
+		}
 	}
 
 	start = time.Now()
@@ -289,11 +357,12 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.Us
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
-	}
-	report.DeviceAnalyticsPage.RequestsAnalytics.Pending = models.RequestStatData{
-		Time:  pending.Time,
-		Data:  pending.Data,
-		Count: 20,
+	} else {
+		report.DeviceAnalyticsPage.RequestsAnalytics.Pending = models.RequestStatData{
+			Time:  pending.Time,
+			Data:  pending.Data,
+			Count: 20,
+		}
 	}
 
 	// Получаем статистику аномалий и блокировок
@@ -306,21 +375,14 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.Us
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
-	}
-
-	// Ищем данные для конкретного устройства
-	var deviceFound bool
-	for _, device := range dv {
-		if device.HostName == hostname {
-			report.DeviceAnalyticsPage.AnomalyBlockStat = device.AnomalyBlockStat
-			deviceFound = true
-			break
+	} else {
+		// Ищем данные для конкретного устройства
+		for _, device := range dv {
+			if device.HostName == hostname {
+				report.DeviceAnalyticsPage.AnomalyBlockStat = device.AnomalyBlockStat
+				break
+			}
 		}
-	}
-
-	// Если устройство не найдено, создаем пустую статистику
-	if !deviceFound {
-		report.DeviceAnalyticsPage.AnomalyBlockStat = models.AnomalyBlockStat{}
 	}
 
 	// Получаем данные для второй страницы (TopAnomaliesPage)
@@ -333,16 +395,16 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.Us
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
-	}
-
-	// Фильтруем топ аномалии для текущего устройства
-	var deviceTopAnomalies []models.DeviceAnomalyAnalytics
-	for _, anomaly := range topAnomalies {
-		if anomaly.HostName == hostname {
-			deviceTopAnomalies = append(deviceTopAnomalies, anomaly)
+	} else {
+		// Фильтруем топ аномалии для текущего устройства
+		deviceTopAnomalies := make([]models.DeviceAnomalyAnalytics, 0)
+		for _, anomaly := range topAnomalies {
+			if anomaly.HostName == hostname {
+				deviceTopAnomalies = append(deviceTopAnomalies, anomaly)
+			}
 		}
+		report.AnomaliesListPage.DeviceAnomaly = deviceTopAnomalies
 	}
-	report.AnomaliesListPage.DeviceAnomaly = deviceTopAnomalies
 
 	// Получаем данные для третьей страницы (CategoriesPage)
 	start = time.Now()
@@ -354,10 +416,13 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.Us
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
+	} else {
+		report.CategoriesPage.Categories = cs
 	}
-	report.CategoriesPage.Categories = cs
 
 	// Запись события в бизнес-лог
+	uuidStr := uuid.New().String()
+
 	newValue := make(map[string]any)
 	newValue["from"] = tr.From
 	newValue["to"] = tr.To
@@ -375,26 +440,27 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.Us
 	}
 
 	_, err = u.blclient.Operations.PostAPIV1Add(&operations.PostAPIV1AddParams{
-		Record:  &record,
-		Context: ctx,
+		XCallerService: values.ThisServiceName,
+		XRequestID:     uuidStr,
+		Record:         &record,
+		Context:        ctx,
 	},
-		authInfo,
 	)
 	if err != nil {
 		err = fmt.Errorf("%s: failed to blog event: %w", method, err)
 		u.l.ErrorContext(ctx, "failed to blog event",
 			wsl.String("method", method),
+			wsl.String("blog uuid", uuidStr),
 			wsl.String("error", err.Error()),
 		)
 		return report, err
 	}
-	//
 
 	u.l.InfoContext(ctx, "report for device created",
 		slog.String("method", method),
 		slog.String("hostname", hostname),
-		slog.Int("categories_count", len(cs)),
-		slog.Int("anomalies_count", len(deviceTopAnomalies)),
+		slog.Int("categories_count", len(report.CategoriesPage.Categories)),
+		slog.Int("anomalies_count", len(report.AnomaliesListPage.DeviceAnomaly)),
 	)
 	return report, nil
 }
