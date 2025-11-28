@@ -34,14 +34,14 @@ func (s *Server) Version(c *gin.Context) {
 // @Summary Получение списка сессий
 // @Description Возвращает список сессий с возможностью фильтрации, поиска, сортировки и пагинации
 // @Tags sessions
-// @Accept json
+// @Accept jsonы
 // @Produce json
 // @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z). По умолчанию: now-10m" default(now-10m)
 // @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z). По умолчанию: now" default(now)
 // @Param hostname query string false "Фильтр по имени хоста"
 // @Param category query string false "Фильтр по категории" Enums(Неизвестный класс, Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депрессивный контент, Алкоголь и табак, Положительная категория)
 // @Param type query string false "Фильтр по типу сессии" Enums(Разрешен, Запрещен, VPN)
-// @Param search query string false "Поиск по URL, IP адресу пользователя или IP адремсу домена"
+// @Param search query string false "Поиск по URL, IP адресу пользователя или IP адревсу домена"
 // @Param count query int false "Количество возвращаемых сессий" default(25) minimum(1) maximum(500)
 // @Param order_by query string false "Поле для сортировки" default(datetime_utc) Enums(id, datetime_utc, type, status, url, proto, hostname, src_ip, src_country, username, dst_ip, dst_port, dst_country, category)
 // @Param order_dir query string false "Направление сортировки (asc/desc)" default(desc) Enums(asc, desc)
