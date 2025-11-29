@@ -28,9 +28,10 @@ type Server struct {
 	router     *gin.Engine
 	logger     *slog.Logger
 	serv       *service.Service
+	devVersion string
 }
 
-func NewServer(cfg config.HTTP, log *slog.Logger, serv *service.Service) *Server {
+func NewServer(cfg config.HTTP, log *slog.Logger, serv *service.Service, version string) *Server {
 	log = log.With(wsl.Label("layer", "http_server"))
 
 	gin.SetMode(gin.ReleaseMode)
@@ -48,6 +49,7 @@ func NewServer(cfg config.HTTP, log *slog.Logger, serv *service.Service) *Server
 		logger:     log,
 		serv:       serv,
 		router:     router,
+		devVersion: version,
 	}
 
 	s.initRouter()

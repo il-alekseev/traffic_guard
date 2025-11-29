@@ -68,7 +68,7 @@ func Run(cfg *config.Config) {
 	)
 
 	// инициализация http сервера и обработчиков
-	server, err := v1.New(ctx, cfg, userCtrlCl, blogCl, analyticsCl)
+	server, err := v1.New(ctx, cfg, userCtrlCl, blogCl, analyticsCl, cfg.Version)
 	if err != nil {
 		slog.ErrorContext(slogger.ErrorCtx(ctx, err), "create http server: "+err.Error())
 	}

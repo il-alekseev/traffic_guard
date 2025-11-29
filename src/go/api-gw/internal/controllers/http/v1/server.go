@@ -37,6 +37,7 @@ type Server struct {
 	domain      string
 	httpServer  *http.Server
 	key         string // для проверки подписи токенов
+	devVersion  string
 }
 
 // New - инициализация http сервера
@@ -46,6 +47,7 @@ func New(
 	userCl *usercontrol.Usercontrol,
 	blogCL *blogserv.Blogserv,
 	analyticsCL *analytics.Analytics,
+	version string,
 ) (*Server, error) {
 	key, err := os.ReadFile(cfg.KeyCloak.PemFile)
 	if err != nil {
@@ -64,7 +66,8 @@ func New(
 			Addr:    cfg.HTTP.Host + ":" + cfg.HTTP.Port,
 			Handler: router,
 		},
-		key: string(key),
+		key:        string(key),
+		devVersion: version,
 	}
 	apigw.configureRouter()
 	return &apigw, nil

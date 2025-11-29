@@ -17,3 +17,16 @@ func (s *Server) healthcheck(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, response)
 }
+
+// @Summary Получение версии сервиса
+// @Description Возвращает информацию о версии
+// @Tags utils
+// @Produce json
+// @Success 200 {object} models.DtoSuccessResponse
+// @Router /api/v1/version [get]
+func (s *Server) version(c *gin.Context) {
+	response := models.DtoSuccessResponse{
+		Message: s.devVersion,
+	}
+	c.JSON(http.StatusOK, response)
+}

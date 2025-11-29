@@ -178,6 +178,19 @@ paths:
       security:
       - BearerAuth: []
       summary: Получение логов из БД с возможностью фильтрации и пагинации
+  /api/v1/version:
+    get:
+      description: Возвращает информацию о версии
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.SuccessResponse'
+      summary: Получение версии сервиса
+      tags:
+      - utils
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token

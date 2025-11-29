@@ -9,6 +9,7 @@ import (
 // initRouter - инициализация роутера
 func (s *Server) initRouter() {
 	s.router.GET("/api/v1/healthcheck", s.healthcheck)
+	s.router.GET("/api/v1/version", s.version)
 
 	s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

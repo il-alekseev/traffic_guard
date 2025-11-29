@@ -22,7 +22,7 @@ func StartApp(cfg *config.Config) {
 
 	serv := service.NewService(repo, repo, log)
 
-	httpServer := v1.NewServer(cfg.HTTP, log, serv)
+	httpServer := v1.NewServer(cfg.HTTP, log, serv, cfg.App.Version)
 
 	go func() {
 		log.Info("Starting HTTP server on address", wsl.Label("Host", cfg.HTTP.Host+":"+cfg.HTTP.Port))
