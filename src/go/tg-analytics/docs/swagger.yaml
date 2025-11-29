@@ -884,7 +884,7 @@ paths:
         minimum: 1
         name: limit
         type: integer
-      - description: Поиск по URL или имени пользователя
+      - description: Поиск по URL или IP адресу домена
         in: query
         name: search
         type: string
@@ -1247,7 +1247,7 @@ paths:
         in: query
         name: type
         type: string
-      - description: Поиск по URL или имени пользователя
+      - description: Поиск по URL, IP адресу пользователя или IP адремсу домена
         in: query
         name: search
         type: string

@@ -144,6 +144,26 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/api/v1/version": {
+            "get": {
+                "description": "Возвращает информацию о версии",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "utils"
+                ],
+                "summary": "Получение версии сервиса",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.SuccessResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

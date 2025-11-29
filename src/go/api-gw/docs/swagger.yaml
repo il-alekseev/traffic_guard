@@ -2569,6 +2569,19 @@ paths:
       summary: Изменение пароля текущего пользователя системы
       tags:
       - users
+  /api/v1/version:
+    get:
+      description: Возвращает информацию о версии
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DtoSuccessResponse'
+      summary: Получение версии сервиса
+      tags:
+      - utils
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token

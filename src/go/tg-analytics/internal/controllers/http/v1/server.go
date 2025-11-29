@@ -50,7 +50,7 @@ func New(cfg *config.Config, l slog.Logger, u UseCaseInterface) *Server {
 }
 
 func (s *Server) Start() error {
-	s.l.Info("dashboard http server started")
+	s.l.Info("tg-analytics http server started")
 	s.server.ListenAndServe()
 	return nil
 }
