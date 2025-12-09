@@ -629,7 +629,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Поиск по URL или имени пользователя",
+                        "description": "Поиск по URL или IP адресу домена",
                         "name": "search",
                         "in": "query"
                     },
@@ -1120,7 +1120,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Поиск по URL или имени пользователя",
+                        "description": "Поиск по URL, IP адресу пользователя или IP адресу домена",
                         "name": "search",
                         "in": "query"
                     },
