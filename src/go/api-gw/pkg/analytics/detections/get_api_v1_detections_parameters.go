@@ -122,7 +122,7 @@ type GetAPIV1DetectionsParams struct {
 
 	/* Search.
 
-	   Поиск по URL или имени пользователя
+	   Поиск по URL или IP адресу домена
 	*/
 	Search *string
 
