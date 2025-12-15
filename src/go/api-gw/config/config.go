@@ -1,7 +1,9 @@
 package config
 
 import (
+	"flag"
 	"fmt"
+	"os"
 
 	"github.com/ilyakaznacheev/cleanenv"
 )
@@ -14,7 +16,7 @@ type (
 		Log         `yaml:"logger"`
 		Swagger     `yaml:"swagger"`
 		UserControl `yaml:"usercontrol"`
-		
+
 		BlogServ  `yaml:"blog_serv"`
 		Analytics `yaml:"analytics"`
 		KeyCloak  `yaml:"keycloak"`
@@ -73,17 +75,64 @@ type (
 )
 
 // NewConfig returns app config.
+//func NewConfig() (*Config, error) {
+//	cfg := &Config{}
+//
+//	// Сначала читает параметры из конфига - удобно при разработке и локальном запуске.
+//	// Затем смотрит переменные окружения и перезаписывает параметры из конфига.
+//	// Таким образом параметры ENV имеют приоритет над конфигом - удобно при развертывании
+//	// в docker
+//	err := cleanenv.ReadConfig("./config/config.yml", cfg) //./config/config.yml   fiermon/fiermon-api-gw/config/config.yml
+//	if err != nil {
+//		return nil, fmt.Errorf("config error: %w", err)
+//	}
+//
+//	return cfg, nil
+//}
+
+// NewConfig returns app config.
 func NewConfig() (*Config, error) {
 	cfg := &Config{}
 
-	// Сначала читает параметры из конфига - удобно при разработке и локальном запуске.
-	// Затем смотрит переменные окружения и перезаписывает параметры из конфига.
-	// Таким образом параметры ENV имеют приоритет над конфигом - удобно при развертывании
-	// в docker
-	err := cleanenv.ReadConfig("./config/config.yml", cfg) //./config/config.yml   fiermon/fiermon-api-gw/config/config.yml
+	configPath, err := fetchConfigPath()
 	if err != nil {
-		return nil, fmt.Errorf("config error: %w", err)
+		fmt.Println("config file not found, using environment variables")
+
+		err = cleanenv.ReadEnv(cfg)
+		if err != nil {
+			return nil, fmt.Errorf("error reading environment variables: %w", err)
+		}
+
+		return cfg, nil
+	}
+
+	err = cleanenv.ReadConfig(configPath, cfg)
+	if err != nil {
+		return nil, fmt.Errorf("error reading config file: %w", err)
+	}
+
+	// Чтение переменных которые не указаны в конфигурационном файле или перезапись переменных
+	// Необходимо для передачи парольной информации, когда основная информация в конфигурационном файле,
+	// а парольная информация передается через переменное окружение
+	err = cleanenv.ReadEnv(cfg)
+	if err != nil {
+		return nil, err
 	}
 
 	return cfg, nil
+}
+
+// fetchConfigPath - получение пути конфигурационного файла
+func fetchConfigPath() (string, error) {
+	var path string
+
+	flag.StringVar(&path, "config", "config/config.yml", "config file path")
+	flag.Parse()
+
+	_, err := os.Stat(path)
+	if err != nil {
+		return "", err
+	}
+
+	return path, nil
 }
