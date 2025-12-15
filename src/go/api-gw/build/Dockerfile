@@ -21,7 +21,7 @@ WORKDIR /app
 # copy executable
 COPY --from=builder /app/server ./server
 COPY --from=builder /app/docs ./docs
-COPY --from=builder /app/config ./config
+#COPY --from=builder /app/config ./config
 COPY --from=builder /app/data ./data
 
 EXPOSE 8001
