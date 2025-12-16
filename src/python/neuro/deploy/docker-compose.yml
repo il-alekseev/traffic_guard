@@ -1,9 +1,10 @@
 services:
-  app:
-    container_name: classificator
+  traffic-classifier:
+    image: traffic-classifier:cuda13
     build:
       context: ..
       dockerfile: deploy/Dockerfile
+
     environment:
       - DATABASE_NAME=${DATABASE_NAME}
       - DATABASE_PASSWORD=${DATABASE_PASSWORD}
@@ -14,7 +15,21 @@ services:
       - KAFKA_PRODUCER_GROUP_ID=${KAFKA_PRODUCER_GROUP_ID}
       - KAFKA_TIMEOUT=${KAFKA_TIMEOUT}
       - KAFKA_URL=${KAFKA_URL}
-      - MODEL_NAME=${MODEL_NAME}
-      - LLM_URL=${LLM_URL}
       - PRODUCER_TOPIC=${PRODUCER_TOPIC}
       - CONSUMER_TOPIC=${CONSUMER_TOPIC}
+      - CONTENT_ONNX_PATH=${CONTENT_ONNX_PATH}
+      - SENTIMENT_ONNX_PATH=${SENTIMENT_ONNX_PATH}
+      - TOKENIZER_DIR=${TOKENIZER_DIR}
+      - ORT_PROVIDER=${ORT_PROVIDER}
+      - MAX_LENGTH=${MAX_LENGTH}
+      - TOP_K=${TOP_K}
+
+    container_name: traffic-classifier
+    restart: unless-stopped
+
+
+    volumes:
+      - ../models:/models:ro
+
+    # gpus: all
+
