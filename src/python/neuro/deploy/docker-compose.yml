@@ -30,6 +30,8 @@ services:
 
     volumes:
       - ../models:/models:ro
+    ports:
+      - "8071:8071" 
 
     # gpus: all
 

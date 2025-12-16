@@ -24,7 +24,7 @@ RUN pip install --upgrade pip \
  && pip install --no-cache-dir -r requirements.txt
 
 COPY ../src/ ./src/
-
+COPY .env /app/.env
 WORKDIR /app/src
 
 RUN python from_hf.py
