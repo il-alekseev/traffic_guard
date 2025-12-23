@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"tg-an/internal/models"
+	"time"
 )
 
 type GetTopCategoriesRequest struct {
@@ -310,6 +311,38 @@ func (r *GetDeviceReportRequest) Validate() error {
 
 // ValidateAndNormalize выполняет нормализацию и валидацию
 func (r *GetDeviceReportRequest) ValidateAndNormalize() error {
+	r.Normalize()
+	return r.Validate()
+}
+
+// GetProhActivityRequest представляет валидацию запроса для получения данных для графика запрещенной активности
+type GetProhActivityRequest struct {
+	Year     int    `form:"year" binding:"omitempty"`
+	HostName string `form:"hostname" binding:"omitempty,max=100"`
+}
+
+// Validate выполняет валидацию всех полей запроса
+func (r *GetProhActivityRequest) Validate() error {
+	// Валидация года
+	if r.Year < 0 {
+		return fmt.Errorf("year must be greater than or equal to 0")
+	}
+
+	return nil
+}
+
+// Normalize нормализует значения запроса
+func (r *GetProhActivityRequest) Normalize() {
+	// Тримим строковые поля
+	r.HostName = strings.TrimSpace(r.HostName)
+	// Устанавливаем значения по умолчанию
+	if r.Year == 0 {
+		r.Year = time.Now().Year()
+	}
+}
+
+// ValidateAndNormalize выполняет нормализацию и валидацию
+func (r *GetProhActivityRequest) ValidateAndNormalize() error {
 	r.Normalize()
 	return r.Validate()
 }

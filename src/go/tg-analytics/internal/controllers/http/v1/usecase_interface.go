@@ -22,7 +22,7 @@ type UseCaseInterface interface {
 	GetTopUnresolvedDetections(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, hostName string, count int) ([]dto.UnresolvedDetection, error)
 	GetDeviceStat(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, count uint) (dto.DeviceStatResponse, error)
 	GetAnomalies(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, hostname string) (dto.GetAnomaliesResponse, error)
-
+	GetProhActivity(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, hostname string) (dto.GetProhActivityResponse, error)
 	// Detections
 	GetTopDetections(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.DetectionFilter, action string, p models.Pagination, s string, sorting models.Sorting) ([]dto.Detection, int64, error)
 	GetDetectionStat(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.DetectionFilter) (dto.DetectionStat, error)
