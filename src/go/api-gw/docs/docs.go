@@ -187,6 +187,67 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/analytics/dashboards/proh-activity": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает статистику запрещенной активности за указанный год с возможностью фильтрации по имени устройства\nВременной диапазон автоматически формируется от 1 января 00:00:00 UTC до 31 декабря 23:59:59.999 UTC указанного года",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboards"
+                ],
+                "summary": "Получение графика запрещенной активности за год",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 2025,
+                        "description": "год, за который нужно получить данные для графика запрещенной активности",
+                        "name": "year",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени хоста",
+                        "name": "hostname",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Данные графика запрещенной активности за год",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoGetProhActivityResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат параметров, некорректный год или временной диапазон",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Недостаточно прав для доступа к графику запрещенной активности",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера при получении данных графика",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/analytics/dashboards/requests": {
             "get": {
                 "security": [
@@ -2634,6 +2695,26 @@ const docTemplate = `{
                             "type": "integer"
                         }
                     }
+                }
+            }
+        },
+        "models.DtoGetProhActivityResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "description": "count",
+                    "type": "integer"
+                },
+                "data": {
+                    "description": "data",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "time_since": {
+                    "description": "time since",
+                    "type": "string"
                 }
             }
         },

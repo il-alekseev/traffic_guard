@@ -421,6 +421,58 @@ func (s *Server) getDashboardsTraffic(c *gin.Context) {
 	c.JSON(resp.Code(), resp.GetPayload())
 }
 
+// @Summary Получение графика запрещенной активности за год
+// @Description Возвращает статистику запрещенной активности за указанный год с возможностью фильтрации по имени устройства
+// @Description Временной диапазон автоматически формируется от 1 января 00:00:00 UTC до 31 декабря 23:59:59.999 UTC указанного года
+// @Tags dashboards
+// @Accept json
+// @Produce json
+// @Param year query int false "год, за который нужно получить данные для графика запрещенной активности" default(2025)
+// @Param hostname query string false "Фильтр по имени хоста"
+// @Security BearerAuth
+// @Success 200 {object} models.DtoGetProhActivityResponse "Данные графика запрещенной активности за год"
+// @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров, некорректный год или временной диапазон"
+// @Failure 403 {object} models.DtoErrorResponse "Недостаточно прав для доступа к графику запрещенной активности"
+// @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера при получении данных графика"
+// @Router /api/v1/analytics/dashboards/proh-activity [get]
+func (s *Server) getDashboardsProhActivity(c *gin.Context) {
+	// Создаем authInfoWriter для передачи токена
+	authInfo, err := utils.GetAuthInfo(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+		return
+	}
+
+	//Парсим временные метки
+	year, err := strconv.ParseInt(c.Query("year"), 10, 64)
+	if err != nil {
+		if conflictErr, ok := err.(ResponseErrorInterface); ok {
+			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
+			return
+		}
+
+		s.ErrorResponse(c, http.StatusBadRequest, "Parse int year", err)
+		return
+	}
+	hostname := c.Query("hostname")
+
+	resp, err := s.analyticsCL.Dashboards.GetAPIV1DashboardsProhActivity(&dashboards.GetAPIV1DashboardsProhActivityParams{
+		Year:     &year,
+		Hostname: &hostname,
+	}, authInfo)
+	if err != nil {
+		if conflictErr, ok := err.(ResponseErrorInterface); ok {
+			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
+			return
+		}
+
+		s.ErrorResponse(c, http.StatusBadRequest, "Dashboards.GetAPIV1DashboardsProhActivity", err)
+		return
+	}
+
+	c.JSON(resp.Code(), resp.GetPayload())
+}
+
 //---------------------actions---------------------
 
 // @Summary Выполнение действия над выявлением
