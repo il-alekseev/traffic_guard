@@ -6,13 +6,11 @@ import (
 	"api-gateway/pkg/blogserv"
 
 	"api-gateway/pkg/models"
-	"api-gateway/pkg/slogger"
 	"api-gateway/pkg/usercontrol"
 	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -49,10 +47,10 @@ func New(
 	analyticsCL *analytics.Analytics,
 	version string,
 ) (*Server, error) {
-	key, err := os.ReadFile(cfg.KeyCloak.PemFile)
-	if err != nil {
-		return nil, slogger.WrapError(ctx, err)
-	}
+	//key, err := os.ReadFile(cfg.KeyCloak.PemFile)
+	//if err != nil {
+	//	return nil, slogger.WrapError(ctx, err)
+	//}
 
 	router := gin.New()
 	apigw := Server{
@@ -66,7 +64,7 @@ func New(
 			Addr:    cfg.HTTP.Host + ":" + cfg.HTTP.Port,
 			Handler: router,
 		},
-		key:        string(key),
+		//key:        string(key),
 		devVersion: version,
 	}
 	apigw.configureRouter()

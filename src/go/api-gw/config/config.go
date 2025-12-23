@@ -19,7 +19,7 @@ type (
 
 		BlogServ  `yaml:"blog_serv"`
 		Analytics `yaml:"analytics"`
-		KeyCloak  `yaml:"keycloak"`
+		//KeyCloak  `yaml:"keycloak"`
 	}
 
 	// App - contains basic application metadata.
@@ -65,13 +65,13 @@ type (
 		Port  string `env-required:"true" yaml:"port" env:"API_GW_ANALYTICS_PORT"`
 	}
 
-	KeyCloak struct {
-		// Публичный RSA (RS256) ключ для проверки подписи токенов
-		// Получить в keycloak https://keycloak_host:port/{{realm}}/realm-settings/keys
-		// realm - в начальной конфигурации равен tsum
-		// подробнее в документации
-		PemFile string `env-required:"true" yaml:"pem_fiel_path" env:"API_GW_KEYCLOAK_PEM"`
-	}
+	//KeyCloak struct {
+	//	// Публичный RSA (RS256) ключ для проверки подписи токенов
+	//	// Получить в keycloak https://keycloak_host:port/{{realm}}/realm-settings/keys
+	//	// realm - в начальной конфигурации равен tsum
+	//	// подробнее в документации
+	//	PemFile string `env-required:"true" yaml:"pem_fiel_path" env:"API_GW_KEYCLOAK_PEM"`
+	//}
 )
 
 // NewConfig returns app config.
