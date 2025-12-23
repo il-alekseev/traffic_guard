@@ -9,6 +9,7 @@ import (
 )
 
 func (s *Server) configureRouter() {
+	s.router.HandleMethodNotAllowed = true
 	// Swagger endpoint
 	s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
