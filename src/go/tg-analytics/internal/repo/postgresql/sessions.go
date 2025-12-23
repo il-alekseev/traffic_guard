@@ -59,7 +59,7 @@ func (r *RepoPG) GetSessions(ctx context.Context, tr *trparser.TimeRange, f mode
 		searchPattern := "%" + strings.ToLower(search) + "%"
 		query = query.Where(
 			"LOWER(urls.path) LIKE ? OR LOWER(sources.ip) LIKE ? OR LOWER(domains.ip) LIKE ?",
-			searchPattern, searchPattern,
+			searchPattern, searchPattern, searchPattern,
 		)
 	}
 
