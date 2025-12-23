@@ -82,6 +82,7 @@ func (s *Server) configureRouter() {
 		analytics.GET("/dashboards/top-categories", s.getDashboardsTopCategories)
 		analytics.GET("/dashboards/top-unresolved_detections", s.getDashboardsTopUnresolvedDetections)
 		analytics.GET("/dashboards/traffic", s.getDashboardsTraffic)
+		analytics.GET("/dashboards/proh-activity", s.getDashboardsProhActivity)
 
 		//actions
 		analytics.PATCH("/detections/act", s.patchV1DashboardsAct)

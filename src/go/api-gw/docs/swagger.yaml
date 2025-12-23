@@ -180,6 +180,20 @@ definitions:
             type: integer
         type: object
     type: object
+  models.DtoGetProhActivityResponse:
+    properties:
+      count:
+        description: count
+        type: integer
+      data:
+        description: data
+        items:
+          type: integer
+        type: array
+      time_since:
+        description: time since
+        type: string
+    type: object
   models.DtoGetSessionsResponse:
     properties:
       count:
@@ -1095,6 +1109,49 @@ paths:
       security:
       - BearerAuth: []
       summary: Получение статистики по устройствам
+      tags:
+      - dashboards
+  /api/v1/analytics/dashboards/proh-activity:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        Возвращает статистику запрещенной активности за указанный год с возможностью фильтрации по имени устройства
+        Временной диапазон автоматически формируется от 1 января 00:00:00 UTC до 31 декабря 23:59:59.999 UTC указанного года
+      parameters:
+      - default: 2025
+        description: год, за который нужно получить данные для графика запрещенной
+          активности
+        in: query
+        name: year
+        type: integer
+      - description: Фильтр по имени хоста
+        in: query
+        name: hostname
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Данные графика запрещенной активности за год
+          schema:
+            $ref: '#/definitions/models.DtoGetProhActivityResponse'
+        "400":
+          description: Неверный формат параметров, некорректный год или временной
+            диапазон
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к графику запрещенной активности
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера при получении данных графика
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение графика запрещенной активности за год
       tags:
       - dashboards
   /api/v1/analytics/dashboards/requests:
