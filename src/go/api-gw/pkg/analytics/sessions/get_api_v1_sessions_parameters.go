@@ -108,7 +108,7 @@ type GetAPIV1SessionsParams struct {
 
 	/* Search.
 
-	   Поиск по URL, IP адресу пользователя или IP адремсу домена
+	   Поиск по URL, IP адресу пользователя или IP адревсу домена
 	*/
 	Search *string
 

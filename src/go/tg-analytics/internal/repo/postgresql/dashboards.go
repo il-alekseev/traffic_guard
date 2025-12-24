@@ -340,3 +340,91 @@ func (r *RepoPG) GetAnomalies(ctx context.Context, tr *trparser.TimeRange, hostn
 
 	return result, nil
 }
+
+// GetProhActivity возвращает статистику запрещенной активности по дням (оптимизированная версия)
+func (r *RepoPG) GetProhActivity(ctx context.Context, tr *trparser.TimeRange, hostname string) (dto.GetProhActivityResponse, error) {
+	// Проверяем временной диапазон
+	if !tr.IsValid() {
+		return dto.GetProhActivityResponse{}, fmt.Errorf("invalid time range: %s", tr.String())
+	}
+
+	// Вычисляем количество дней в диапазоне
+	daysCount := calculateDaysCount(tr.From, tr.To)
+	if daysCount == 0 {
+		daysCount = 1
+	}
+
+	// Формируем структуру ответа
+	result := dto.GetProhActivityResponse{
+		TimeSince: tr.From,
+		Count:     uint(daysCount),
+		Data:      make([]uint, daysCount),
+	}
+
+	// Создаем карту для агрегации данных
+	dayData := make(map[string]uint)
+
+	// Используем группировку по дням в базе данных для большей эффективности
+	type DayCount struct {
+		Date  string `gorm:"column:date"`
+		Count uint   `gorm:"column:count"`
+	}
+
+	var dayCounts []DayCount
+
+	// Создаем запрос с группировкой по дням
+	query := r.db.GetDB().WithContext(ctx).Table("sessions").
+		Select(`
+			DATE(sessions.datetime_utc) as date,
+			COUNT(*) as count
+		`).
+		Where("sessions.datetime_utc BETWEEN ? AND ?", tr.From, tr.To).
+		Where("(sessions.status = ? OR sessions.status = ?)",
+			status.StatusAnomaly.String(),
+			status.StatusBlocked.String())
+
+	// Применяем фильтр по hostname, если указан
+	if hostname != "" {
+		query = query.Joins("JOIN devices ON sessions.device_id = devices.id").
+			Where("devices.hostname = ?", hostname)
+	}
+
+	// Выполняем запрос с группировкой
+	if err := query.Group("DATE(sessions.datetime_utc)").
+		Order("DATE(sessions.datetime_utc)").
+		Find(&dayCounts).Error; err != nil {
+		return result, fmt.Errorf("failed to get prohibited activity: %w", err)
+	}
+
+	// Заполняем карту данными из БД
+	for _, dc := range dayCounts {
+		dayData[dc.Date] = dc.Count
+	}
+
+	// Заполняем массив Data в соответствии с днями
+	currentDate := tr.From
+	for i := 0; i < daysCount; i++ {
+		dateStr := currentDate.Format(time.RFC3339)
+		if count, exists := dayData[dateStr]; exists {
+			result.Data[i] = count
+		} else {
+			result.Data[i] = 0
+		}
+		currentDate = currentDate.Add(24 * time.Hour)
+	}
+
+	return result, nil
+}
+
+// calculateDaysCount вычисляет количество дней в временном диапазоне
+func calculateDaysCount(from, to time.Time) int {
+	// Нормализуем время до начала дня
+	fromDate := time.Date(from.Year(), from.Month(), from.Day(), 0, 0, 0, 0, from.Location())
+	toDate := time.Date(to.Year(), to.Month(), to.Day(), 0, 0, 0, 0, to.Location())
+
+	days := int(toDate.Sub(fromDate).Hours()/24) + 1 // +1 чтобы включить оба дня
+	if days < 1 {
+		return 1
+	}
+	return days
+}

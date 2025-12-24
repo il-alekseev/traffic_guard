@@ -49,3 +49,9 @@ type GetAnomaliesResponse struct {
 	BlockCount    uint                   `json:"block_count"`
 	HostAnomalies []models.HostAnomalies `json:"host_anomalies"`
 }
+
+type GetProhActivityResponse struct {
+	TimeSince time.Time `json:"time_since"`
+	Count     uint      `json:"count"`
+	Data      []uint    `json:"data"`
+}

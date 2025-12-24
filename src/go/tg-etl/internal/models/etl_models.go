@@ -38,7 +38,7 @@ type Domain struct {
 	IP            string    `gorm:"type:varchar" json:"ip"`
 	Port          int       `gorm:"type:integer" json:"port"`
 	Country       string    `gorm:"type:varchar" json:"country"`
-	Path          string    `gorm:"type:varchar" json:"path"`
+	Path          string    `gorm:"type:TEXT" json:"path"`
 	CategoryID    int       `gorm:"type:integer;default:1" json:"category_id"`
 	CategorizedAt time.Time `gorm:"type:timestamp;" json:"categorized_at"`
 	ActionID      uint      `gorm:"column:action_id;default:0" json:"action_id"`

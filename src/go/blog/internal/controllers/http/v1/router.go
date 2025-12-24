@@ -8,6 +8,8 @@ import (
 
 // initRouter - инициализация роутера
 func (s *Server) initRouter() {
+	s.router.HandleMethodNotAllowed = true
+
 	s.router.GET("/api/v1/healthcheck", s.healthcheck)
 	s.router.GET("/api/v1/version", s.version)
 
