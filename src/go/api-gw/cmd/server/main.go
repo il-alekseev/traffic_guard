@@ -12,6 +12,7 @@ func main() {
 		fmt.Printf("read config: %s", err.Error())
 		return
 	}
+	cfg.App.Version = "1.0.2-dev"
 
 	apigw.Run(cfg)
 }
