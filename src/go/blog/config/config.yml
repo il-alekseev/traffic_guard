@@ -22,4 +22,4 @@ logger:
   rollbar_env: 'api-gw'
 
 swagger:
-  host: "192.168.130.112"
+  host: "127.0.0.1"
