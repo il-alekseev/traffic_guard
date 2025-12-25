@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"gorm.io/gorm"
 	"log/slog"
+	"time"
 )
 
 // StartApp - Инициализация хранилища, логики приложения, api handlers
@@ -60,6 +61,7 @@ func connectDb(cfg config.PG, log *slog.Logger, model ...interface{}) (*gorm.DB,
 
 	options := []pgorm.Option{
 		pgorm.AutoMigrate(true),
+		pgorm.ConnTimeout(time.Second * 2),
 		pgorm.Models(model...),
 	}
 

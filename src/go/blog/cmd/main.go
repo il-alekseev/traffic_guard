@@ -18,7 +18,7 @@ func main() {
 		os.Exit(2)
 	}
 
-	cfg.App.Version = "1.0.2-dev"
+	cfg.App.Version = "1.0.3-dev"
 
 	docs.SwaggerInfo.Host = cfg.Swagger.Host + ":" + cfg.HTTP.Port
 
