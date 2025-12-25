@@ -2,7 +2,7 @@
   <div class="report-page">
     <div class="report__header">
       <div class="report__title">
-        {{ props.title }}
+        <p>{{ props.title }}</p>
         <span class="report__title_colored">{{ props.coloredTitle }}</span>
       </div>
       <div class="report__title-logo">
@@ -29,8 +29,8 @@ const props = defineProps<{
 
 <style lang="scss" scoped>
 .report-page {
-  width: 297mm;
-  height: 210mm;
+  width: 842px;
+  height: 595px;
   background: #FFFFFF;
   padding: 20px 30px;
   box-sizing: border-box;
@@ -49,6 +49,9 @@ const props = defineProps<{
   line-height: 20px;
   font-weight: 400;
   color: #2563EB;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .report__title_colored {
@@ -56,6 +59,8 @@ const props = defineProps<{
   background-color: #2563EB;
   padding: 10px 20px;
   border-radius: 999px;
+  line-height: 20px;
+  display: inline-block;
 }
 
 .report__title-logo {

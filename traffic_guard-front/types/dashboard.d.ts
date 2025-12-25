@@ -1,4 +1,5 @@
 import type { Categories } from "./categories";
+import type { Log } from "./logs";
 
 export interface DashboardCategory {
   name: Categories;
@@ -36,7 +37,7 @@ export interface DashboardTrafficLegend {
   }
 }
 
-export type DashboardRequestsType = 'blocked' | 'allowed' | 'before_block' | 'pending';
+export type DashboardRequestsType = 'blocked' | 'allowed' | 'before_block' | 'pending' | 'requests_blocked' | 'requests_allowed' | 'requests_pending' | 'requests_pending';
 
 export interface DashboardRequestObj {
   count: number;
@@ -66,15 +67,31 @@ export interface DashboardAnomalies {
   host_anomalies: HostAnomaly[]
 }
 
+export interface DashboardDeviceRequestsSplineChart {
+  name: string,
+  data: {
+    blocked: number[];
+    pending: number[];
+    time: string[];
+  }
+}
+
+export interface DashboardProhActivityResponse {
+  count: number,
+  data: number[],
+  time_since: string
+}
+
+export type DashboardProhActivity = number[][];
+
 export interface DashboardState {
   topCategories: TopCategories | null;
   topDetections: TopDetections | null;
   trafic: DashboardTraffic | null
   requests: DashboardRequests,
   anomalies: DashboardAnomalies | null,
-  events: null,
-  proh_activity: null,
-  devicesState: null
+  logs: Log[] | null,
+  proh_activity: DashboardProhActivityResponse | null,
 }
 
 export interface DashboardActions {

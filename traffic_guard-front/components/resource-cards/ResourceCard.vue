@@ -119,7 +119,7 @@ const deviceColors = generateColor(props.item.hostname || 'Неизвестно'
 
 <style scoped lang="scss">
 .resource-card {
-  max-width: 512px;
+  max-width: 32rem;
   width: 100%;
   background: #ffffff;
   border-radius: 28px;
@@ -141,7 +141,7 @@ const deviceColors = generateColor(props.item.hostname || 'Неизвестно'
   &__title-row {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 0.75rem;
   }
 
   &__title-icon-block {
@@ -163,7 +163,7 @@ const deviceColors = generateColor(props.item.hostname || 'Неизвестно'
     font-size: 1rem;
     line-height: 1.5rem;
     color: #3F3F46;
-    max-width: 140px;
+    max-width: 8.75rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -357,22 +357,22 @@ const deviceColors = generateColor(props.item.hostname || 'Неизвестно'
   }
 
   &__status-dot {
-    width: 6px;
-    height: 6px;
+    width: 0.375rem;
+    height: 0.375rem;
     border-radius: 50%;
     background: currentColor;
   }
 
   &__actions {
     display: flex;
-    gap: 8px;
+    gap: 0.5rem;
     margin-left: auto;
   }
 
   &__button {
-    padding: 8px 20px;
+    padding: 0.5rem 1.25rem;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 500;
     border: none;
     cursor: pointer;

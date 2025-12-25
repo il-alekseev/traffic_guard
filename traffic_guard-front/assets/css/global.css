@@ -12,12 +12,24 @@ html {
   -webkit-text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-size: 16px;
+}
+
+@media (max-width: 1440px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 992px) {
+  html {
+    font-size: 12px;
+  }
 }
 
 body {
   margin: 0;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;;
-  font-size: 1rem;
   color: #0f172a;
   background-color: #ffffff;
 }
@@ -49,4 +61,19 @@ button, [type="button"], [type="reset"], [type="submit"] {
 
 a, button, input, textarea, select {
   transition: all 0.2s ease;
+}
+
+.ngfw-bagde {
+  max-width: fit-content;
+  font-weight: 500;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  padding: 0.25rem 0.5rem;
+  text-transform: uppercase;
+  border-radius: 6px;
+}
+
+.ngfw-bagde_small {
+  font-size: 0.75rem !important;
+  line-height: 1rem !important;
 }

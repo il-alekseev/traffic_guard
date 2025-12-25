@@ -75,9 +75,8 @@ const arrowStyle = computed(() => ({
 
 <style scoped lang="scss">
 .dashboard-card {
-  width: 512px;
-  width: 512px;
-  height: 108px;
+  width: 32rem;
+  height: 6.75rem;
   background: #fff;
   border-radius: 12px;
   padding: 1.5rem;
@@ -93,7 +92,7 @@ const arrowStyle = computed(() => ({
 }
 
 .card__title {
-  width: 214px;
+  width: 13.375rem;
   font-size: 1rem;
   font-weight: 400;
   line-height: 1.25rem;
@@ -135,10 +134,10 @@ const arrowStyle = computed(() => ({
 }
 
 .card__arrow {
-  height: 12px;
-  width: 14px;
-  font-size: 14px;
-  line-height: 12px;
+  height: 0.75rem;
+  width: 0.875rem;
+  font-size: 0.875rem;
+  line-height: 0.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -152,7 +151,7 @@ const arrowStyle = computed(() => ({
 
 .card__content {
   flex-grow: 1;
-  max-width: 226px;
-  height: 90px;
+  max-width: 14.125rem;
+  height: 5.625rem;
 }
 </style>

@@ -5,7 +5,7 @@
         Генератор отчётов
       </div>
       <div class="reports__config-form">
-        <ReportForm @submit="getReport" :loading="formLoading" :success="formSucces" />
+        <ReportForm @submit="getReport" :loading="formLoading" :success="!formLoading && formSucces" :error="formError" />
       </div>
     </div>
     <div class="reports__data">
@@ -36,31 +36,76 @@
       </div>
     </div>
 
-    <div class="hidden-report" v-if="formSucces && reportData !== null">
-      <WelcomePage 
+    <div class="hidden-report" v-if="formSucces && (reportData !== null || reportDataByDevice !== null)">
+      <WelcomePage
         ref="welcomePageRef"
         :date-range="reportConfig.dateRange"
         :generated-date="reportConfig.generatedDate"
+        :deviceName="reportConfig.deviceName"
       />
 
       <ActivityPage
-        v-if="reportData.main_activity_page.traffic.count > 0 || reportData.main_activity_page.top_categories.length > 0 || reportData.main_activity_page.top_resources.length > 0"
+        v-if="reportData && 
+          (
+            reportData.main_activity_page.traffic.count > 0 || 
+            reportData.main_activity_page.top_categories.length > 0 || 
+            reportData.main_activity_page.top_resources.length > 0
+          )"
         ref="activityPageRef"
         :traffic="reportData.main_activity_page.traffic"
         :categoriesTop="reportData.main_activity_page.top_categories"
         :resourcesTop="reportData.main_activity_page.top_resources"
       />
 
+      <AnalyticsByDevice
+        v-if="reportDataByDevice &&
+          (
+            reportDataByDevice.device_analytics_page.traffic.count > 0 || 
+            reportDataByDevice.device_analytics_page.anomaly_block_stat || 
+            reportDataByDevice.device_analytics_page.requests_analytics
+          )"
+        ref="analiticsByDevicePageRef"
+        :traffic="reportDataByDevice.device_analytics_page.traffic"
+        :anomaliesAndBlockStat="reportDataByDevice.device_analytics_page.anomaly_block_stat"
+        :requestsTraffic="reportDataByDevice.device_analytics_page.requests_analytics"
+        :deviceName="reportDataByDevice.hostname"
+      />
+
       <AnalyticsTableAllNGFW
-        v-if="reportData.device_analytics_page.analytics"
+        v-if="reportData && reportData.device_analytics_page.analytics"
         ref="analyticsPageRef"
         :data="reportData.device_analytics_page.analytics"
       />
 
       <AnomaliesTableAllNGFW
-        v-if="reportData.anomalies_list_page.anomalies"
+        v-if="reportData && reportData.anomalies_list_page.anomalies"
         ref="anomaliesPageRef"
         :data="reportData.anomalies_list_page.anomalies"
+      />
+
+      <AnomaliesTableByDevice
+        v-if="reportDataByDevice && reportDataByDevice.anomalies_list_page.device_anomaly"
+        ref="anomaliesByDevicePageRef"
+        :data="reportDataByDevice.anomalies_list_page.device_anomaly"
+        :deviceName="reportDataByDevice.hostname"
+      />
+
+      <AnomaliesRating
+        v-if="reportData && reportData.top_anomalies_page.device_anomaly"
+        ref="anomaliesRatingPageRef"
+        :data="reportData.top_anomalies_page.device_anomaly"
+      />
+
+      <CategoriesRating
+        v-if="reportData && reportData.top_categories_page.categories"
+        ref="categoriesRatingAllNGFWPageRef"
+        :data="reportData.top_categories_page.categories"
+      />
+
+      <CategoriesRating
+        v-if="reportDataByDevice && reportDataByDevice.categories_page.categories"
+        ref="categoriesRatingPageRef"
+        :data="reportDataByDevice.categories_page.categories"
       />
     </div>
   </div>
@@ -72,13 +117,17 @@ import { useReportsStore } from '~/stores/reports';
 import ErrorBlock from '~/components/ui/ErrorBlock.vue';
 import EmptyDataIcon from "~/assets/img/empty-data.svg"
 import ReportForm from "~/components/reports/ReportGeneratorForm.vue"
-import type { ReportData, ReportFormData } from '~/types/reports';
+import type { ReportConfig, ReportData, ReportDataByDevice, ReportFormData } from '~/types/reports';
 import ReportItem from '~/components/reports/ReportItem.vue';
 import html2canvas from 'html2canvas'
 import WelcomePage from '~/components/report/WelcomePage.vue';
 import ActivityPage from '~/components/report/ActivityPage.vue';
 import AnalyticsTableAllNGFW from '~/components/report/AnalyticsTableAllNGFW.vue';
 import AnomaliesTableAllNGFW from '~/components/report/AnomaliesTableAllNGFW.vue';
+import AnalyticsByDevice from '~/components/report/AnalyticsByDevice.vue'
+import AnomaliesTableByDevice from '~/components/report/AnomaliesTableByDevice.vue';
+import AnomaliesRating from '~/components/report/AnomaliesRating.vue';
+import CategoriesRating from '~/components/report/CategoriesRating.vue';
 
 
 definePageMeta({
@@ -102,6 +151,8 @@ const formError = ref('');
 const formSucces = ref(false);
 
 const reportData = ref<ReportData | null>(null);
+const reportDataByDevice = ref<ReportDataByDevice | null>(null);
+const reportDataDeviceName = ref<string | undefined>();
 
 const formatDate = (date: string | Date, withYear: boolean = true): string => {
   const d = new Date(date);
@@ -120,77 +171,101 @@ const formatDate = (date: string | Date, withYear: boolean = true): string => {
   return formatted.replace(/(\p{L})/u, c => c.toUpperCase());
 };
 
-const reportConfig = ref({
+const reportConfig = ref<ReportConfig>({
   dateRange: '',
-  generatedDate: formatDate(new Date(), false)
+  generatedDate: formatDate(new Date(), false),
+  deviceName: undefined,
 })
 
-const setReportConfig = (from: string, to: string) => {
+const setReportConfig = (from: string, to: string, deviceName?: string) => {
   if (!from || !to) return;
 
   reportConfig.value = {
     dateRange: `${formatDate(from)} — ${formatDate(to)}`,
-    generatedDate: formatDate(new Date(), false)
+    generatedDate: formatDate(new Date(), false),
+    deviceName: deviceName
   }
 }
 
 const getReport = async (formData: ReportFormData) => {
-  if (formData.deviceSelection === 'specific') return;
-
+  reportData.value = null;
+  reportDataByDevice.value = null;
   formLoading.value = true;
   formSucces.value = false;
   formError.value = '';
+  reportDataDeviceName.value = undefined;
 
-  try {
-    const reportDataResponse = await reportStore.fetchReportAllDevices(new Date(formData.dateFrom)?.toISOString(), new Date(formData.dateTo)?.toISOString());
-    reportData.value = reportDataResponse;
-    setReportConfig(reportData.value.from, reportData.value.to);
-    formSucces.value = true;
-
-    await downloadReport();
-  } catch (error: any) {
-    formError.value = error;
-    formSucces.value = false;
-  } finally {
-    formLoading.value = false;
+  if (formData.deviceSelection === 'specific' && formData.selectedDevice) {
+    try {
+      const reportDataResponse = await reportStore.fetchReportByDevice(new Date(formData.dateFrom)?.toISOString(), new Date(formData.dateTo)?.toISOString(), formData.selectedDevice);
+      reportDataByDevice.value = reportDataResponse;
+      reportDataDeviceName.value = formData.selectedDevice;
+      setReportConfig(reportDataByDevice.value.from, reportDataByDevice.value.to, reportDataByDevice.value.hostname);
+      formSucces.value = true;
+      
+      await downloadReport(); 
+      formLoading.value = false;
+      reportDataByDevice.value = null;
+    } catch (error: any) {
+      formLoading.value = false;
+      formError.value = error;
+    }
+  } else {
+    try {
+      const reportDataResponse = await reportStore.fetchReportAllDevices(new Date(formData.dateFrom)?.toISOString(), new Date(formData.dateTo)?.toISOString());
+      reportData.value = reportDataResponse;
+      setReportConfig(reportData.value.from, reportData.value.to);
+      formSucces.value = true;
+      
+      await downloadReport();
+      formLoading.value = false;
+      reportData.value = null;
+    } catch (error: any) {
+      formLoading.value = false;
+      formError.value = error;
+    }
   }
 }
 
-
 const welcomePageRef = ref<InstanceType<typeof WelcomePage> | null>(null);
-
 const activityPageRef = ref<InstanceType<typeof ActivityPage> | null>(null);
-
 const analyticsPageRef = ref<InstanceType<typeof AnalyticsTableAllNGFW> | null>(null);
-
 const anomaliesPageRef = ref<InstanceType<typeof AnomaliesTableAllNGFW> | null>(null);
+const anomaliesRatingPageRef = ref<InstanceType<typeof AnomaliesRating> | null>(null);
+const categoriesRatingAllNGFWPageRef = ref<InstanceType<typeof CategoriesRating> | null>(null);
+
+const analiticsByDevicePageRef = ref<InstanceType<typeof AnalyticsByDevice> | null>(null);
+const anomaliesByDevicePageRef = ref<InstanceType<typeof AnomaliesTableByDevice> | null>(null);
+const categoriesRatingPageRef = ref<InstanceType<typeof CategoriesRating> | null>(null);
 
 const downloadReport = async () => {
   const { jsPDF } = await import('jspdf');
-  console.log('reportData.value', reportData.value);
-  console.log('welcomePageRef.value', welcomePageRef.value);
-  console.log('activityPageRef.value', activityPageRef.value);
-  console.log('analyticsPageRef.value', analyticsPageRef.value);
-  console.log('anomaliesPageRef.value', anomaliesPageRef.value);
   
-  if (reportData.value == null) {
-    console.log("LOX");
+  if (reportData.value == null && reportDataByDevice.value === null) {
     return
   }
 
   try {
     const pdf = new jsPDF({
       orientation: 'landscape',
-      unit: 'mm',
+      unit: 'px',
       format: 'a4'
     })
 
-    const pages: { ref: HTMLElement; name: string }[] = [
-      welcomePageRef.value && { ref: welcomePageRef.value.$el, name: 'Welcome' },
-      activityPageRef.value && { ref: activityPageRef.value.$el, name: 'Activity' },
-      analyticsPageRef.value && { ref: analyticsPageRef.value.$el, name: 'Analytics' },
-      anomaliesPageRef.value && { ref: anomaliesPageRef.value.$el, name: 'Anomalies' },
-    ].filter((p): p is { ref: HTMLElement; name: string } => Boolean(p));
+    const pages: { ref: HTMLElement; name: string }[] = [];
+    if (welcomePageRef.value) pages.push({ ref: welcomePageRef.value.$el, name: 'Welcome' });
+
+    if (reportDataDeviceName.value) {
+      if (analiticsByDevicePageRef.value) pages.push({ ref: analiticsByDevicePageRef.value.$el, name: 'Analytics By Device' })
+      if (anomaliesByDevicePageRef.value) pages.push({ ref: anomaliesByDevicePageRef.value.$el, name: 'Anomalies By Device' })
+      if (categoriesRatingPageRef.value) pages.push({ ref: categoriesRatingPageRef.value.$el, name: 'Categories Rating' })
+    } else {
+      if (activityPageRef.value) pages.push({ ref: activityPageRef.value.$el, name: 'Activity' })
+      if (analyticsPageRef.value)pages.push({ ref: analyticsPageRef.value.$el, name: 'Analytics' })
+      if (anomaliesPageRef.value) pages.push({ ref: anomaliesPageRef.value.$el, name: 'Anomalies' })
+      if (anomaliesRatingPageRef.value) pages.push({ ref: anomaliesRatingPageRef.value.$el, name: 'Anomalies Rating' })
+      if (categoriesRatingAllNGFWPageRef.value) pages.push({ ref: categoriesRatingAllNGFWPageRef.value.$el, name: 'Categories Rating' })
+    }
 
 
     for (let i = 0; i < pages.length; i++) {
@@ -200,20 +275,24 @@ const downloadReport = async () => {
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff',
-        width: page.ref.offsetWidth,
-        height: page.ref.offsetHeight
       })
 
       const imgData = canvas.toDataURL('image/png')
-      const imgWidth = 297
-      const imgHeight = 210
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+
+      const finalWidth = imgWidth * ratio;
+      const finalHeight = imgHeight * ratio;
 
       if (i > 0) {
         pdf.addPage()
       }
 
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
+      pdf.addImage(imgData, 'PNG', 0, 0, finalWidth, finalHeight)
       
     }
 
@@ -284,8 +363,8 @@ onMounted( async () => {
 
 .reports__empty-img {
   align-self: center;
-  width: 88px;
-  height: 88px;
+  width: 5.5rem;
+  height: 5.5rem;
   display: flex;
   justify-content: center;
   align-items: center;

@@ -5,7 +5,7 @@
       <div class="create-user-form__group">
 
         <div
-          v-if="props.manageType === 'update'"
+          v-if="props.manageType === 'update' && !props.isProfileForm"
           class="info-block"
         >
           <p class="info-block__title">
@@ -39,6 +39,16 @@
         />
 
         <BaseInput
+          id="email"
+          name="email"
+          label="Email"
+          :showRequiredLabel="true"
+          type="email"
+          v-model="form.email"
+          :error="errors.email"
+        />
+
+        <BaseInput
           id="last_name"
           name="last_name"
           label="Фамилия"
@@ -66,7 +76,7 @@
           :error="errors.patronymic"
         />
 
-        <div class="base-form-field">
+        <div v-if="!isProfileForm" class="base-form-field">
           <label for="role" class="base-label">Роль</label>
           <Dropdown
               :search="true"
@@ -81,7 +91,7 @@
           </p>
         </div>
 
-        <div v-if="form.role.id === 'CA'" class="base-form-field">
+        <div v-if="form.role.id === 'CA' && !isProfileForm" class="base-form-field">
           <label for="device" class="base-label">NGFW</label>
           <Dropdown
             :search="true"
@@ -98,17 +108,7 @@
           />
         </div>
 
-        <BaseInput
-          id="email"
-          name="email"
-          label="Email"
-          :showRequiredLabel="true"
-          type="email"
-          v-model="form.email"
-          :error="errors.email"
-        />
-
-        <div class="extras" v-if="props.userData !== undefined && props.userData?.user_id">
+        <div class="extras" v-if="props.showExtraButtons && props.userData !== undefined && props.userData?.user_id">
           <p class="extras__title">Дополнительно</p>
           <div class="extras__btns">
             <BaseButton
@@ -185,10 +185,20 @@ const emit = defineEmits<{
   deleteUser: [userId: string];
 }>();
 
-const props = defineProps<{
-  manageType: 'create' | 'update'
-  userData: User | null;
-}>();
+const props = withDefaults(
+  defineProps<{
+    manageType: 'create' | 'update';
+    userData: User | null;
+    showExtraButtons?: boolean;
+    isProfileForm?: boolean
+  }>(),
+  {
+    manageType: 'create',
+    userData: null,
+    showExtraButtons: true,
+    isProfileForm: false
+  }
+);
 
 interface createUserDTO {
   login: string;
@@ -386,6 +396,57 @@ const createUser = async () => {
   }
 };
 
+const editProfile = async () => {
+  if (loading.value) return;
+
+  error.value = '';
+
+  if (props.userData === null || !props.userData.user_id) {
+    error.value = 'Произошла ошибка при обновлении пользователя';
+    return;
+  }
+
+  if (!validateForm()) {
+    return;
+  }
+
+  loading.value = true;
+
+  try {
+    const data: Partial<User> = {
+      first_name: form.first_name,
+      last_name: form.last_name,
+      patronymic: form.patronymic,
+      role: form.role.id,
+      email: form.email,
+    }
+
+    const result = await userStore.updateUserInfo(data);
+
+    if (result) {
+      const userObject: User = {
+        ...data,
+        login: props.userData.login,
+        user_id: props.userData.user_id,
+        is_super_admin: props.userData.is_super_admin,
+        created_at: props.userData.created_at,
+        is_need_to_change_password: props.userData.is_need_to_change_password,
+      } as User;
+
+      emit('success', 'update', userObject, null);
+      const notify = useNotificationStore();
+      notify.notify('Профиль изменён', 'success');
+    } else {
+      error.value = 'Не удалось обновить профиль';
+    }
+  } catch (err) {
+    console.error('Ошибка при обновлении профиля:', err);
+    error.value = 'Произошла ошибка при обновлении профиля';
+  } finally {
+    loading.value = false;
+  }
+}
+
 const editUser = async () => {
   if (loading.value) return;
 
@@ -441,7 +502,8 @@ const submitForm = () => {
   if (props.manageType === 'create') {
     createUser();
   } else if (props.manageType === 'update') {
-    editUser();
+    if (props.isProfileForm) editProfile();
+    else editUser();
   } else return;
 }
 

@@ -65,6 +65,7 @@
 import BaseInput from '~/components/ui/BaseInput.vue';
 import BaseButton from '~/components/ui/BaseButton.vue';
 import CheckMarkCircleIcon from '~/assets/img/checkmark-circle.svg'
+import type { PasswordRuleKey, PasswordRules } from '~/types/user';
 
 const props = defineProps({
   loading: {
@@ -74,15 +75,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['change-password']);
-
-interface PasswordRules {
-  minLength: undefined | boolean,
-  lettersUpperAndLowerCase: undefined | boolean,
-  numbers: undefined | boolean,
-  specialSymbols: undefined | boolean,
-}
-
-type PasswordRuleKey = keyof PasswordRules;
 
 const passwordRuleLabels: Record<PasswordRuleKey, string> = {
   minLength: 'Не менее 8 символов',

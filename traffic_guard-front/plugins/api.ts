@@ -20,26 +20,37 @@ export default defineNuxtPlugin((nuxtApp) => {
   }
 
   const handleResponse = async <T>(response: Response): Promise<ApiResponse<T>> => {
+    let text = "";
+    try {
+      text = await response.text();
+    } catch {}
+
+    let json: any = null;
+    try {
+      json = text ? JSON.parse(text) : null;
+    } catch {}
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(`${response.status}` || errorData.error)
+      if (json?.error) {
+        throw new Error(json.error);
+      }
+
+      if (json) {
+        throw new Error(JSON.stringify(json));
+      }
+
+      throw new Error(`${response.status} ${response.statusText}`);
     }
 
-    const contentType = response.headers.get('content-type')
-    let data: T
-
-    if (contentType && contentType.includes('application/json')) {
-      data = await response.json()
-    } else {
-      data = await response.text() as unknown as T
-    }
+    const data = (json ?? text) as T;
 
     return {
       data,
+      payload: (data && typeof data === "object" && "data" in data) ? (data as any).data : data,
       status: response.status,
       headers: response.headers
-    }
-  }
+    };
+  };
 
   const api: ApiClient = {
     get: async <T>(endpoint: string, options: ApiRequestOptions = {}) => {

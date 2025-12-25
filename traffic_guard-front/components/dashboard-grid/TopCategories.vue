@@ -69,7 +69,7 @@ defineProps<{
     background-color: #FB2C36;
     display: inline-block;
     margin-right: 0.3125rem;
-    margin-bottom: 1px;
+    margin-bottom: 0.0625rem;
   }
 }
 </style>

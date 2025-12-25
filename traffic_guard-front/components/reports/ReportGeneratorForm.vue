@@ -56,10 +56,9 @@
           </div>
         </label>
 
-        <label class="radio__option radio__option_disabled">
+        <label class="radio__option">
           <input
             v-model="deviceSelection"
-            :disabled="true"
             type="radio"
             value="specific"
             class="radio__input"
@@ -104,8 +103,16 @@
       :class="{ 'button-success': isSuccess, 'button-loading': loading }"
       :style="isSuccess ? { backgroundColor: '#05DF72' } : {}"
     >
+      <template #icon v-if="loading">
+        <LoaderIcon class="loader-icon" :class="loading ? 'show' : ''"/>  
+      </template>
+      
       {{ isSuccess ? 'Отчет сформирован' : 'Сформировать отчёт' }}
     </BaseButton>
+
+    <span class="form-error" v-if="props.error !== ''">
+      {{ props.error }}
+    </span>
   </form>
 </template>
 
@@ -119,15 +126,18 @@ import SingleDatePicker from '~/components/ui/SingleDatePicker.vue';
 import { computed, ref, watch } from 'vue';
 import { getCurrentDateWithOffset } from '~/helpers';
 import type { ReportFormData } from '~/types/reports';
+import LoaderIcon from "~/assets/img/loader.svg"
 
 interface Props {
   loading?: boolean;
   success?: boolean;
+  error: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
-  success: false
+  success: false,
+  error: ''
 })
 
 const emit = defineEmits<{
@@ -315,7 +325,6 @@ watch(() => props.success, (newValue) => {
 }
 
 .error-message {
-  margin-top: 0.5rem;
   font-size: 0.875rem;
   color: #EF4444;
   font-weight: 500;
@@ -326,7 +335,7 @@ watch(() => props.success, (newValue) => {
   grid-template-columns: repeat(2, 1fr);
   gap: 0.75rem;
 
-  @media (max-width: 768px) {
+  @media (max-width: 1580px) {
     grid-template-columns: 1fr;
   }
 }
@@ -442,10 +451,6 @@ watch(() => props.success, (newValue) => {
   color: #A1A1AA;
 }
 
-.device-select-wrapper {
-  margin-top: 0.5rem;
-}
-
 .base-form-field {
   display: flex;
   flex-direction: column;
@@ -470,4 +475,33 @@ watch(() => props.success, (newValue) => {
 .button-success {
   transition: background-color 0.3s ease;
 }
+
+:deep(.loader-icon) {
+  width: 0;
+  height: 0;
+  color: transparent;
+  display: none;
+}
+
+:deep(.loader-icon.show) {
+  width: 14px;
+  height: 14px;
+  color: #DBEAFE;
+  display: block;
+}
+
+.form-error {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #EF4444;
+  font-weight: 500;
+}
+
+@media screen and (max-width: 1920px) {
+  .quick-range-btn {
+    padding-inline: 0.5rem;
+  }
+}
+
 </style>

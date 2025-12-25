@@ -1,12 +1,12 @@
 <template>
   <div class="sessions-page">
     <div class="sessions__header">
-      <h1 class="sessions__title page-title">Подозрительные сессии</h1>
+      <h1 class="sessions__title page-title">Сессии</h1>
       <div class="sessions__toolbar">
         <BaseSearch
           v-model="searchQuery"
           class="sessions__search"
-          placeholder="Поиск"
+          placeholder="Поиск по URL"
           @search="applyFilters"
         />
         <div class="dashboard__datepicker-container">
@@ -28,8 +28,10 @@
       :total-pages="totalPages"
       :current-page="currentPage"
       :items-per-page="itemsPerPage"
+      :allowedItemsCount="[11, 33, 66]"
       prefix="sessions"
       @page-change="handleChangePage"
+      @set-items-per-page="handleChangeItemsPerPage"
       @action-click="handleActionClick"
     >
       <template #cell-status="{ value }">
@@ -83,7 +85,6 @@
         @close="closeFilters"
         @setFilters="handleSetFilters"
       />
-
     </SideModal>
   </div>
 </template>
@@ -150,8 +151,6 @@ const totalPages = computed(() =>
   tableMetaData.value ? tableMetaData.value.pages : 1
 );
 
-
-
 const fetchSessions = async () => {
   loading.value = true;
   fetchError.value = '';
@@ -190,6 +189,12 @@ const handleChangePage = (page: number) => {
   currentPage.value = page;
   updateUrlParams();
 };
+
+const handleChangeItemsPerPage = (value: number) => {
+  itemsPerPage.value = value;
+  currentPage.value = 1;
+  updateUrlParams();
+}
 
 const isShowFilters = ref(false);
 
@@ -311,10 +316,6 @@ watch(dateRange, () => {
   margin-bottom: 1.5rem;
 }
 
-.sessions__title {
-  min-width: 23rem;
-}
-
 .sessions__toolbar {
   width: 100%;
   display: flex;
@@ -377,8 +378,12 @@ watch(dateRange, () => {
   color: #2563EB;
 }
 
+:deep(.sessions__table) {
+  min-width: 77.5rem;
+}
+
 :deep(.sessions__table-column-status) {
-  width: 7%;
+  width: 8%;
 }
 :deep(.sessions__table-column-url) {
   width: 24%;
@@ -393,7 +398,7 @@ watch(dateRange, () => {
   width: 10%;
 }
 :deep(.sessions__table-column-type) {
-  width: 11%;
+  width: 9%;
 }
 :deep(.sessions__table-column-category) {
   width: 11%;

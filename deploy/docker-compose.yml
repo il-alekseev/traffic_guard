@@ -80,7 +80,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 6
-      start_period: 25s
+      start_period: 35s
     depends_on:
       configdb:
         condition: service_healthy
@@ -108,7 +108,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 6
-      start_period: 20s
+      start_period: 30s
     command: start --https-certificate-file=/certs/fullchain.crt --https-certificate-key-file=/certs/keycloak.key --import-realm --verbose
     depends_on:
       configdb:
@@ -364,20 +364,20 @@ services:
     networks:
       - continent
   
-  neuro:
-    container_name: ${NEURO_APP_NAME}
-    build:
-      context: ../src/python/neuro
-      dockerfile: deploy/Dockerfile
-    env_file: ./neuro/.env
-    depends_on:
-      kafka:
-        condition: service_healthy  
-      configdb:
-        condition: service_healthy
-    restart: always
-    networks:
-      - continent 
+  # neuro:
+  #   container_name: ${NEURO_APP_NAME}
+  #   build:
+  #     context: ../src/python/neuro
+  #     dockerfile: deploy/Dockerfile
+  #   env_file: ./neuro/.env
+  #   depends_on:
+  #     kafka:
+  #       condition: service_healthy  
+  #     configdb:
+  #       condition: service_healthy
+  #   restart: always
+  #   networks:
+  #     - continent 
 
   nginx:
     image: nginx:latest

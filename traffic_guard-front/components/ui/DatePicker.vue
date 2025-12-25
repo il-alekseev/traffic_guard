@@ -483,7 +483,7 @@ const handleEscape = (e: KeyboardEvent) => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 20px;
+    margin-bottom: 1.25rem;
   }
 
   &__nav {
@@ -512,7 +512,7 @@ const handleEscape = (e: KeyboardEvent) => {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: 600;
     color: #3F3F46;
   }

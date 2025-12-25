@@ -117,9 +117,21 @@ const initForm = async () => {
   form.device = props.filtersData.device;
 }
 
+const onGlobalKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    submitForm();
+  }
+};
+
 onMounted(() => {
-  initForm()
+  initForm();
+  window.addEventListener('keydown', onGlobalKeydown);
 })
+
+onBeforeUnmount(() => {
+  window.addEventListener('keydown', onGlobalKeydown);
+});
 </script>
 
 <style scoped>

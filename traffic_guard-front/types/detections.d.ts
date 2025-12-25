@@ -31,8 +31,15 @@ export interface DetectionTable {
   meta: TableMeta;
 }
 
+export interface ActionFilterOption {
+  value: 'Разрешено' | 'Заблокировано' | 'Не решено'
+  label: 'Разрешены' | 'Заблокированы' | 'Ожидают'
+  color: string
+}
+
 export interface DetectionsState {
   detections: Detection[] | null;
+  detectionsStat: DetectionStats | null
 }
 
 export interface DetectionsActions {
