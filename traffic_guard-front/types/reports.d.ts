@@ -146,22 +146,6 @@ export interface CategoriesDeviceData {
   }
 }
 
-// export interface AnomalyTopReportItem {
-//   hostname: string,
-//   requests: number,
-//   anomaly_block_stat: AnomaliesAndBlocksStat
-//   detections: {
-//     all: number,
-//     allowed: number,
-//     blocked: number,
-//     unresolved: number
-//   },
-//   traffic: {
-//     input: number,
-//     output: number
-//   }
-// }
-
 export interface ReportData {
   from: string,
   to: string,

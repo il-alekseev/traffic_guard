@@ -8,7 +8,25 @@
         <div class="resource-card__title-icon-block">
           <DetectionsIcon class="resource-card__title-icon" />
         </div>
-        <span class="resource-card__title">{{ item.domain || 'Неизвестно' }}</span>
+        <div 
+          class="resource-card__title-wrapper"
+          @mouseenter="checkAndShowTooltip"
+          @mouseleave="handleMouseLeave"
+        >
+          <span class="resource-card__title" ref="titleElement">
+            {{ item.domain || 'Неизвестно' }}
+          </span>
+          <Transition name="tooltip-fade">
+            <div 
+              v-if="showTooltip" 
+              class="resource-card__tooltip"
+              @mouseenter="checkAndShowTooltip"
+              @mouseleave="handleMouseLeave"
+            >
+              {{ item.domain || 'Неизвестно' }}
+            </div>
+          </Transition>
+        </div>
         <span :class="['resource-card__category', `resource-card__category--${getModificatorByCategory(item.category)}`]">
           {{ item.category || 'Неизвестно' }}
         </span>
@@ -93,13 +111,13 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
 import { getModificatorByCategory, getStatusNameByAction } from '~/helpers';
 import BaseButton from '~/components/ui/BaseButton.vue';
 import EmojiFlag from "~/components/ui/EmojiFlag.vue"
 import { useDeviceColors } from '~/composables/useDeviceColors';
 import type { Detection } from '~/types/detections';
 import DetectionsIcon from "~/assets/img/detections.svg"
-
 
 interface Props {
   item: Detection
@@ -115,6 +133,27 @@ defineEmits<{
 const { generateColor } = useDeviceColors();
 const deviceColors = generateColor(props.item.hostname || 'Неизвестно');
 
+const showTooltip = ref(false);
+const titleElement = ref<HTMLElement | null>(null);
+const hideTimeout = ref<number | null>(null);
+
+const checkAndShowTooltip = () => {
+  if (hideTimeout.value) {
+    clearTimeout(hideTimeout.value);
+    hideTimeout.value = null;
+  }
+  
+  if (titleElement.value) {
+    const isTruncated = titleElement.value.scrollWidth > titleElement.value.clientWidth;
+    showTooltip.value = isTruncated;
+  }
+};
+
+const handleMouseLeave = () => {
+  hideTimeout.value = window.setTimeout(() => {
+    showTooltip.value = false;
+  }, 400);
+};
 </script>
 
 <style scoped lang="scss">
@@ -156,17 +195,56 @@ const deviceColors = generateColor(props.item.hostname || 'Неизвестно'
     }
   }
 
-  &__title {
+  &__title-wrapper {
+    position: relative;
     margin-left: 0.375rem;
     margin-right: 0.75rem;
+    max-width: 8.5rem;
+
+    @media screen and (max-width: 1919px) {
+      max-width: 12.2rem;
+    }
+  }
+
+  &__title {
     font-weight: 600;
     font-size: 1rem;
     line-height: 1.5rem;
     color: #3F3F46;
-    max-width: 8.75rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    display: block;
+  }
+
+  &__tooltip {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: -1rem;
+    z-index: 1000;
+    background: #18181B;
+    color: #FAFAFA;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15), 0px 1px 3px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+    pointer-events: auto;
+    cursor: text;
+    user-select: text;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: -4px;
+      left: 1rem;
+      width: 8px;
+      height: 8px;
+      background: #18181B;
+      transform: rotate(45deg);
+    }
   }
 
   &__label {
@@ -350,7 +428,7 @@ const deviceColors = generateColor(props.item.hostname || 'Неизвестно'
       color: #894B00;
     }
 
-    &-- {
+    &--unknown {
       background: #E7E5E4;
       color: #57534E;
     }
@@ -416,5 +494,16 @@ const deviceColors = generateColor(props.item.hostname || 'Неизвестно'
     font-weight: 600;
     border-radius: 6px;
   }
+}
+
+.tooltip-fade-enter-active,
+.tooltip-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.tooltip-fade-enter-from,
+.tooltip-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>

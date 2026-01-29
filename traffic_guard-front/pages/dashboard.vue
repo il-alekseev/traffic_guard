@@ -294,7 +294,7 @@ import DashboardTrafficChart from "~/components/dashboard-grid/TrafficSplineChar
 import DashboardAnomalies from '~/components/dashboard-grid/DashboardAnomalies.vue';
 import ReloadIcon from "~/assets/img/reload.svg"
 import FilterIcon from "~/assets/img/filter-icon.svg"
-import { getCurrentDateWithOffset, isValidDateString, remToPx } from '~/helpers';
+import { getCurrentDateWithOffset, isValidDateString, normalizeEndDate, normalizeStartDate } from '~/helpers';
 import type { DashboardDeviceRequestsSplineChart, DashboardRequestsType } from '~/types/dashboard';
 import RequestsSplineChart from '~/components/dashboard-grid/devices/RequestsSplineChart.vue';
 import { useDeviceColors } from '~/composables/useDeviceColors';
@@ -624,8 +624,8 @@ const closeFilters = () => {
 }
 
 const dateRange = ref<{ from: Date | null; to: Date | null }>({
-  from: getCurrentDateWithOffset(-1, 'd'),
-  to: getCurrentDateWithOffset()
+  from: normalizeStartDate(getCurrentDateWithOffset(-1, 'd')),
+  to: normalizeEndDate(getCurrentDateWithOffset())
 })
 const deviceFilter = ref<string | undefined>();
 const filtersData = computed<DashboardFilter | null>(() => {
@@ -650,11 +650,11 @@ const initFiltersFromUrl = () => {
   
   dateRange.value.from = isValidDateString(fromStr)
     ? new Date(fromStr!)
-    : getCurrentDateWithOffset(-1, 'd');
+    : normalizeStartDate(getCurrentDateWithOffset(-1, 'd'));
 
   dateRange.value.to = isValidDateString(toStr)
     ? new Date(toStr!)
-    : getCurrentDateWithOffset();
+    : normalizeEndDate(getCurrentDateWithOffset());
 };
 
 const updateUrlParams = () => {

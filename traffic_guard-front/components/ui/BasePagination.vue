@@ -42,7 +42,7 @@
       </button>
 
       <span class="pagination__info">
-        Страница {{ currentPage }} - {{ getEndItem() }} из {{ total }}
+        Страница {{ currentPage }}/{{ totalPages }} - {{ getEndItem() }} из {{ total }}
       </span>
 
       <button
