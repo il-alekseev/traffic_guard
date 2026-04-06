@@ -181,12 +181,16 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, t
 	newValue := make(map[string]any)
 	newValue["from"] = tr.From
 	newValue["to"] = tr.To
+	newValue["hostname"] = "all"
+
+	oldValue := make(map[string]any)
 
 	record := pkg.DtoBusinessLog{
-		Description: "Создание сводного отчета по всем устройствам",
-		Entity:      "Report",
+		Description: "создание сводного отчета по всем устройствам",
+		Entity:      values.ReportEntity,
 		EntityID:    "",
 		NewValue:    newValue,
+		OldValue:    oldValue,
 		EventType:   "CREATE",
 		Context:     userMeta.ContextID,
 		UserName:    userMeta.Username,
@@ -428,11 +432,14 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.Us
 	newValue["to"] = tr.To
 	newValue["hostname"] = hostname
 
+	oldValue := make(map[string]any)
+
 	record := pkg.DtoBusinessLog{
-		Description: "Создание отчета по устройству",
-		Entity:      "Report",
+		Description: fmt.Sprintf("cоздание отчета по устройству %s", hostname),
+		Entity:      values.ReportEntity,
 		EntityID:    "",
 		NewValue:    newValue,
+		OldValue:    oldValue,
 		EventType:   "CREATE",
 		Context:     userMeta.ContextID,
 		UserName:    userMeta.Username,
