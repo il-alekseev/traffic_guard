@@ -1,0 +1,6 @@
+{
+  "yaml.validate": false,
+  "files.associations": {
+    "**/docs/swagger.yaml": "yaml"
+  }
+}

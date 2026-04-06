@@ -45,11 +45,11 @@ func (p *PostgresDB) GetRecord(ctx context.Context, userMeta *models.UserMeta, p
 			query = query.Where(
 				p.db.Where("LOWER(user_name) LIKE ?", searchTerm).
 					Or("LOWER(entity) LIKE ?", searchTerm).
-					Or("LOWER(event_type) LIKE ?", searchTerm).
-					Or("LOWER(entity_id) LIKE ?", searchTerm).
-					Or("LOWER(context_str) LIKE ?", searchTerm).
-					Or("LOWER((old_value #>> '{}')) LIKE ?", searchTerm).
-					Or("LOWER((new_value #>> '{}')) LIKE ?", searchTerm).
+					//Or("LOWER(event_type) LIKE ?", searchTerm).
+					//Or("LOWER(entity_id) LIKE ?", searchTerm).
+					//Or("LOWER(context_str) LIKE ?", searchTerm).
+					//Or("LOWER((old_value #>> '{}')) LIKE ?", searchTerm).
+					//Or("LOWER((new_value #>> '{}')) LIKE ?", searchTerm).
 					Or("LOWER(description) LIKE ?", searchTerm),
 			)
 		}
