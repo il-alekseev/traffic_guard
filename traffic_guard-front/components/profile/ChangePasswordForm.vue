@@ -7,7 +7,7 @@
           id="password"
           name="password"
           type="password"
-          label="Введите текущий пароль"
+          label="Введите старый пароль"
           v-model="form.currentPassword"
           :error="errors.currentPassword"
           placeholder="••••••••"
@@ -30,12 +30,33 @@
           id="passwordRepeat"
           name="passwordRepeat"
           type="password"
-          label="Подтвердите новый пароль"
+          label="Подтверждение пароля"
           v-model="form.confirmPassword"
           :error="errors.confirmPassword"
           placeholder="••••••••"
           autocomplete="current-password"
         />
+      </div>
+
+      <div class="password-rules">
+        <div class="password-rules__header">
+          <div class="password-rules__icon" :class="allPasswordRulesPassed ? 'password-rules__icon_blue' : ''">
+            <CheckMarkCircleIcon />
+          </div>
+          <div class="password-rules__title">
+            Пароль должен содержать:
+          </div>
+        </div>
+        <div class="password-rules__list">
+          <div
+            class="password-rules__rule"
+            v-for="(value, ruleKey) in passwordRules"
+            :key="ruleKey"
+            :class="{ 'password-rules__rule_valid': value === true, 'password-rules__rule_invalid': value === false }"
+          >
+            {{ getNameOfPasswordRule(ruleKey as PasswordRuleKey) }}
+          </div>
+        </div>
       </div>
 
       <div class="change-password-form__actions">
@@ -46,7 +67,7 @@
           loadingText="Смена пароля..."
           @click="emit('close')"
         >
-          Отмена
+          Отменить
         </BaseButton>
 
         <BaseButton
@@ -55,7 +76,7 @@
           :loading="loading"
           loadingText="Смена пароля..."
         >
-          Сменить
+          Сохранить
         </BaseButton>
       </div>
     </form>
@@ -68,6 +89,8 @@ import BaseButton from '~/components/ui/BaseButton.vue';
 import BaseAlert from '~/components/ui/BaseAlert.vue';
 import { useUserStore } from '~/stores/user';
 import { useNotificationStore } from '~/stores/notification';
+import CheckMarkCircleIcon from '~/assets/img/checkmark-circle.svg'
+import type { PasswordRuleKey, PasswordRules } from '~/types/user';
 
 const emit = defineEmits(['success', 'close']);
 
@@ -92,6 +115,18 @@ const resetValidationErrors = () => {
   errors.newPassword = '';
   errors.confirmPassword = '';
 }
+
+const validatePasswordDetail = (password: string) => {
+  const pwd = password.trim();
+
+  passwordRules.minLength = pwd.length >= 8;
+  passwordRules.lettersUpperAndLowerCase =
+    /[a-z]/.test(pwd) && /[A-Z]/.test(pwd);
+  passwordRules.numbers = /\d/.test(pwd);
+  passwordRules.specialSymbols =
+    /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd);
+};
+
 
 const validatePasswordForm = () => {
   let isValid = true;
@@ -125,6 +160,28 @@ const validatePasswordForm = () => {
   return isValid;
 };
 
+const passwordRuleLabels: Record<PasswordRuleKey, string> = {
+  minLength: 'Не менее 8 символов',
+  lettersUpperAndLowerCase: 'Буквы верхнего и нижнего регистра',
+  numbers: 'Цифры',
+  specialSymbols: 'Специальные символы'
+};
+
+const getNameOfPasswordRule = (ruleKey: PasswordRuleKey): string => {
+  return passwordRuleLabels[ruleKey];
+};
+
+const passwordRules = reactive<PasswordRules>({
+  minLength: undefined,
+  lettersUpperAndLowerCase: undefined,
+  numbers: undefined,
+  specialSymbols: undefined
+})
+
+const allPasswordRulesPassed = computed(() => {
+  return Object.values(passwordRules).every((val) => val === true)
+})
+
 const changePassword = async () => {
   if (loading.value) return;
 
@@ -153,6 +210,13 @@ const changePassword = async () => {
     loading.value = false;
   }
 };
+
+watch(
+  () => form.newPassword,
+  (newPassword) => {
+    validatePasswordDetail(newPassword);
+  }
+);
 </script>
 
 <style>
@@ -163,18 +227,81 @@ const changePassword = async () => {
 .profile-control__form {
   display: flex;
   flex-direction: column;
+  gap: 1.5rem;
   height: 100%;
 }
 
 .change-password-form__group {
   display: flex;
   flex-direction: column;
-  gap: var(--size-4);
+  gap: 1.5rem;
 }
 
 .change-password-form__actions {
   display: flex;
-  gap: 5px;
+  gap: 0.75rem;
   margin-top: auto;
+}
+
+.password-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.password-rules__header {
+  display: flex;
+  gap: 0.375rem;
+  align-items: center;
+}
+
+.password-rules__icon {
+  max-width: 1.5rem;
+  max-height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #A1A1AA;
+}
+
+.password-rules__icon svg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.password-rules__icon_blue {
+  color: #2563EB;
+}
+
+.password-rules__title {
+  font-weight: 500;
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.password-rules__list {
+  display: flex;
+  flex-direction: column;
+  padding-left: 1.875rem;
+}
+
+.password-rules__rule {
+  font-weight: 400;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: #A1A1AA;
+}
+
+.password-rules__rule_valid {
+  text-decoration: line-through;
+  font-weight: 500;
+  color: #2563EB;
+}
+
+.password-rules__rule_invalid {
+  text-decoration: none;
+  color: #C10007;
+
 }
 </style>

@@ -112,7 +112,7 @@
     {
       "username": "admin",
       "enabled": true,
-      "email": "admin@targos.com",
+      "email": "admin@azone.com",
       "firstName": "Admin",
       "lastName": "Admin",
       "groups": ["global-SA"], 

@@ -25,10 +25,10 @@
                 <td class="table__cell table__cell--traffic">
                   <div class="traffic">
                     <span class="traffic__item traffic__item--up">
-                      ↑ {{ formatTraffic(item.traffic.input) }}
+                      ↑ {{ formatTraffic(item.traffic.output) }}
                     </span>
                     <span class="traffic__item traffic__item--down">
-                      ↓ {{ formatTraffic(item.traffic.output) }}
+                      ↓ {{ formatTraffic(item.traffic.input) }}
                     </span>
                   </div>
                 </td>

@@ -11,6 +11,7 @@ export const useDetectionsStore = defineStore("detection", {
   state: (): DetectionsState => {
     return {
       detections: null,
+      detectionsStat: null
     };
   },
 
@@ -19,7 +20,7 @@ export const useDetectionsStore = defineStore("detection", {
   },
 
   actions: {
-    async fetchDetections(from: string = 'now-10m', to: string = 'now', page: number = 1, limit: number = 6, _status?: string, category?: Categories, hostname?: string): Promise<DetectionTable> {
+    async fetchDetections(from: string = 'now-10m', to: string = 'now', page: number = 1, limit: number = 6, _status?: string, category?: Categories, hostname?: string, action?: 'Разрешено' | 'Заблокировано' | 'Не решено'): Promise<DetectionTable> {
       const userStore = useUserStore();
       try {
         await userStore.ensureValidToken();
@@ -50,6 +51,7 @@ export const useDetectionsStore = defineStore("detection", {
           ...(_status ? { _status } : {}),
           ...(hostname ? { hostname } : {}),
           ...(category ? { category } : {}),
+          ...(action ? { action } : {}),
         };
 
         const detections = await $api.get<DetectionTable>('/analytics/detections', {
@@ -106,6 +108,7 @@ export const useDetectionsStore = defineStore("detection", {
 
 
         if (detectionStats) {
+          this.detectionsStat = detectionStats;
           return detectionStats;
         } else {
           throw new Error("Не удалось получить статистику по выявлениям");
@@ -143,8 +146,7 @@ export const useDetectionsStore = defineStore("detection", {
           path: path,
         };
 
-        const result = await $api.patch<defaultResponse>('/analytics/dashboards/act', undefined, {
-          params,
+        const result = await $api.patch<defaultResponse>('/analytics/detections/act', params, {
           ...getTokenHeaders(token)
         });
 

@@ -11,6 +11,7 @@ import (
 )
 
 func (s *Server) configureRouter() {
+	s.router.HandleMethodNotAllowed = true
 	// Сваггер
 	// Динамический адрес для сваггера
 	addr := os.Getenv("AN_SWAGGER")
@@ -47,6 +48,7 @@ func (s *Server) configureRouter() {
 			dashboards.GET("/devices", s.GetDeviceStat)
 			dashboards.GET("/traffic", s.GetTrafficStat)
 			dashboards.GET("/requests", s.GetRequestStat)
+			dashboards.GET("/proh-activity", s.GetProhActivity)
 		}
 		// Вкладка Выявления
 		detections := v1.Group("/detections")

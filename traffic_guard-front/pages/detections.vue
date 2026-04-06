@@ -4,7 +4,7 @@
       <StatsComponent :stats="stats" />
       <div class="detections__header-block">
         <div class="detections__header-title-block">
-          <h1 class="detections__title page-title">У вас {{ totalDetections }} нерешенных выявлений</h1>
+          <h1 class="detections__title page-title">{{ detectionsTitle }}</h1>
           <div class="detections__subtitle-block page-subtitle-block">
             <p class="detections__subtitle page-subtitle">Обновлено {{ minutesAgo }} мин назад</p>
             <div class="detections__refresh-btn page-refresh-btn" @click="fetchDetections">
@@ -16,6 +16,10 @@
           <div class="detections__datepicker-container">
             <DatePicker v-model="dateRange" />
           </div>
+          <DetectionsChipFilter 
+            v-model="actionFilter"
+            :options="actionFilterOptions"
+          />
           <button class="detections__filter-button" @click="showFilters">
             <div class="detections__filter-button-icon">
               <FilterIcon />
@@ -46,41 +50,18 @@
           @reject="handleReject(resource)"
         />
       </div>
-      <div v-if="fetchDetectionsError == '' && detections.length > 0" class="detections__footer">
-        <div class="detections__info">
-          <p>Показано от {{ startIndex }} до {{ endIndex }} из {{ totalDetections }} результатов</p>
-        </div>
-        <div class="detections__pagination">
-          <div
-            class="detections__pagination-item detections__pagination-back"
-            :class="currentPage === 1 ? 'detections__pagination-item_disabled' : ''"
-            @click="currentPage !== 1 ? handleChangePage(currentPage - 1) : null"
-          >
-            <ArrowLeftIcon class="arrow-icon" />
-          </div>
 
-          <div
-            v-for="(page, index) in pagesToShow"
-            :key="index"
-            class="detections__pagination-item"
-            :class="[
-              page === currentPage ? 'detections__pagination-item_active' : '',
-              page === '...' ? 'detections__pagination-item_dots' : ''
-            ]"
-            @click="typeof page === 'number' ? handleChangePage(page) : handleDotsClick(index === 1 ? 'left' : 'right')"
-          >
-            {{ page }}
-          </div>
-
-          <div
-            class="detections__pagination-item detections__pagination-next"
-            :class="currentPage === totalPages ? 'detections__pagination-item_disabled' : ''"
-            @click="currentPage !== totalPages ? handleChangePage(currentPage + 1) : null"
-          >
-            <ArrowLeftIcon class="arrow-icon" />
-          </div>
-        </div>
-      </div>
+      <BasePagination
+        class="detectios__pagination"
+        v-if="fetchDetectionsError == '' && detections.length > 0"
+        :total="totalDetections"
+        :totalPages="totalPages"
+        :allowedItemsCount="[9, 18, 27]"
+        :currentPage="currentPage"
+        :selectedItemsCount="itemsPerPage"
+        @update:current-page="handleChangePage"
+        @update:selected-items-count="handleChangeItemsPerPage"
+      />
     </div>
 
     <SideModal
@@ -100,7 +81,7 @@
 
 <script setup lang="ts">
 import { definePageMeta } from '#imports';
-import type { Detection, DetectionStats, DetectionTable } from '~/types/detections';
+import type { ActionFilterOption, Detection, DetectionStats, DetectionTable } from '~/types/detections';
 import { useDetectionsStore } from '~/stores/detections';
 import type { StatItem } from '~/types/statistics';
 import StatsComponent from '~/components/data-display/StatsComponent.vue';
@@ -109,12 +90,14 @@ import DatePicker from '~/components/ui/DatePicker.vue';
 import DownloadButton from '~/components/ui/DownloadButton.vue';
 import ErrorBlock from '~/components/ui/ErrorBlock.vue';
 import SideModal from '~/components/ui/SideModal.vue';
+import BasePagination from '~/components/ui/BasePagination.vue';
 import FilterForm, { type DetectionsFilter } from '~/components/filters/DetectionsFilterForm.vue';
 import ReloadIcon from "~/assets/img/reload.svg"
 import FilterIcon from "~/assets/img/filter-icon.svg"
 import ArrowLeftIcon from "~/assets/img/arrow-left.svg"
-import { getCurrentDateWithOffset, isCategory, isValidDateString } from '~/helpers';
+import { getCurrentDateWithOffset, isCategory, isValidDateString, normalizeEndDate, normalizeStartDate } from '~/helpers';
 import type { Categories } from '~/types/categories';
+import DetectionsChipFilter from '~/components/filters/DetectionsChipFilter.vue';
 
 
 definePageMeta({
@@ -197,62 +180,44 @@ const fetchDetectionsError = ref('');
 
 const detections = ref<Detection[]>([]);
 const currentPage = ref(1);
-const itemsPerPage = ref(6);
+const itemsPerPage = ref(9);
 const tableMetaData = ref<{ total: number; pages: number } | null>(null);
 const totalDetections = computed(() =>
   tableMetaData.value ? tableMetaData.value.total : detections.value.length
 );
+const detectionsTitle = computed<string>(() => {
+  const detectionCount = totalDetections.value;
+
+  if (!detectionCount) return 'Нет нерешенных выявлений';
+  
+  const pluralForm = (() => {
+    const n = detectionCount % 100;
+    if (n === 1) return 'нерешенное выявление';
+    if (n >= 2 && n <= 4) return 'нерешенных выявления';
+    return 'нерешенных выявлений';
+  })();
+
+  return `У вас ${detectionCount} ${pluralForm}`;
+});
 const totalPages = computed(() =>
   tableMetaData.value ? tableMetaData.value.pages : 1
 );
-const pagesToShow = computed(() => {
-  const pages: (number | string)[] = [];
-  const total = totalPages.value;
-  const current = currentPage.value;
-
-  if (total <= 7) {
-    for (let i = 1; i <= total; i++) pages.push(i);
-  } else {
-    if (current <= 3) {
-      pages.push(1, 2, 3, '...', total - 2, total - 1, total);
-    } else if (current >= total - 2) {
-      pages.push(1, 2, '...', total - 2, total - 1, total);
-    } else {
-      pages.push(1, '...', current - 1, current, current + 1, '...', total);
-    }
-  }
-
-  return pages;
-});
-const startIndex = computed(() => {
-  return (currentPage.value - 1) * itemsPerPage.value + 1;
-});
-const endIndex = computed(() => {
-  const end = currentPage.value * itemsPerPage.value;
-  return end > totalDetections.value ? totalDetections.value : end;
-});
 
 const lastUpdated = ref<Date | null>(null);
 const minutesAgo = ref(0);
 let intervalId: ReturnType<typeof setInterval> | null = null;
-  
+
+const handleChangeItemsPerPage = (value: number) => {
+  itemsPerPage.value = value;
+  currentPage.value = 1;
+  updateUrlParams();
+}
 
 const handleChangePage = (page: number) => {
   if (page < 1 || page > totalPages.value) return;
   currentPage.value = page;
   updateUrlParams();
 };
-
-const handleDotsClick = (dotsPosition: 'left' | 'right') => {
-  const total = totalPages.value;
-  const current = currentPage.value;
-
-  if (dotsPosition === 'left') {
-    handleChangePage(Math.max(1, current - 3));
-  } else {
-    handleChangePage(Math.min(total, current + 3));
-  }
-}
 
 const fetchDetections = async () => {
   loadingDetections.value = true;
@@ -266,7 +231,8 @@ const fetchDetections = async () => {
       itemsPerPage.value,
       statusFilter.value,
       isCategory(categoryFilter.value) ? categoryFilter.value as Categories : undefined,
-      deviceFilter.value
+      deviceFilter.value,
+      actionFilter.value
     );
 
     if (result) {
@@ -336,6 +302,12 @@ const closeFilters = () => {
 const statusFilter = ref<string | undefined>();
 const categoryFilter = ref<string | undefined>();
 const deviceFilter = ref<string | undefined>();
+const actionFilter = ref<'Разрешено' | 'Заблокировано' | 'Не решено' | undefined>();
+const actionFilterOptions: ActionFilterOption[] = [
+  { value: 'Не решено', label: 'Ожидают', color: '#EFB100' },
+  { value: 'Заблокировано', label: 'Заблокированы', color: '#FB2C36' },
+  { value: 'Разрешено', label: 'Разрешены', color: '#05DF72' }
+]
 
 const filtersData = computed<DetectionsFilter | null>(() => {
   const status = statusFilter.value ?? '';
@@ -357,7 +329,7 @@ const initFiltersFromUrl = () => {
   const query = route.query;
 
   currentPage.value = Number(query.page) || 1;
-  itemsPerPage.value = Number(query.per_page) || 6;
+  itemsPerPage.value = Number(query.per_page) || 9;
   statusFilter.value = query.status != null ? String(query.status) : undefined;
   categoryFilter.value = query.category != null ? String(query.category) : undefined;
   deviceFilter.value = query.device != null ? String(query.device) : undefined;
@@ -367,23 +339,24 @@ const initFiltersFromUrl = () => {
   
   dateRange.value.from = isValidDateString(fromStr)
     ? new Date(fromStr!)
-    : getCurrentDateWithOffset(-1, 'd');
+    : normalizeStartDate(getCurrentDateWithOffset(-1, 'd'));
 
   dateRange.value.to = isValidDateString(toStr)
     ? new Date(toStr!)
-    : getCurrentDateWithOffset();
+    : normalizeEndDate(getCurrentDateWithOffset());
 };
 
 const updateUrlParams = () => {
   const query: Record<string, string | number> = {};
 
   if (currentPage.value > 1) query.page = currentPage.value;
-  if (itemsPerPage.value !== 6) query.per_page = itemsPerPage.value;
+  if (itemsPerPage.value !== 9) query.per_page = itemsPerPage.value;
   if (statusFilter.value && statusFilter.value !== '') query.status = statusFilter.value;
   if (categoryFilter.value && categoryFilter.value !== '') query.category = categoryFilter.value;
   if (deviceFilter.value && deviceFilter.value !== '') query.device = deviceFilter.value;
   if (dateRange.value.from) query.from = dateRange.value.from.toISOString();
   if (dateRange.value.to) query.to = dateRange.value.to.toISOString();
+  if (actionFilter.value) query.action = actionFilter.value;
 
   router.replace({ query });
 };
@@ -397,7 +370,7 @@ const handleSetFilters = (filtersData?: DetectionsFilter) => {
     filtersData.device.id !== '' ? deviceFilter.value = filtersData.device.id : deviceFilter.value = undefined;
   }
   
-  updateUrlParams()
+  updateUrlParams();
 }
 
 onMounted(async () => {
@@ -409,6 +382,7 @@ onMounted(async () => {
 onUnmounted(() => {
   if (intervalId) clearInterval(intervalId);
 })
+
 watch(
   () => route.query,
   async (newQuery, oldQuery) => {
@@ -429,8 +403,8 @@ watch(
 );
 
 const dateRange = ref<{ from: Date | null; to: Date | null }>({
-  from: getCurrentDateWithOffset(-1, 'd'),
-  to: getCurrentDateWithOffset()
+  from: normalizeStartDate(getCurrentDateWithOffset(-1, 'd')),
+  to: normalizeEndDate(getCurrentDateWithOffset())
 })
 
 const loadingCardActs = ref<boolean[]>([])
@@ -475,6 +449,10 @@ const handleReject = async (item: Detection) => {
   }
 }
 
+watch(actionFilter, () => {
+  handleSetFilters()
+})
+
 watch(dateRange, () => {
   handleSetFilters();
 })
@@ -499,7 +477,6 @@ watch(dateRange, () => {
   display: flex;
   flex-direction: column;
   overflow-x: auto;
-  min-height: calc(100vh - 21rem);
 }
 
 .resources-grid {
@@ -567,8 +544,8 @@ watch(dateRange, () => {
 }
 
 .detections__download-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 1.25rem;
+  height: 1.25rem;
   object-fit: contain;
 }
 
@@ -597,76 +574,14 @@ watch(dateRange, () => {
   }
 }
 
-
-.detections__footer {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: auto;
-  padding-bottom: 1px;
-  padding-top: 1rem;
+.detectios__pagination {
+  margin-top: 1rem;
 }
 
-.detections__info {
-  font-weight: 400;
-  font-size: 1rem;
-  line-height: 1.25rem;
-  color: #3F3F46;
+@media screen and (max-width: 1919px) {
+  .resource-card {
+    max-width: 49%;
+    width: 49%;
+  }
 }
-
-.detections__pagination {
-  display: flex;
-  align-items: center;
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-}
-
-.detections__pagination-item {
-  cursor: pointer;
-  min-width: 2.5rem;
-  height: 2.25rem;
-  background: #FFFFFF;
-  outline: 1px solid #E4E4E7;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-weight: 400;
-  font-size: 1rem;
-  line-height: 1.25rem;
-  color: #3F3F46;
-}
-
-.detections__pagination-back {
-  border-top-left-radius: 6px;
-  border-bottom-left-radius: 6px;
-}
-
-.detections__pagination-item_active {
-  background: #2563EB;
-  outline: 1px solid #2563EB;
-  color: #FFFFFF;
-}
-
-.arrow-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: #A1A1AA;
-}
-
-.detections__pagination-next {
-  border-top-right-radius: 6px;
-  border-bottom-right-radius: 6px;
-}
-
-.detections__pagination-next .arrow-icon {
-  transform: scaleX(-1);
-}
-
-.detections__pagination-item_disabled {
-  cursor: not-allowed;
-}
-
 </style>

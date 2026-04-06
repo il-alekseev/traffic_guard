@@ -211,3 +211,33 @@ func (u *Usecase) GetAnomalies(ctx context.Context, userMeta *models.UserMeta, t
 	)
 	return anomalies, nil
 }
+
+func (u *Usecase) GetProhActivity(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, hostname string) (dto.GetProhActivityResponse, error) {
+	method := "GetProhActivity"
+	u.l.InfoContext(ctx,
+		method,
+		slog.String("hostname", hostname),
+		slog.Any("time_range", tr),
+	)
+
+	// Проверяем роль пользователя
+	// И если она CA, то фильтруем по хосту
+	if userMeta.ShortRole == values.ContextAdmin {
+		hostname = userMeta.ContextID
+	}
+
+	data, err := u.db.GetProhActivity(ctx, tr, hostname)
+	if err != nil {
+		err = fmt.Errorf("%s: failed to get prohibited activity data: %w", method, err)
+		u.l.ErrorContext(ctx, "Database operation failed",
+			wsl.String("method", method),
+			wsl.String("error", err.Error()),
+		)
+		return data, err
+	}
+
+	u.l.InfoContext(ctx, "Prohibited activity data retrieved",
+		slog.String("method", method),
+	)
+	return data, nil
+}

@@ -179,11 +179,16 @@ const chartOptions = computed<ApexOptions>(() => ({
 .anomalies {
   width: 100%;
   height: 100%;
-  max-width: 464px;
-  max-height: 148px;
+  max-width: 29rem;
+  max-height: 9.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
+
+  @media screen and (max-width: 1919px) {
+    max-width: unset;
+  }
+
 }
 
 .anomalies__container {
@@ -191,6 +196,10 @@ const chartOptions = computed<ApexOptions>(() => ({
   gap: 0.75rem;
   width: 100%;
   height: 100%;
+
+  @media screen and (max-width: 1919px) {
+    justify-content: space-between;
+  }
 }
 
 .anomalies__chart-wrapper {
@@ -199,8 +208,8 @@ const chartOptions = computed<ApexOptions>(() => ({
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  max-width: 252px;
-  margin-top: 140px;
+  max-width: 15.75rem;
+  margin-top: 8.75rem;
 }
 
 .anomalies__stats {
@@ -234,7 +243,12 @@ const chartOptions = computed<ApexOptions>(() => ({
   border-radius: 12px;
   min-width: 0;
   overflow: hidden;
-  max-height: 148px;
+  max-height: 9.25rem;
+  max-width: 12.5rem;
+
+  @media screen and (max-width: 1919px) {
+    max-width: unset;
+  }
 }
 
 .anomalies__domains-list {
@@ -282,6 +296,21 @@ const chartOptions = computed<ApexOptions>(() => ({
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+@media screen and (min-width: 1921px) {
+  .anomalies {
+    max-width: 100%;
+  }
+
+  .anomalies__container {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .anomalies__domains-wrapper {
+    max-width: 35rem;
+  }
 }
 
 @media (max-width: 768px) {

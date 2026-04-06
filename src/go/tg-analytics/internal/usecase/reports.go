@@ -206,7 +206,7 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, t
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
-		return report, err
+		return report, nil
 	}
 
 	u.l.InfoContext(ctx, "report created",
@@ -453,7 +453,7 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.Us
 			wsl.String("blog uuid", uuidStr),
 			wsl.String("error", err.Error()),
 		)
-		return report, err
+		return report, nil
 	}
 
 	u.l.InfoContext(ctx, "report for device created",

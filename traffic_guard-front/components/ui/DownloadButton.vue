@@ -25,8 +25,8 @@ import DownloadIcon from '~/assets/img/download.svg';
 }
 
 .download-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 1.25rem;
+  height: 1.25rem;
   object-fit: contain;
   color: #A1A1AA;
 }

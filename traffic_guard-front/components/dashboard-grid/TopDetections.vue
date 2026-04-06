@@ -133,7 +133,7 @@ const calculatePercentage = (detection: DashboardDetection, type: 'before' | 'af
   line-height: 1.25rem;
   font-weight: 400;
   color: #2563EB;
-  width: 140px;
+  width: 8.75rem;
   margin-right: 0.25rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -142,7 +142,7 @@ const calculatePercentage = (detection: DashboardDetection, type: 'before' | 'af
 .detections__bar {
   display: flex;
   width: 66%;
-  height: 20px;
+  height: 1.25rem;
   overflow: hidden;
   gap: 0.375rem;
 }

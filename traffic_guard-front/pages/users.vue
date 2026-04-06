@@ -34,16 +34,33 @@
       :total-pages="totalPages"
       :current-page="currentPage"
       :items-per-page="itemsPerPage"
+      :allowedItemsCount="[11, 33, 66]"
       prefix="users"
       :show-actions="true"
       empty-message="Пользователи не найдены"
       loading-message="Загрузка пользователей..."
       item-key="user_id"
       @page-change="handleChangePage"
+      @set-items-per-page="handleChangeItemsPerPage"
       @action-click="openEditUserModal"
     >
       <template #cell-login="{ value }">
         <span class="users__login-cell">{{ value }}</span>
+      </template>
+
+      <template #cell-role="{ value }">
+        <span class="users__role-cell">{{ getRoleDisplayName(value) }}</span>
+      </template>
+
+      <template #cell-context="{ item }">
+        <span
+          class="users__table-cell__badge users__context-cell"
+          v-bind="getOnlyRole(item.role) !== 'SA' 
+                  ? { style: generateColor(getOnlyDeviceName(item.role)) } 
+                  : { style: {background: 'transparent'} }"
+        >
+          {{ getOnlyDeviceName(item.role) || '' }}
+        </span>
       </template>
 
       <template #cell-full_name="{ item }">
@@ -112,12 +129,16 @@ import ErrorBlock from '~/components/ui/ErrorBlock.vue';
 import BaseTable from '~/components/ui/BaseTable.vue';
 import PlusIcon from "~/assets/img/plus.svg";
 import EditDataIcon from '~/assets/img/edit.svg';
+import { getRoleDisplayName, getOnlyRole, getOnlyDeviceName } from "~/helpers";
+import { useDeviceColors } from '~/composables/useDeviceColors';
 
 
 definePageMeta({
   layout: 'dashboard',
   middleware: ['auth']
 });
+
+const { generateColor } = useDeviceColors();
 
 const route = useRoute();
 const router = useRouter();
@@ -137,9 +158,9 @@ const tempPasswordType = ref<'create' | 'reset'>('create')
 
 const users = ref<User[]>([]);
 const columns = [
-  { key: 'user_id', label: 'ID' },
   { key: 'login', label: 'Логин' },
   { key: 'role', label: 'Роль' },
+  { key: 'context', label: 'Контекст' },
   { key: 'full_name', label: 'ФИО' },
   { key: 'email', label: 'Email' }
 ]
@@ -271,6 +292,12 @@ const handleChangePage = (page: number) => {
   updateUrlParams();
 };
 
+const handleChangeItemsPerPage = (value: number) => {
+  itemsPerPage.value = value;
+  currentPage.value = 1;
+  updateUrlParams();
+}
+
 const initFiltersFromUrl = () => {
   const query = route.query;
 
@@ -345,6 +372,10 @@ watch(
   width: 14.5rem;
 }
 
+:deep(.users__table) {
+  min-width: 77.5rem;
+}
+
 :deep(td.users__table-cell-login) {
   font-weight: 500;
   font-size: 1rem;
@@ -362,23 +393,32 @@ watch(
   color: #2563EB;
 }
 
-:deep(.users__table-column-user_id) {
-  width: 10%;
+:deep(.users__table-cell__badge) {
+  font-weight: 500;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  padding: 0.25rem 0.5rem;
+  text-transform: uppercase;
+  border-radius: 6px;
 }
+
 :deep(.users__table-column-login) {
-  width: 15%
-}
-:deep(.users__table-column-role) {
   width: 10%
 }
+:deep(.users__table-column-role) {
+  width: 17.5%
+}
+:deep(.users__table-column-context) {
+  width: 20.5%
+}
 :deep(.users__table-column-full_name) {
-  width: 27%;
+  width: 25%;
 }
 :deep(.users__table-column-email) {
-  width: 28%;
+  width: 25%;
 }
 :deep(.users__table-column-button) {
-  width: 10%;
+  width: 3%;
 }
 
 </style>

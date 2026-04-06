@@ -99,7 +99,7 @@ func (u *Usecase) Act(ctx context.Context, userMeta *models.UserMeta, action, pa
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
-		return err
+		return nil
 	}
 	//
 

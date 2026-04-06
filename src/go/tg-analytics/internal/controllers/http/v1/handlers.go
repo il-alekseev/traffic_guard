@@ -34,7 +34,7 @@ func (s *Server) Version(c *gin.Context) {
 // @Summary Получение списка сессий
 // @Description Возвращает список сессий с возможностью фильтрации, поиска, сортировки и пагинации
 // @Tags sessions
-// @Accept jsonы
+// @Accept json
 // @Produce json
 // @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z). По умолчанию: now-10m" default(now-10m)
 // @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z). По умолчанию: now" default(now)
@@ -671,4 +671,60 @@ func (s *Server) Act(c *gin.Context) {
 		Message: fmt.Sprintf("Success %s to domain %s", req.Action, req.Path),
 	}
 	c.JSON(http.StatusOK, resp)
+}
+
+// @Summary Получение графика запрещенной активности за год
+// @Description Возвращает статистику запрещенной активности за указанный год с возможностью фильтрации по имени устройства
+// @Description Временной диапазон автоматически формируется от 1 января 00:00:00 UTC до 31 декабря 23:59:59.999 UTC указанного года
+// @Tags dashboards
+// @Accept json
+// @Produce json
+// @Param year query int false "год, за который нужно получить данные для графика запрещенной активности" default(2025)
+// @Param hostname query string false "Фильтр по имени хоста"
+// @Security BearerAuth
+// @Success 200 {object} dto.GetProhActivityResponse "Данные графика запрещенной активности за год"
+// @Failure 400 {object} dto.ErrorResponse "Неверный формат параметров, некорректный год или временной диапазон"
+// @Failure 403 {object} dto.ErrorResponse "Недостаточно прав для доступа к графику запрещенной активности"
+// @Failure 500 {object} dto.ErrorResponse "Внутренняя ошибка сервера при получении данных графика"
+// @Router /api/v1/dashboards/proh-activity [get]
+func (s *Server) GetProhActivity(c *gin.Context) {
+	userMeta, err := utils.GetUserMeta(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetUserMeta", slogger.WrapError(c.Request.Context(), err))
+		return
+	}
+
+	// Валидация запроса
+	var req validation.GetProhActivityRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "c.ShouldBindJSON", slogger.WrapError(c.Request.Context(), err))
+		return
+	}
+
+	// Нормализация и валидация
+	if err := req.ValidateAndNormalize(); err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "req.ValidateAndNormalize", slogger.WrapError(c.Request.Context(), err))
+		return
+	}
+
+	// Парсим временной диапазон
+	parser := &trparser.TimeRangeParser{}
+	from := time.Date(req.Year, time.January, 1, 0, 0, 0, 0, time.UTC)
+	to := time.Date(req.Year, time.December, 31, 23, 59, 59, 999999999, time.UTC)
+	fromStr := from.Format(time.RFC3339) // "2025-01-01T00:00:00Z"
+	toStr := to.Format(time.RFC3339)     // "2025-12-31T23:59:59Z"
+	now := time.Now()
+	timeRange, err := parser.Parse(fmt.Sprintf("from=%s&to=%s", fromStr, toStr), now)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "parser.Parse", slogger.WrapError(c.Request.Context(), err))
+		return
+	}
+
+	// Получаем данные из usecase
+	response, err := s.u.GetProhActivity(c.Request.Context(), userMeta, timeRange, req.HostName)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusInternalServerError, "s.u.GetProhActivity", slogger.WrapError(c.Request.Context(), err))
+		return
+	}
+	c.JSON(http.StatusOK, response)
 }

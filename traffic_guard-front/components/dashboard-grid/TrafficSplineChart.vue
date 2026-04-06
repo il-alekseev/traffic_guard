@@ -15,6 +15,7 @@
 import VueApexCharts from 'vue3-apexcharts'
 import type { ApexOptions } from 'apexcharts'
 import type { DashboardTraffic } from '~/types/dashboard';
+import { formatCompactNumber } from '~/helpers';
 
 const props = defineProps<{
   trafficData?: DashboardTraffic
@@ -37,13 +38,6 @@ const series = computed(() => [
     data: safeData.value.output
   }
 ])
-
-const formatCompactNumber = (val: number, locale: string = 'ru'): string => {
-  return new Intl.NumberFormat(locale, {
-    notation: 'compact',
-    maximumFractionDigits: 1
-  }).format(val);
-};
 
 const chartOptions = computed<ApexOptions>(() => ({
   chart: {
@@ -81,14 +75,38 @@ const chartOptions = computed<ApexOptions>(() => ({
     curve: 'smooth',
     width: 2
   },
+
   xaxis: {
     type: 'datetime',
     categories: safeData.value.time,
+    tickAmount: safeData.value.time.length,
+
     labels: {
+      show: true,
+      rotate: 0,
+      
       datetimeUTC: false,
-      format: 'HH:mm'
+      formatter: (value: string | number) => {
+        const d = new Date(value);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        return `${day}.${month}`;
+      }
+    },
+
+    axisTicks: {
+      show: true
+    },
+
+    axisBorder: {
+      show: true
+    },
+
+    tooltip: {
+      enabled: false
     }
   },
+
   yaxis: {
     labels: {
       formatter: (val: number) => formatCompactNumber(val)

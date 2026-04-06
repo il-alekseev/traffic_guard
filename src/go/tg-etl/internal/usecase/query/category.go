@@ -67,7 +67,7 @@ func (uc *QueryUseCase) GetCategoryByName(ctx context.Context, name string) (*mo
 		return nil, err
 	}
 	if c == nil {
-		return nil, fmt.Errorf("incorrect category na,e: %s", name)
+		return nil, fmt.Errorf("incorrect category name: %s", name)
 	}
 
 	// Парсим категорию из строки

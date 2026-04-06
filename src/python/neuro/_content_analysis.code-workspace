@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../_content_analysis"
+		},
+		{
+			"path": "../_sentiment_analysis"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {}
+}

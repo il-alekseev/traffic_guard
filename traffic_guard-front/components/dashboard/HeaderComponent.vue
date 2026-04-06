@@ -7,20 +7,24 @@
             <NotificationIcon />
           </div>
         </div>
-        <div class="header__user-data">
+        <div class="header__user-data" @click="toggleIsMenuOpen">
           <div class="header__user-avatar">
             <UserCircleIcon />
           </div>
           <div class="header__user-info">
             <p class="header__user-name">{{ fullName }}</p>
           </div>
-          <div class="header__user-arrow"  @click="toggleIsMenuOpen">
+          <div class="header__user-arrow">
             <ArrowIcon />
           </div>
         </div>
 
         <div
           v-if="isMenuOpen"
+          v-click-outside="{
+            handler: closeMenu,
+            ignore: '.header__user-data'
+          }"
           class="header__user-menu user-menu">
           <ul>
             <li>
@@ -73,6 +77,12 @@ const toggleIsMenuOpen = () => {
   isMenuOpen.value = !isMenuOpen.value;
 }
 
+const closeMenu = () => {
+  if (isMenuOpen.value === false) return;
+
+  isMenuOpen.value = false;
+}
+
 </script>
 
 <style>
@@ -115,6 +125,7 @@ const toggleIsMenuOpen = () => {
   gap: 0.5rem;
   align-items: center;
   position: relative;
+  cursor: pointer;
 }
 
 .header__user-avatar {
@@ -144,7 +155,6 @@ const toggleIsMenuOpen = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
 }
 
 .header__user-arrow img{

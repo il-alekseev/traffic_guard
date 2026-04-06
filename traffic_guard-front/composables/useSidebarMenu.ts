@@ -60,14 +60,6 @@ export function useSidebarMenu() {
         iconComponent: LogsIcon,
         showFor: ["KSU", "KSF"],
       },
-      // {
-      //   id: "grafana",
-      //   label: "Статистика",
-      //   href: grafanaUrl,
-      //   iconComponent: ChartBar,
-      //   external: true,
-      //   showFor: ["KSU", "KSF"],
-      // },
     ]
 
     return fullMenu.filter((item) => item.showFor.includes(role))

@@ -5,15 +5,13 @@
     :class="[`base-button--${variant}`, `base-button--${extras}`, { 'base-button--loading': loading }]"
     :disabled="disabled || loading"
   >
+    <span v-if="$slots.icon" class="base-button__icon">
+      <slot name="icon" />
+    </span>
     <span v-if="loading">{{ loadingText }}</span>
-    <template v-else>
-      <span v-if="$slots.icon" class="base-button__icon">
-        <slot name="icon" />
-      </span>
-      <span class="base-button__text">
-        <slot />
-      </span>
-    </template>
+    <span v-else class="base-button__text">
+      <slot />
+    </span>
   </button>
 </template>
 

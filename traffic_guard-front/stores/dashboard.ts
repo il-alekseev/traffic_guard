@@ -3,7 +3,7 @@ import { useNuxtApp } from "#app";
 import type { defaultResponse } from "~/types/api";
 import { useUserStore } from "./user";
 import { getTokenHeaders } from "~/helpers";
-import type { DashboardAnomalies, DashboardRequestObj, DashboardRequests, DashboardRequestsType, DashboardState, DashboardTraffic, TopCategories, TopDetections } from "~/types/dashboard";
+import type { DashboardAnomalies, DashboardProhActivity, DashboardProhActivityResponse, DashboardRequestObj, DashboardRequests, DashboardRequestsType, DashboardState, DashboardTraffic, TopCategories, TopDetections } from "~/types/dashboard";
 
 
 export const useDashboardStore = defineStore("dashboard", {
@@ -19,9 +19,8 @@ export const useDashboardStore = defineStore("dashboard", {
           pending: null
         },
         anomalies: null,
-        events: null,
+        logs: null,
         proh_activity: null,
-        devicesState: null
     };
   },
 
@@ -174,7 +173,7 @@ export const useDashboardStore = defineStore("dashboard", {
       }
     },
 
-    async fetchRequest(from: string = 'now-10m', to: string = 'now', request_type: DashboardRequestsType = 'allowed', count: number = 10, hostname?: string): Promise<DashboardRequestObj> {
+    async fetchRequest(from: string = 'now-10m', to: string = 'now', request_type: DashboardRequestsType = 'allowed', count: number = 10, hostname?: string, setToStore: boolean = true): Promise<DashboardRequestObj> {
       const userStore = useUserStore();
       try {
         await userStore.ensureValidToken();
@@ -212,13 +211,13 @@ export const useDashboardStore = defineStore("dashboard", {
 
 
         if (result) {
-          if (request_type === 'allowed') {
+          if (request_type === 'allowed' && setToStore) {
             this.requests.allowed = result;
-          } else if (request_type === 'blocked') {
+          } else if (request_type === 'blocked' && setToStore) {
             this.requests.blocked = result;
-          } else if (request_type === 'before_block') {
+          } else if (request_type === 'before_block' && setToStore) {
             this.requests.before_block = result
-          } else if (request_type === 'pending') {
+          } else if (request_type === 'pending' && setToStore) {
             this.requests.pending = result;
           }
           return result;
@@ -300,55 +299,6 @@ export const useDashboardStore = defineStore("dashboard", {
 
 
         if (result) {
-          // const mockData: DashboardAnomalies = {
-          //   "host_count": 5,
-          //   "block_count": 8,
-          //   "host_anomalies": [
-          //     {
-          //       "hostname": "NGFW1",
-          //       "anomaly_count": 3,
-          //       "domains": [
-          //         "ctldl.windowsupdate.com",
-          //         "update.googleapis.com",
-          //         "cdn.discordapp.com"
-          //       ]
-          //     },
-          //     {
-          //       "hostname": "NGFW2",
-          //       "anomaly_count": 1,
-          //       "domains": [
-          //         "api.dropboxapi.com"
-          //       ]
-          //     },
-          //     {
-          //       "hostname": "SRV-DB01",
-          //       "anomaly_count": 2,
-          //       "domains": [
-          //         "repo.mysql.com",
-          //         "telemetry.microsoft.com"
-          //       ]
-          //     },
-          //     {
-          //       "hostname": "WS-ADMIN",
-          //       "anomaly_count": 4,
-          //       "domains": [
-          //         "login.live.com",
-          //         "graph.facebook.com",
-          //         "cdn.tiktok.com",
-          //         "updates.signal.org"
-          //       ]
-          //     },
-          //     {
-          //       "hostname": "WS-USER1",
-          //       "anomaly_count": 0,
-          //       "domains": []
-          //     }
-          //   ]
-          // }
-
-          // this.anomalies = mockData;
-          // return mockData;
-
           this.anomalies = result;
           return result;
         } else {
@@ -358,5 +308,50 @@ export const useDashboardStore = defineStore("dashboard", {
         throw new Error(error.message || "Ошибка при получении топа аномалий");
       }
     },
+
+    async fetchProhActivity(year: string, hostname?: string): Promise<DashboardProhActivityResponse> {
+      const userStore = useUserStore();
+      try {
+        await userStore.ensureValidToken();
+      } catch {
+        userStore.clearToken();
+        throw new Error(
+          "Не удалось получить график запрещенной активности. Пользователь неавторизован",
+        );
+      }
+
+      const token = useCookie('auth_token').value;
+
+      if (!token) {
+        userStore.clearToken();
+        throw new Error(
+          "Не удалось получить график запрещенной активности. Пользователь неавторизован",
+        );
+      }
+
+      try {
+        const { $api } = useNuxtApp();
+
+        const params: Record<string, string | number> = {
+          year,
+          ...(hostname ? { hostname } : {}),
+        };
+
+        const result = await $api.get<DashboardProhActivityResponse>('/analytics/dashboards/proh-activity', {
+          params,
+          ...getTokenHeaders(token)
+        });
+
+
+        if (result) {
+          this.proh_activity = result;
+          return result;
+        } else {
+          throw new Error("Не удалось получить график запрещенной активности");
+        }
+      } catch (error: any) {
+        throw new Error(error.message || "Ошибка при получении графика запрещенной активности");
+      }
+    }
   },
 });

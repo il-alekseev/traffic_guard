@@ -52,7 +52,20 @@
       </table>
     </div>
 
-    <div v-if="!loading && items.length > 0" :class="`${prefix}__footer table__footer`">
+      <BasePagination
+        v-if="!loading && items.length > 0"
+        class="table__pagination"
+        :class="`${prefix}__pagination`"
+        :total="props.totalItems"
+        :totalPages="props.totalPages"
+        :allowedItemsCount="props.allowedItemsCount"
+        :currentPage="currentPage"
+        :selectedItemsCount="itemsPerPage"
+        @update:current-page="handleChangePage"
+        @update:selected-items-count="handleChangeItemsPerPage"
+      />
+
+    <!-- <div v-if="!loading && items.length > 0" :class="`${prefix}__footer table__footer`">
       <div :class="`${prefix}__info`">
         Показано от {{ startIndex }} до {{ endIndex }} из {{ totalItems }} результатов
       </div>
@@ -92,12 +105,13 @@
           <component :is="arrowLeftIcon" class="arrow-icon" />
         </div>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
 <script setup lang="ts">
 import ArrowLeftIcon from '~/assets/img/arrow-left.svg';
+import BasePagination from '~/components/ui/BasePagination.vue';
 
 interface Column {
   key: string;
@@ -119,6 +133,7 @@ interface Props {
   emptyMessage?: string;
   loadingMessage?: string;
   itemKey?: string;
+  allowedItemsCount: number[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -135,61 +150,16 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   'page-change': [page: number];
   'action-click': [item: any];
+  'set-items-per-page': [value: number]
 }>();
 
-const pagesToShow = computed(() => {
-  const pages: (number | string)[] = [];
-  const total = props.totalPages;
-  const current = props.currentPage;
-
-  if (total <= 7) {
-    for (let i = 1; i <= total; i++) pages.push(i);
-  } else {
-    if (current <= 3) {
-      pages.push(1, 2, 3, '...', total - 2, total - 1, total);
-    } else if (current >= total - 2) {
-      pages.push(1, 2, '...', total - 2, total - 1, total);
-    } else {
-      pages.push(1, '...', current - 1, current, current + 1, '...', total);
-    }
-  }
-
-  return pages;
-});
-
-const startIndex = computed(() => {
-  return (props.currentPage - 1) * props.itemsPerPage + 1;
-});
-
-const endIndex = computed(() => {
-  const end = props.currentPage * props.itemsPerPage;
-  return end > props.totalItems ? props.totalItems : end;
-});
-
-const changePage = (page: number) => {
+const handleChangePage = (page: number) => {
   if (page < 1 || page > props.totalPages) return;
   emit('page-change', page);
 };
 
-const handleDotsClick = (index: number) => {
-  const total = props.totalPages
-  const current = props.currentPage
-  
-  let isLeftDots = false
-  
-  if (current <= 3) {
-    isLeftDots = false
-  } else if (current >= total - 2) {
-    isLeftDots = true
-  } else {
-    isLeftDots = index === 1
-  }
-  
-  if (isLeftDots) {
-    changePage(Math.max(1, current - 3))
-  } else {
-    changePage(Math.min(total, current + 3))
-  }
+const handleChangeItemsPerPage = (value: number) => {
+  emit ('set-items-per-page', value)
 }
 </script>
 
@@ -209,6 +179,7 @@ const handleDotsClick = (index: number) => {
 
 .table__table-wrapper {
   overflow-x: auto;
+  flex: 1
 }
 
 .table__table {
@@ -296,14 +267,14 @@ td.table__table-cell-button {
   color: #3F3F46;
 }
 
-.table__pagination {
+/* .table__pagination {
   display: flex;
   align-items: center;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
-}
+} */
 
 .table__pagination-item {
   cursor: pointer;

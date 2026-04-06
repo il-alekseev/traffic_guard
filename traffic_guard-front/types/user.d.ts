@@ -31,6 +31,15 @@ export interface UserForm {
   email: string;
 }
 
+interface PasswordRules {
+  minLength: undefined | boolean,
+  lettersUpperAndLowerCase: undefined | boolean,
+  numbers: undefined | boolean,
+  specialSymbols: undefined | boolean,
+}
+
+type PasswordRuleKey = keyof PasswordRules;
+
 export interface UserState {
   user: User | null;
 }

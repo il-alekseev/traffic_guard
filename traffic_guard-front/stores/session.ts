@@ -19,7 +19,7 @@ export const useSessionsStore = defineStore("sessions", {
   },
 
   actions: {
-    async fetchSessions(from: string = 'now-10m', to: string = 'now', page: number = 1, limit: number = 11, order_by: SessionOrderType = 'id', order_dir: OrderDir = 'asc', search?: string, status?: SessionStatus, category?: Categories, type?: SessionTypes, hostname?: string,): Promise<SessionTable> {
+    async fetchSessions(from: string = 'now-10m', to: string = 'now', page: number = 1, count: number = 11, order_by: SessionOrderType = 'id', order_dir: OrderDir = 'asc', search?: string, status?: SessionStatus, category?: Categories, type?: SessionTypes, hostname?: string,): Promise<SessionTable> {
       const userStore = useUserStore();
       try {
         await userStore.ensureValidToken();
@@ -46,7 +46,7 @@ export const useSessionsStore = defineStore("sessions", {
           from,
           to,
           page,
-          limit,
+          count,
           order_by,
           order_dir,
           ...(search ? { search } : {}),

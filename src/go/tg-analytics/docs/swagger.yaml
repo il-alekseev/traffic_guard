@@ -90,6 +90,17 @@ definitions:
         - $ref: '#/definitions/dto.PaginationMeta'
         description: Метаданные пагинации
     type: object
+  dto.GetProhActivityResponse:
+    properties:
+      count:
+        type: integer
+      data:
+        items:
+          type: integer
+        type: array
+      time_since:
+        type: string
+    type: object
   dto.GetSessionsResponse:
     properties:
       count:
@@ -576,6 +587,49 @@ paths:
       security:
       - BearerAuth: []
       summary: Получение статистики по устройствам
+      tags:
+      - dashboards
+  /api/v1/dashboards/proh-activity:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        Возвращает статистику запрещенной активности за указанный год с возможностью фильтрации по имени устройства
+        Временной диапазон автоматически формируется от 1 января 00:00:00 UTC до 31 декабря 23:59:59.999 UTC указанного года
+      parameters:
+      - default: 2025
+        description: год, за который нужно получить данные для графика запрещенной
+          активности
+        in: query
+        name: year
+        type: integer
+      - description: Фильтр по имени хоста
+        in: query
+        name: hostname
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Данные графика запрещенной активности за год
+          schema:
+            $ref: '#/definitions/dto.GetProhActivityResponse'
+        "400":
+          description: Неверный формат параметров, некорректный год или временной
+            диапазон
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к графику запрещенной активности
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера при получении данных графика
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение графика запрещенной активности за год
       tags:
       - dashboards
   /api/v1/dashboards/requests:
@@ -1247,7 +1301,7 @@ paths:
         in: query
         name: type
         type: string
-      - description: Поиск по URL, IP адресу пользователя или IP адремсу домена
+      - description: Поиск по URL, IP адресу пользователя или IP адревсу домена
         in: query
         name: search
         type: string

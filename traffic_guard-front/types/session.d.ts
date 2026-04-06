@@ -46,6 +46,7 @@ export type SessionOrderType =
 export interface SessionTable {
   data: Session[];
   meta: TableMeta;
+  total?: number;
 }
 
 export interface SessionsState {

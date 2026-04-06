@@ -118,6 +118,43 @@ export function getModificatorByCategory(category: Categories): string {
   return categoryMap[category] || 'unknown';
 }
 
+export function getMainColorByCategory(category: Categories): string {
+    const categoryMap: Record<Categories, string> = {
+    'Неизвестный класс': '#6b7280',
+    'Положительная категория': '#16A34A',
+    'Агрессия, расизм, терроризм': '#DC2626',
+    'Ботнеты': '#EA580C',
+    'Веб-почта': '#0EA5E9',
+    'Досуг и развлечения': '#16A34A',
+    'Интернет магазины': '#4F46E5',
+    'Компьютерные игры': '#15803D',
+    'Криптомайнинг': '#C2410C',
+    'Наркотики': '#B91C1C',
+    'Порнография и секс': '#9333EA',
+    'Прокси и анонимайзеры': '#2563EB',
+    'Реестр запрещенных сайтов': '#4B5563',
+    'Сайты для взрослых': '#7E22CE',
+    'Сайты, распространяющие вирусы': '#EF4444',
+    'Социальные сети': '#0284C7',
+    'Торренты и P2P-сети': '#1D4ED8',
+    'Файловые архивы': '#6B7280',
+    'Фильмы и видео онлайн': '#059669',
+    'Фишинг': '#D97706',
+    'Чаты и мессенджеры': '#0369A1',
+    'Дополнительно': '#6B7280',
+    'Криптоджекинг': '#D97706',
+    'Реклама': '#4338CA',
+    'Онлайн-игры': '#15803D',
+    'Игровые платформы': '#16A34A',
+    'Вредоносное ПО': '#DC2626',
+    'Азартные игры': '#7C3AED',
+    'Депрессивный контент': '#DB2777',
+    'Алкоголь и табак': '#D97706'
+  };
+
+  return categoryMap[category] || 'unknown';
+}
+
 export function getBadgeClassByStatus(status: SessionStatus): string {
   switch (status) {
     case ('Разрешен'):
@@ -128,6 +165,19 @@ export function getBadgeClassByStatus(status: SessionStatus): string {
       return 'session-status-badge_yellow'
     default:
       return 'session-status-badge_yellow'
+  }
+}
+
+export function getEventTypeClass(type: 'CREATE' | 'UPDATE' | 'DELETE'): string {
+  switch (type) {
+    case ('CREATE'):
+      return 'logs-event-type-badge_greeen'
+    case ('DELETE'):
+      return 'logs-event-type-badge_red'
+    case ('UPDATE'):
+      return 'logs-event-type-badge_yellow'
+    default:
+      return 'logs-event-type-badge_yellow'
   }
 }
 
@@ -251,9 +301,11 @@ export const getOnlyRole = (role: string): string => {
 
 export const getOnlyDeviceName = (role: string): string => {
   if (role === 'SA') {
-    return ''
+    return '';
   }
-  return role.split("-")[1];
+  const firstDashIndex = role.indexOf('-');
+  if (firstDashIndex === -1) return role;
+  return role.slice(firstDashIndex + 1);
 };
 
 export function makeUTCDate(year: number, month: number, day: number): Date {
@@ -275,3 +327,40 @@ export const getStatusNameByAction = (action: ActionType): string => {
     return '';
   }
 }
+
+export const formatCompactNumber = (val: number, locale: string = 'ru'): string => {
+  return new Intl.NumberFormat(locale, {
+    notation: 'compact',
+    maximumFractionDigits: 1
+  }).format(val);
+};
+
+export const remToPx = (rem: number): number => {
+  const rootFontSize = parseFloat(
+    getComputedStyle(document.documentElement).fontSize
+  );
+
+  return rem * rootFontSize;
+}
+
+export const getUTCDateString = (date: Date): string => {
+  return `${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}`;
+};
+
+export const normalizeStartDate = (date: Date): Date => {
+  return new Date(Date.UTC(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    0, 0, 0, 0
+  ));
+};
+
+export const normalizeEndDate = (date: Date): Date => {
+  return new Date(Date.UTC(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    23, 59, 59, 999
+  ));
+};

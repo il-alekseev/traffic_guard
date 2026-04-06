@@ -41,10 +41,10 @@
                   <td class="table__cell table__cell--traffic">
                     <div class="traffic">
                       <span class="traffic__item traffic__item--up">
-                        ↑ {{ formatTraffic(item.anomaly_stat.traffic.input) }}
+                        ↑ {{ formatTraffic(item.anomaly_stat.traffic.output) }}
                       </span>
                       <span class="traffic__item traffic__item--down">
-                        ↓ {{ formatTraffic(item.anomaly_stat.traffic.output) }}
+                        ↓ {{ formatTraffic(item.anomaly_stat.traffic.input) }}
                       </span>
                     </div>
                   </td>
@@ -149,30 +149,37 @@ const getStatusColor = (status: string): string => {
     }
 
     &--url {
+      width: 140px;
       text-align: left;
     }
 
     &--status {
+      width: 106px;
       text-align: center;
     }
 
     &--traffic {
+      width: 106px;
       text-align: center;
     }
 
     &--requests {
+      width: 106px;
       text-align: center;
     }
 
     &--before-block {
+      width: 106px;
       text-align: center;
     }
 
     &--waiting {
+      width: 106px;
       text-align: center;
     }
 
     &--after-block {
+      width: 106px;
       text-align: center;
     }
   }
@@ -191,7 +198,7 @@ const getStatusColor = (status: string): string => {
   font-size: 8px;
   line-height: 8px;
   font-weight: 500;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 
   &--green {
     background-color: #DCFCE7;

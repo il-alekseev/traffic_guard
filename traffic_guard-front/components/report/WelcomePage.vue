@@ -9,19 +9,15 @@
           Fazenda
         </div>
       </div>
+
+      <h1 v-if="deviceName" class="title">Отчёт по {{ deviceName }}</h1>
       
-      <h1 class="title">Отчёт за период</h1>
+      <h1 v-else class="title">Отчёт за период</h1>
       
       <div class="info">
         <div class="info__block">
-          <!-- <span class="info__label">Период:</span> -->
           <span class="info__value">{{ dateRange }}</span>
         </div>
-        
-        <!-- <div class="info__block">
-          <span class="info__label">Дата формирования:</span>
-          <span class="info__value">{{ generatedDate }}</span>
-        </div> -->
       </div>
     </div>
   </div>
@@ -34,6 +30,7 @@ import AlternativeLogoIcon from "~/assets/img/alternative-logo.svg"
 interface Props {
   dateRange: string
   generatedDate?: string
+  deviceName?: string
 }
 
 defineProps<Props>()
@@ -41,8 +38,8 @@ defineProps<Props>()
 
 <style scoped>
 .report-page {
-  width: 297mm;
-  height: 210mm;
+  width: 842px;
+  height: 595px;
   background: #FFFFFF;
   padding: 40px;
   box-sizing: border-box;
@@ -60,7 +57,7 @@ defineProps<Props>()
 
 .welcome-content {
   text-align: center;
-  max-width: 600px;
+  max-width: 760px;
 }
 
 .logo {
@@ -87,12 +84,12 @@ defineProps<Props>()
   font-weight: 400;
   color: #FFFFFF;
   font-size: 48px;
-  line-height: 100%;
+  line-height: 58px;
 }
 
 .title {
   font-size: 72px;
-  line-height: 100%;
+  line-height: 87px;
   font-weight: 600;
   color: #FFFFFF;
 }
@@ -117,7 +114,7 @@ defineProps<Props>()
 .info__value {
   font-weight: 400;
   font-size: 24px;
-  line-height: 100%;
+  line-height: 29px;
   font-size: 20px;
   color: #FFFFFF;;
 }
