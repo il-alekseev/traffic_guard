@@ -1446,7 +1446,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.DtoDtoBusinessLog"
+                            "$ref": "#/definitions/models.DtoBusinessLog"
                         }
                     }
                 ],
@@ -2449,6 +2449,45 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.DtoBusinessLog": {
+            "type": "object",
+            "properties": {
+                "context": {
+                    "description": "context",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "description",
+                    "type": "string"
+                },
+                "entity": {
+                    "description": "user, context",
+                    "type": "string"
+                },
+                "entity_id": {
+                    "description": "userID or ContextID",
+                    "type": "string"
+                },
+                "event_type": {
+                    "description": "CREATE, UPDATE, DELETE",
+                    "type": "string"
+                },
+                "new_value": {
+                    "description": "new value"
+                },
+                "old_value": {
+                    "description": "old value"
+                },
+                "user_name": {
+                    "description": "user name",
+                    "type": "string"
+                },
+                "user_role": {
+                    "description": "SA, CA",
+                    "type": "string"
+                }
+            }
+        },
         "models.DtoCategory": {
             "type": "object",
             "properties": {
@@ -2587,59 +2626,6 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
-                }
-            }
-        },
-        "models.DtoDtoBusinessLog": {
-            "type": "object",
-            "properties": {
-                "context": {
-                    "description": "context",
-                    "type": "string"
-                },
-                "context_str": {
-                    "description": "context str",
-                    "type": "string"
-                },
-                "description": {
-                    "description": "description",
-                    "type": "string"
-                },
-                "entity": {
-                    "description": "user, context",
-                    "type": "string"
-                },
-                "entity_id": {
-                    "description": "userID or ContextID",
-                    "type": "string"
-                },
-                "event_type": {
-                    "description": "Timestamp   time.Time ` + "`" + `json:\"timestamp,omitzero\" gorm:\"column:timestamp;type:timestamp with time zone;not null\"` + "`" + `",
-                    "type": "string"
-                },
-                "new_value": {
-                    "description": "new value",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.DtoValue"
-                        }
-                    ]
-                },
-                "old_value": {
-                    "description": "old value",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.DtoValue"
-                        }
-                    ]
-                },
-                "user_name": {
-                    "description": "user name",
-                    "type": "string"
-                },
-                "user_role": {
-                    "description": "SA, CA",
-                    "type": "string"
                 }
             }
         },
@@ -3052,39 +3038,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.DtoPaginationMeta"
                         }
                     ]
-                }
-            }
-        },
-        "models.DtoValue": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "description": "email",
-                    "type": "string"
-                },
-                "first_name": {
-                    "description": "first name",
-                    "type": "string"
-                },
-                "last_name": {
-                    "description": "last name",
-                    "type": "string"
-                },
-                "login": {
-                    "description": "login",
-                    "type": "string"
-                },
-                "patronymic": {
-                    "description": "patronymic",
-                    "type": "string"
-                },
-                "role": {
-                    "description": "role",
-                    "type": "string"
-                },
-                "user_id": {
-                    "description": "user id",
-                    "type": "string"
                 }
             }
         },

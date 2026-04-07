@@ -6,11 +6,12 @@ package blog
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	"tg-an/pkg/blog/operations"
-
 	"github.com/go-openapi/runtime"
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
+
+	"tg-an/pkg/blog/operations"
+	"tg-an/pkg/blog/utils"
 )
 
 // Default blog HTTP client.
@@ -19,7 +20,7 @@ var Default = NewHTTPClient(nil)
 const (
 	// DefaultHost is the default Host
 	// found in Meta (info) section of spec file
-	DefaultHost string = "127.0.0.1:8004"
+	DefaultHost string = "localhost:8080"
 	// DefaultBasePath is the default BasePath
 	// found in Meta (info) section of spec file
 	DefaultBasePath string = "/"
@@ -56,6 +57,7 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Blog {
 	cli := new(Blog)
 	cli.Transport = transport
 	cli.Operations = operations.New(transport, formats)
+	cli.Utils = utils.New(transport, formats)
 	return cli
 }
 
@@ -102,6 +104,8 @@ func (cfg *TransportConfig) WithSchemes(schemes []string) *TransportConfig {
 type Blog struct {
 	Operations operations.ClientService
 
+	Utils utils.ClientService
+
 	Transport runtime.ClientTransport
 }
 
@@ -109,4 +113,5 @@ type Blog struct {
 func (c *Blog) SetTransport(transport runtime.ClientTransport) {
 	c.Transport = transport
 	c.Operations.SetTransport(transport)
+	c.Utils.SetTransport(transport)
 }

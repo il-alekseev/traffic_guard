@@ -28,4 +28,5 @@ gen-an:
 # Генерация клиента для бизнес-логов
 .PHONY: gen-blog
 gen-blog:
-	swagger generate client -c blog -f $(BLOG_URL) -A blog -t pkg
+#	swagger generate client -c blog -f $(BLOG_URL) -A blog -t pkg
+	swagger generate client -c blog -f ../blog/docs/swagger.json -A blog -t pkg

@@ -1,5 +1,33 @@
 basePath: /
 definitions:
+  models.DtoBusinessLog:
+    properties:
+      context:
+        description: context
+        type: string
+      description:
+        description: description
+        type: string
+      entity:
+        description: user, context
+        type: string
+      entity_id:
+        description: userID or ContextID
+        type: string
+      event_type:
+        description: CREATE, UPDATE, DELETE
+        type: string
+      new_value:
+        description: new value
+      old_value:
+        description: old value
+      user_name:
+        description: user name
+        type: string
+      user_role:
+        description: SA, CA
+        type: string
+    type: object
   models.DtoCategory:
     properties:
       access_count:
@@ -99,42 +127,6 @@ definitions:
         items:
           type: string
         type: array
-    type: object
-  models.DtoDtoBusinessLog:
-    properties:
-      context:
-        description: context
-        type: string
-      context_str:
-        description: context str
-        type: string
-      description:
-        description: description
-        type: string
-      entity:
-        description: user, context
-        type: string
-      entity_id:
-        description: userID or ContextID
-        type: string
-      event_type:
-        description: Timestamp   time.Time `json:"timestamp,omitzero" gorm:"column:timestamp;type:timestamp
-          with time zone;not null"`
-        type: string
-      new_value:
-        allOf:
-        - $ref: '#/definitions/models.DtoValue'
-        description: new value
-      old_value:
-        allOf:
-        - $ref: '#/definitions/models.DtoValue'
-        description: old value
-      user_name:
-        description: user name
-        type: string
-      user_role:
-        description: SA, CA
-        type: string
     type: object
   models.DtoErrorResponse:
     properties:
@@ -457,30 +449,6 @@ definitions:
         allOf:
         - $ref: '#/definitions/models.DtoPaginationMeta'
         description: meta
-    type: object
-  models.DtoValue:
-    properties:
-      email:
-        description: email
-        type: string
-      first_name:
-        description: first name
-        type: string
-      last_name:
-        description: last name
-        type: string
-      login:
-        description: login
-        type: string
-      patronymic:
-        description: patronymic
-        type: string
-      role:
-        description: role
-        type: string
-      user_id:
-        description: user id
-        type: string
     type: object
   models.ModelsAPIError:
     properties:
@@ -2006,7 +1974,7 @@ paths:
         name: record
         required: true
         schema:
-          $ref: '#/definitions/models.DtoDtoBusinessLog'
+          $ref: '#/definitions/models.DtoBusinessLog'
       responses:
         "200":
           description: Успех
