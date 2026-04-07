@@ -5,6 +5,7 @@ type SessionFilter struct {
 	HostName string `form:"hostname"`
 	Category string `form:"category"`
 	Type     string `form:"type"`
+	Status   string `form:"status"`
 }
 
 // Dashboards

@@ -1198,6 +1198,18 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "Разрешен",
+                            "Запрещен",
+                            "Ожидает",
+                            "Аномалия"
+                        ],
+                        "type": "string",
+                        "description": "Фильтр по статусу",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "description": "Поиск по URL, IP адресу пользователя или IP адревсу домена",
                         "name": "search",

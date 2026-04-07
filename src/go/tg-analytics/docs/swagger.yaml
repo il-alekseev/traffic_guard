@@ -1299,6 +1299,15 @@ paths:
         in: query
         name: type
         type: string
+      - description: Фильтр по статусу
+        enum:
+        - Разрешен
+        - Запрещен
+        - Ожидает
+        - Аномалия
+        in: query
+        name: status
+        type: string
       - description: Поиск по URL, IP адресу пользователя или IP адревсу домена
         in: query
         name: search

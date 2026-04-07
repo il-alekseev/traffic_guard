@@ -6,16 +6,17 @@ import (
 )
 
 type GetSessionsRequest struct {
-	From     string `form:"from" binding:"omitempty"`
-	To       string `form:"to" binding:"omitempty"`
-	HostName string `form:"hostname" binding:"omitempty,max=100"`
-	Category string `form:"category" binding:"omitempty,max=50"`
-	Type     string `form:"type" binding:"omitempty,max=20"`
-	Search   string `form:"search" binding:"omitempty,max=200"`
-	Page     int    `form:"page" binding:"omitempty,min=1"`
-	Limit    int    `form:"limit" binding:"omitempty,min=1"`
-	OrderBy  string `form:"order_by" binding:"omitempty"`
-	OrderDir string `form:"order_dir" binding:"omitempty,oneof=asc desc"`
+	From        string `form:"from" binding:"omitempty"`
+	To          string `form:"to" binding:"omitempty"`
+	HostName    string `form:"hostname" binding:"omitempty,max=100"`
+	Category    string `form:"category" binding:"omitempty,max=50"`
+	SessionType string `form:"type" binding:"omitempty,max=20"`
+	Status      string `form:"status" binding:"omitempty,max=20"`
+	Search      string `form:"search" binding:"omitempty,max=200"`
+	Page        int    `form:"page" binding:"omitempty,min=1"`
+	Limit       int    `form:"limit" binding:"omitempty,min=1"`
+	OrderBy     string `form:"order_by" binding:"omitempty"`
+	OrderDir    string `form:"order_dir" binding:"omitempty,oneof=asc desc"`
 }
 
 // Normalize нормализует значения запроса
@@ -23,7 +24,8 @@ func (r *GetSessionsRequest) Normalize() {
 	// Тримим строковые поля
 	r.HostName = strings.TrimSpace(r.HostName)
 	r.Category = strings.TrimSpace(r.Category)
-	r.Type = strings.TrimSpace(r.Type)
+	r.SessionType = strings.TrimSpace(r.SessionType)
+	r.Status = strings.TrimSpace(r.Status)
 	r.Search = strings.TrimSpace(r.Search)
 	r.OrderBy = strings.TrimSpace(r.OrderBy)
 	r.OrderDir = strings.TrimSpace(r.OrderDir)
@@ -85,9 +87,15 @@ func (r *GetSessionsRequest) Validate() error {
 	}
 
 	// Валидация типа сессии
-	allowedTypes := []string{"Заблокирован", "Запрещен", "Ожидает", "Разрешен", ""}
-	if r.Type != "" && !contains(allowedTypes, r.Type) {
+	allowedSessionTypes := []string{"VPN", "Запрещен", "Разрешен", ""}
+	if r.SessionType != "" && !contains(allowedSessionTypes, r.SessionType) {
 		return fmt.Errorf("invalid session type")
+	}
+
+	// Валидация статуса
+	allowedStatuses := []string{"Разрешен", "Запрещен", "Ожидает", "Аномалия", ""}
+	if r.Status != "" && !contains(allowedStatuses, r.Status) {
+		return fmt.Errorf("invalid status")
 	}
 
 	return nil

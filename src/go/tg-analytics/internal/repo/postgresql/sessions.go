@@ -53,6 +53,9 @@ func (r *RepoPG) GetSessions(ctx context.Context, tr *trparser.TimeRange, f mode
 	if f.Type != "" {
 		query = query.Where("sessions.type = ?", f.Type)
 	}
+	if f.Status != "" {
+		query = query.Where("sessions.status = ?", f.Status)
+	}
 
 	// Применяем пользовательский поиск
 	if search != "" {

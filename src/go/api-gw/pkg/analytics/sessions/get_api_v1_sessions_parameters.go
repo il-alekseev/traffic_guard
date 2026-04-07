@@ -120,6 +120,12 @@ type GetAPIV1SessionsParams struct {
 	*/
 	Search *string
 
+	/* Status.
+
+	   Фильтр по статусу
+	*/
+	Status *string
+
 	/* To.
 
 	   Конец временного диапазона (формат: now, 2023-12-01T12:00:00Z). По умолчанию: now
@@ -301,6 +307,17 @@ func (o *GetAPIV1SessionsParams) SetSearch(search *string) {
 	o.Search = search
 }
 
+// WithStatus adds the status to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) WithStatus(status *string) *GetAPIV1SessionsParams {
+	o.SetStatus(status)
+	return o
+}
+
+// SetStatus adds the status to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) SetStatus(status *string) {
+	o.Status = status
+}
+
 // WithTo adds the to to the get API v1 sessions params
 func (o *GetAPIV1SessionsParams) WithTo(to *string) *GetAPIV1SessionsParams {
 	o.SetTo(to)
@@ -462,6 +479,23 @@ func (o *GetAPIV1SessionsParams) WriteToRequest(r runtime.ClientRequest, reg str
 		if qSearch != "" {
 
 			if err := r.SetQueryParam("search", qSearch); err != nil {
+				return err
+			}
+		}
+	}
+
+	if o.Status != nil {
+
+		// query param status
+		var qrStatus string
+
+		if o.Status != nil {
+			qrStatus = *o.Status
+		}
+		qStatus := qrStatus
+		if qStatus != "" {
+
+			if err := r.SetQueryParam("status", qStatus); err != nil {
 				return err
 			}
 		}

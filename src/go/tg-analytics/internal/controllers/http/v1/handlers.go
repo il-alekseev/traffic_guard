@@ -41,6 +41,7 @@ func (s *Server) Version(c *gin.Context) {
 // @Param hostname query string false "Фильтр по имени хоста"
 // @Param category query string false "Фильтр по категории" Enums(Неизвестный класс, Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депрессивный контент, Алкоголь и табак, Положительная категория)
 // @Param type query string false "Фильтр по типу сессии" Enums(Разрешен, Запрещен, VPN)
+// @Param status query string false "Фильтр по статусу" Enums(Разрешен, Запрещен, Ожидает, Аномалия)
 // @Param search query string false "Поиск по URL, IP адресу пользователя или IP адревсу домена"
 // @Param page query int false "Номер страницы" default(1) minimum(1)
 // @Param limit query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
@@ -83,7 +84,8 @@ func (s *Server) GetSessions(c *gin.Context) {
 	filter := models.SessionFilter{
 		HostName: req.HostName,
 		Category: req.Category,
-		Type:     req.Type,
+		Type:     req.SessionType,
+		Status:   req.Status,
 	}
 	sorting := models.Sorting{
 		OrderBy:  req.OrderBy,
