@@ -10,13 +10,14 @@ import (
 type (
 	// Config -.
 	Config struct {
-		App      `yaml:"app"`
-		Log      `yaml:"logger"`
-		ETL      `yaml:"etl"`
-		HTTP     `yaml:"http"`
-		Swagger  `yaml:"swagger"`
-		Metrics  `yaml:"metrics"`
-		BlogServ `yaml:"blog_serv"`
+		App       `yaml:"app"`
+		Analytics `yaml:"analytics"`
+		Log       `yaml:"logger"`
+		ETL       `yaml:"etl"`
+		HTTP      `yaml:"http"`
+		Swagger   `yaml:"swagger"`
+		Metrics   `yaml:"metrics"`
+		BlogServ  `yaml:"blog_serv"`
 	}
 	// App -.
 	App struct {
@@ -24,6 +25,11 @@ type (
 		Version    string `env-required:"true" yaml:"version" env:"AN_APP_VERSION"`
 		DevVersion string `yaml:"dev_version"`
 	}
+	// Analytics params
+	Analytics struct {
+		NegDetectionThreshold float32 `yaml:"neg_detection_threshold" env:"AN_NEG_DETECTION_THRESHOLD"`
+	}
+
 	// Log -.
 	Log struct {
 		Level string `env-required:"true" yaml:"log_level"   env:"AN_LOG_LEVEL"`

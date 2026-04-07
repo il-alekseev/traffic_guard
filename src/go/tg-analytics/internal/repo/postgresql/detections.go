@@ -15,7 +15,7 @@ import (
 )
 
 // GetTopDetections возвращает список детекций с пагинацией с сортировкой и поиском
-func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, action string, p models.Pagination, search string, sorting models.Sorting) ([]dto.Detection, int64, error) {
+func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, thresh float32, action string, p models.Pagination, search string, sorting models.Sorting) ([]dto.Detection, int64, error) {
 	var detections []dto.Detection
 	var total int64
 
@@ -50,6 +50,28 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 	}
 	if f.TopCategory != "" {
 		query = query.Where("categories.name = ?", f.TopCategory)
+	}
+	if f.Status != "" {
+		query = query.Where("categories.name = ?", f.TopCategory)
+	}
+
+	// TODO: Убрать костыль после правок на фронте!
+	// Фильтрация по статусу выявления
+	switch f.Status {
+	// фильтрация не применяется
+	case "Все":
+		break
+	// Коэффициент >= значения, заданного в .env
+	case "Рекомендуется блокировка":
+		query = query.Where("domains.neg_rate >= ?", thresh)
+	// Коэффициент < значения, заданного в .env
+	case "Требуется проверка":
+		query = query.Where("domains.neg_rate < ?", thresh)
+	// Выявление заблокировано пользователем, то же самое, что и action=Заблокирован
+	case "Заблокирован":
+		query = query.Where("actions.action = ?", "Заблокировано")
+	default:
+		break
 	}
 
 	// Применяем фильтр по действию

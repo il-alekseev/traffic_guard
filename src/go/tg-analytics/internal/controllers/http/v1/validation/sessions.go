@@ -14,7 +14,7 @@ type GetSessionsRequest struct {
 	Status      string `form:"status" binding:"omitempty,max=20"`
 	Search      string `form:"search" binding:"omitempty,max=200"`
 	Page        int    `form:"page" binding:"omitempty,min=1"`
-	Limit       int    `form:"limit" binding:"omitempty,min=1"`
+	Limit       int    `form:"count" binding:"omitempty,min=1"` // TODO: на фронте исправить на limit
 	OrderBy     string `form:"order_by" binding:"omitempty"`
 	OrderDir    string `form:"order_dir" binding:"omitempty,oneof=asc desc"`
 }

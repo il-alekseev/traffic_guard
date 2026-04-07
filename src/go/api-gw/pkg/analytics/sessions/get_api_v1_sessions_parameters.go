@@ -68,6 +68,14 @@ type GetAPIV1SessionsParams struct {
 	*/
 	Category *string
 
+	/* Count.
+
+	   Количество записей на странице
+
+	   Default: 10
+	*/
+	Count *int64
+
 	/* From.
 
 	   Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z). По умолчанию: now-10m
@@ -81,14 +89,6 @@ type GetAPIV1SessionsParams struct {
 	   Фильтр по имени хоста
 	*/
 	Hostname *string
-
-	/* Limit.
-
-	   Количество записей на странице
-
-	   Default: 10
-	*/
-	Limit *int64
 
 	/* OrderBy.
 
@@ -158,9 +158,9 @@ func (o *GetAPIV1SessionsParams) WithDefaults() *GetAPIV1SessionsParams {
 // All values with no default are reset to their zero value.
 func (o *GetAPIV1SessionsParams) SetDefaults() {
 	var (
-		fromDefault = string("now-10m")
+		countDefault = int64(10)
 
-		limitDefault = int64(10)
+		fromDefault = string("now-10m")
 
 		orderByDefault = string("datetime_utc")
 
@@ -172,8 +172,8 @@ func (o *GetAPIV1SessionsParams) SetDefaults() {
 	)
 
 	val := GetAPIV1SessionsParams{
+		Count:    &countDefault,
 		From:     &fromDefault,
-		Limit:    &limitDefault,
 		OrderBy:  &orderByDefault,
 		OrderDir: &orderDirDefault,
 		Page:     &pageDefault,
@@ -230,6 +230,17 @@ func (o *GetAPIV1SessionsParams) SetCategory(category *string) {
 	o.Category = category
 }
 
+// WithCount adds the count to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) WithCount(count *int64) *GetAPIV1SessionsParams {
+	o.SetCount(count)
+	return o
+}
+
+// SetCount adds the count to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) SetCount(count *int64) {
+	o.Count = count
+}
+
 // WithFrom adds the from to the get API v1 sessions params
 func (o *GetAPIV1SessionsParams) WithFrom(from *string) *GetAPIV1SessionsParams {
 	o.SetFrom(from)
@@ -250,17 +261,6 @@ func (o *GetAPIV1SessionsParams) WithHostname(hostname *string) *GetAPIV1Session
 // SetHostname adds the hostname to the get API v1 sessions params
 func (o *GetAPIV1SessionsParams) SetHostname(hostname *string) {
 	o.Hostname = hostname
-}
-
-// WithLimit adds the limit to the get API v1 sessions params
-func (o *GetAPIV1SessionsParams) WithLimit(limit *int64) *GetAPIV1SessionsParams {
-	o.SetLimit(limit)
-	return o
-}
-
-// SetLimit adds the limit to the get API v1 sessions params
-func (o *GetAPIV1SessionsParams) SetLimit(limit *int64) {
-	o.Limit = limit
 }
 
 // WithOrderBy adds the orderBy to the get API v1 sessions params
@@ -365,6 +365,23 @@ func (o *GetAPIV1SessionsParams) WriteToRequest(r runtime.ClientRequest, reg str
 		}
 	}
 
+	if o.Count != nil {
+
+		// query param count
+		var qrCount int64
+
+		if o.Count != nil {
+			qrCount = *o.Count
+		}
+		qCount := swag.FormatInt64(qrCount)
+		if qCount != "" {
+
+			if err := r.SetQueryParam("count", qCount); err != nil {
+				return err
+			}
+		}
+	}
+
 	if o.From != nil {
 
 		// query param from
@@ -394,23 +411,6 @@ func (o *GetAPIV1SessionsParams) WriteToRequest(r runtime.ClientRequest, reg str
 		if qHostname != "" {
 
 			if err := r.SetQueryParam("hostname", qHostname); err != nil {
-				return err
-			}
-		}
-	}
-
-	if o.Limit != nil {
-
-		// query param limit
-		var qrLimit int64
-
-		if o.Limit != nil {
-			qrLimit = *o.Limit
-		}
-		qLimit := swag.FormatInt64(qrLimit)
-		if qLimit != "" {
-
-			if err := r.SetQueryParam("limit", qLimit); err != nil {
 				return err
 			}
 		}

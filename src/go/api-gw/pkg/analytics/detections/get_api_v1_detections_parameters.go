@@ -126,6 +126,12 @@ type GetAPIV1DetectionsParams struct {
 	*/
 	Search *string
 
+	/* Status.
+
+	   Фильтр по статусу выявления
+	*/
+	Status *string
+
 	/* To.
 
 	   Конец временного диапазона (формат: now, 2023-12-01T11:00:00Z)
@@ -312,6 +318,17 @@ func (o *GetAPIV1DetectionsParams) SetSearch(search *string) {
 	o.Search = search
 }
 
+// WithStatus adds the status to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) WithStatus(status *string) *GetAPIV1DetectionsParams {
+	o.SetStatus(status)
+	return o
+}
+
+// SetStatus adds the status to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) SetStatus(status *string) {
+	o.Status = status
+}
+
 // WithTo adds the to to the get API v1 detections params
 func (o *GetAPIV1DetectionsParams) WithTo(to *string) *GetAPIV1DetectionsParams {
 	o.SetTo(to)
@@ -479,6 +496,23 @@ func (o *GetAPIV1DetectionsParams) WriteToRequest(r runtime.ClientRequest, reg s
 		if qSearch != "" {
 
 			if err := r.SetQueryParam("search", qSearch); err != nil {
+				return err
+			}
+		}
+	}
+
+	if o.Status != nil {
+
+		// query param status
+		var qrStatus string
+
+		if o.Status != nil {
+			qrStatus = *o.Status
+		}
+		qStatus := qrStatus
+		if qStatus != "" {
+
+			if err := r.SetQueryParam("status", qStatus); err != nil {
 				return err
 			}
 		}

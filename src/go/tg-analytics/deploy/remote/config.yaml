@@ -2,6 +2,9 @@ app:
   name: 'tg-an'
   version: '1.0.0'
   dev_version: ''
+  
+analytics:
+  neg_detection_threshold: 0.5
 
 logger:
   log_level: 'debug'

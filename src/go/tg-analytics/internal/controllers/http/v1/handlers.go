@@ -44,7 +44,7 @@ func (s *Server) Version(c *gin.Context) {
 // @Param status query string false "Фильтр по статусу" Enums(Разрешен, Запрещен, Ожидает, Аномалия)
 // @Param search query string false "Поиск по URL, IP адресу пользователя или IP адревсу домена"
 // @Param page query int false "Номер страницы" default(1) minimum(1)
-// @Param limit query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
+// @Param count query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
 // @Param order_by query string false "Поле для сортировки" default(datetime_utc) Enums(id, datetime_utc, type, status, url, proto, hostname, src_ip, src_country, username, dst_ip, dst_port, dst_country, category)
 // @Param order_dir query string false "Направление сортировки (asc/desc)" default(desc) Enums(asc, desc)
 // @Security BearerAuth
@@ -179,6 +179,7 @@ func (s *Server) GetTopCategories(c *gin.Context) {
 // @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)" default(now-10m)
 // @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T11:00:00Z)" default(now)
 // @Param hostname query string false "Фильтр по имени хоста"
+// @Param status query string false "Фильтр по статусу выявления" Enums(Рекомендуется_блокировка, Требуется_проверка, Заблокирован)
 // @Param category query string false "Фильтр по категории" Enums(Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет-магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Дополнительно, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депресивный контент и суицид, Алкоголь, табак)
 // @Param action query string false "Действие пользователя" Enums(Разрешено, Заблокировано, Не решено)
 // @Param page query int false "Номер страницы" default(1) minimum(1)
@@ -225,6 +226,7 @@ func (s *Server) GetDetections(c *gin.Context) {
 	filter := models.DetectionFilter{
 		HostName:    req.HostName,
 		TopCategory: req.Category,
+		Status:      req.DetectionStatus,
 	}
 
 	pagination := models.Pagination{

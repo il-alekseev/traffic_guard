@@ -1381,6 +1381,14 @@ paths:
         in: query
         name: hostname
         type: string
+      - description: Фильтр по статусу выявления
+        enum:
+        - Рекомендуется_блокировка
+        - Требуется_проверка
+        - Заблокирован
+        in: query
+        name: status
+        type: string
       - description: Фильтр по категории
         enum:
         - Агрессия
@@ -1810,7 +1818,7 @@ paths:
         in: query
         maximum: 100
         minimum: 1
-        name: limit
+        name: count
         type: integer
       - default: datetime_utc
         description: Поле для сортировки

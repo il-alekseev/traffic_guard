@@ -30,7 +30,7 @@ func (u *Usecase) GetTopDetections(ctx context.Context, userMeta *models.UserMet
 		f.HostName = userMeta.ContextID
 	}
 
-	detections, total, err := u.db.GetTopDetections(ctx, tr, f, a, p, s, sorting)
+	detections, total, err := u.db.GetTopDetections(ctx, tr, f, u.cfg.NegDetectionThreshold, a, p, s, sorting)
 	if err != nil {
 		err = fmt.Errorf("%s: failed to get top detections: %w", method, err)
 		u.l.ErrorContext(ctx, "Database operation failed",

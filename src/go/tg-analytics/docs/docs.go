@@ -618,6 +618,17 @@ const docTemplate = `{
                     },
                     {
                         "enum": [
+                            "Рекомендуется_блокировка",
+                            "Требуется_проверка",
+                            "Заблокирован"
+                        ],
+                        "type": "string",
+                        "description": "Фильтр по статусу выявления",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
                             "Агрессия",
                             "расизм",
                             "терроризм",
@@ -1229,7 +1240,7 @@ const docTemplate = `{
                         "type": "integer",
                         "default": 10,
                         "description": "Количество записей на странице",
-                        "name": "limit",
+                        "name": "count",
                         "in": "query"
                     },
                     {
