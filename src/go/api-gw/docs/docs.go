@@ -1186,12 +1186,20 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
-                        "maximum": 500,
                         "minimum": 1,
                         "type": "integer",
-                        "default": 25,
-                        "description": "Количество возвращаемых сессий",
-                        "name": "count",
+                        "default": 1,
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Количество записей на странице",
+                        "name": "limit",
                         "in": "query"
                     },
                     {
@@ -2721,10 +2729,6 @@ const docTemplate = `{
         "models.DtoGetSessionsResponse": {
             "type": "object",
             "properties": {
-                "count": {
-                    "description": "Число сессий в ответе",
-                    "type": "integer"
-                },
                 "data": {
                     "description": "Список сессий",
                     "type": "array",
@@ -2732,9 +2736,27 @@ const docTemplate = `{
                         "$ref": "#/definitions/models.DtoSession"
                     }
                 },
-                "total": {
-                    "description": "Общее количество сессийы",
-                    "type": "integer"
+                "meta": {
+                    "description": "Метаданные пагинации",
+                    "type": "object",
+                    "properties": {
+                        "limit": {
+                            "description": "Количество элементов на странице",
+                            "type": "integer"
+                        },
+                        "page": {
+                            "description": "Текущая страница (начинается с 1)",
+                            "type": "integer"
+                        },
+                        "pages": {
+                            "description": "Общее количество страниц",
+                            "type": "integer"
+                        },
+                        "total": {
+                            "description": "Общее количество элементов",
+                            "type": "integer"
+                        }
+                    }
                 }
             }
         },
@@ -3868,8 +3890,6 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-	//LeftDelim:        "{{",
-	//RightDelim:       "}}",
 }
 
 func init() {

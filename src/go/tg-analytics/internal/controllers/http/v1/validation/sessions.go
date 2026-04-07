@@ -12,7 +12,8 @@ type GetSessionsRequest struct {
 	Category string `form:"category" binding:"omitempty,max=50"`
 	Type     string `form:"type" binding:"omitempty,max=20"`
 	Search   string `form:"search" binding:"omitempty,max=200"`
-	Count    uint   `form:"count" binding:"omitempty,min=1,max=500"`
+	Page     int    `form:"page" binding:"omitempty,min=1"`
+	Limit    int    `form:"limit" binding:"omitempty,min=1"`
 	OrderBy  string `form:"order_by" binding:"omitempty"`
 	OrderDir string `form:"order_dir" binding:"omitempty,oneof=asc desc"`
 }
@@ -28,8 +29,11 @@ func (r *GetSessionsRequest) Normalize() {
 	r.OrderDir = strings.TrimSpace(r.OrderDir)
 
 	// Устанавливаем значения по умолчанию
-	if r.Count == 0 {
-		r.Count = 25
+	if r.Page == 0 {
+		r.Page = 1
+	}
+	if r.Limit == 0 {
+		r.Limit = 10
 	}
 	if r.OrderBy == "" {
 		r.OrderBy = "datetime_utc"
@@ -51,8 +55,11 @@ func (r *GetSessionsRequest) Normalize() {
 // Validate выполняет валидацию всех полей запроса
 func (r *GetSessionsRequest) Validate() error {
 	// Валидация пагинации
-	if r.Count < 1 || r.Count > 500 {
-		return fmt.Errorf("count must be in <1, 500>")
+	if r.Page < 1 {
+		return fmt.Errorf("page must be greater than or equal to 1")
+	}
+	if r.Limit < 1 {
+		return fmt.Errorf("limit must be greater than or equal to 1")
 	}
 
 	// Валидация временного диапазона

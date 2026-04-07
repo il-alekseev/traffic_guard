@@ -42,7 +42,8 @@ func (s *Server) Version(c *gin.Context) {
 // @Param category query string false "Фильтр по категории" Enums(Неизвестный класс, Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депрессивный контент, Алкоголь и табак, Положительная категория)
 // @Param type query string false "Фильтр по типу сессии" Enums(Разрешен, Запрещен, VPN)
 // @Param search query string false "Поиск по URL, IP адресу пользователя или IP адревсу домена"
-// @Param count query int false "Количество возвращаемых сессий" default(25) minimum(1) maximum(500)
+// @Param page query int false "Номер страницы" default(1) minimum(1)
+// @Param limit query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
 // @Param order_by query string false "Поле для сортировки" default(datetime_utc) Enums(id, datetime_utc, type, status, url, proto, hostname, src_ip, src_country, username, dst_ip, dst_port, dst_country, category)
 // @Param order_dir query string false "Направление сортировки (asc/desc)" default(desc) Enums(asc, desc)
 // @Security BearerAuth
@@ -88,17 +89,27 @@ func (s *Server) GetSessions(c *gin.Context) {
 		OrderBy:  req.OrderBy,
 		OrderDir: req.OrderDir,
 	}
+	pagination := models.Pagination{
+		Page:  req.Page,
+		Limit: req.Limit,
+	}
 	// Получаем данные из usecase
-	sessions, total, err := s.u.GetSessions(c, userMeta, timeRange, filter, req.Search, req.Count, sorting)
+	sessions, total, err := s.u.GetSessions(c, userMeta, timeRange, filter, pagination, req.Search, sorting)
 	if err != nil {
 		s.ErrorResponse(c, http.StatusInternalServerError, "s.u.GetSessions", slogger.WrapError(c.Request.Context(), err))
 		return
 	}
 	// Формируем ответ
 	response := dto.GetSessionsResponse{
-		Data:  sessions,
-		Count: uint(len(sessions)),
-		Total: uint(total),
+		Data: sessions,
+		Meta: dto.PaginationMeta{
+			Page:  req.Page,
+			Limit: req.Limit,
+			Total: total,
+			Pages: int(math.Ceil(float64(total) / float64(req.Limit))),
+		},
+		//Count: uint(len(sessions)),
+		//Total: uint(total),
 	}
 	c.JSON(http.StatusOK, response)
 }

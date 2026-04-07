@@ -188,7 +188,7 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, t
 	record := pkg.DtoBusinessLog{
 		Description: "создание сводного отчета по всем устройствам",
 		Entity:      values.ReportEntity,
-		EntityID:    "",
+		EntityID:    "-",
 		NewValue:    newValue,
 		OldValue:    oldValue,
 		EventType:   "CREATE",
@@ -437,7 +437,7 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.Us
 	record := pkg.DtoBusinessLog{
 		Description: fmt.Sprintf("cоздание отчета по устройству %s", hostname),
 		Entity:      values.ReportEntity,
-		EntityID:    "",
+		EntityID:    hostname,
 		NewValue:    newValue,
 		OldValue:    oldValue,
 		EventType:   "CREATE",

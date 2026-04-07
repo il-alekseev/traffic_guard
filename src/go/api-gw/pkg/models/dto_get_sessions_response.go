@@ -19,14 +19,13 @@ import (
 // swagger:model dto.GetSessionsResponse
 type DtoGetSessionsResponse struct {
 
-	// Число сессий в ответе
-	Count int64 `json:"count,omitempty"`
-
 	// Список сессий
 	Data []*DtoSession `json:"data"`
 
-	// Общее количество сессийы
-	Total int64 `json:"total,omitempty"`
+	// Метаданные пагинации
+	Meta struct {
+		DtoPaginationMeta
+	} `json:"meta,omitempty"`
 }
 
 // Validate validates this dto get sessions response
@@ -34,6 +33,10 @@ func (m *DtoGetSessionsResponse) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateData(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateMeta(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -69,11 +72,23 @@ func (m *DtoGetSessionsResponse) validateData(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *DtoGetSessionsResponse) validateMeta(formats strfmt.Registry) error {
+	if swag.IsZero(m.Meta) { // not required
+		return nil
+	}
+
+	return nil
+}
+
 // ContextValidate validate this dto get sessions response based on the context it is used
 func (m *DtoGetSessionsResponse) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.contextValidateData(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateMeta(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -104,6 +119,11 @@ func (m *DtoGetSessionsResponse) contextValidateData(ctx context.Context, format
 		}
 
 	}
+
+	return nil
+}
+
+func (m *DtoGetSessionsResponse) contextValidateMeta(ctx context.Context, formats strfmt.Registry) error {
 
 	return nil
 }

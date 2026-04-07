@@ -68,14 +68,6 @@ type GetAPIV1SessionsParams struct {
 	*/
 	Category *string
 
-	/* Count.
-
-	   Количество возвращаемых сессий
-
-	   Default: 25
-	*/
-	Count *int64
-
 	/* From.
 
 	   Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z). По умолчанию: now-10m
@@ -89,6 +81,14 @@ type GetAPIV1SessionsParams struct {
 	   Фильтр по имени хоста
 	*/
 	Hostname *string
+
+	/* Limit.
+
+	   Количество записей на странице
+
+	   Default: 10
+	*/
+	Limit *int64
 
 	/* OrderBy.
 
@@ -105,6 +105,14 @@ type GetAPIV1SessionsParams struct {
 	   Default: "desc"
 	*/
 	OrderDir *string
+
+	/* Page.
+
+	   Номер страницы
+
+	   Default: 1
+	*/
+	Page *int64
 
 	/* Search.
 
@@ -144,22 +152,25 @@ func (o *GetAPIV1SessionsParams) WithDefaults() *GetAPIV1SessionsParams {
 // All values with no default are reset to their zero value.
 func (o *GetAPIV1SessionsParams) SetDefaults() {
 	var (
-		countDefault = int64(25)
-
 		fromDefault = string("now-10m")
+
+		limitDefault = int64(10)
 
 		orderByDefault = string("datetime_utc")
 
 		orderDirDefault = string("desc")
 
+		pageDefault = int64(1)
+
 		toDefault = string("now")
 	)
 
 	val := GetAPIV1SessionsParams{
-		Count:    &countDefault,
 		From:     &fromDefault,
+		Limit:    &limitDefault,
 		OrderBy:  &orderByDefault,
 		OrderDir: &orderDirDefault,
+		Page:     &pageDefault,
 		To:       &toDefault,
 	}
 
@@ -213,17 +224,6 @@ func (o *GetAPIV1SessionsParams) SetCategory(category *string) {
 	o.Category = category
 }
 
-// WithCount adds the count to the get API v1 sessions params
-func (o *GetAPIV1SessionsParams) WithCount(count *int64) *GetAPIV1SessionsParams {
-	o.SetCount(count)
-	return o
-}
-
-// SetCount adds the count to the get API v1 sessions params
-func (o *GetAPIV1SessionsParams) SetCount(count *int64) {
-	o.Count = count
-}
-
 // WithFrom adds the from to the get API v1 sessions params
 func (o *GetAPIV1SessionsParams) WithFrom(from *string) *GetAPIV1SessionsParams {
 	o.SetFrom(from)
@@ -246,6 +246,17 @@ func (o *GetAPIV1SessionsParams) SetHostname(hostname *string) {
 	o.Hostname = hostname
 }
 
+// WithLimit adds the limit to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) WithLimit(limit *int64) *GetAPIV1SessionsParams {
+	o.SetLimit(limit)
+	return o
+}
+
+// SetLimit adds the limit to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) SetLimit(limit *int64) {
+	o.Limit = limit
+}
+
 // WithOrderBy adds the orderBy to the get API v1 sessions params
 func (o *GetAPIV1SessionsParams) WithOrderBy(orderBy *string) *GetAPIV1SessionsParams {
 	o.SetOrderBy(orderBy)
@@ -266,6 +277,17 @@ func (o *GetAPIV1SessionsParams) WithOrderDir(orderDir *string) *GetAPIV1Session
 // SetOrderDir adds the orderDir to the get API v1 sessions params
 func (o *GetAPIV1SessionsParams) SetOrderDir(orderDir *string) {
 	o.OrderDir = orderDir
+}
+
+// WithPage adds the page to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) WithPage(page *int64) *GetAPIV1SessionsParams {
+	o.SetPage(page)
+	return o
+}
+
+// SetPage adds the page to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) SetPage(page *int64) {
+	o.Page = page
 }
 
 // WithSearch adds the search to the get API v1 sessions params
@@ -326,23 +348,6 @@ func (o *GetAPIV1SessionsParams) WriteToRequest(r runtime.ClientRequest, reg str
 		}
 	}
 
-	if o.Count != nil {
-
-		// query param count
-		var qrCount int64
-
-		if o.Count != nil {
-			qrCount = *o.Count
-		}
-		qCount := swag.FormatInt64(qrCount)
-		if qCount != "" {
-
-			if err := r.SetQueryParam("count", qCount); err != nil {
-				return err
-			}
-		}
-	}
-
 	if o.From != nil {
 
 		// query param from
@@ -377,6 +382,23 @@ func (o *GetAPIV1SessionsParams) WriteToRequest(r runtime.ClientRequest, reg str
 		}
 	}
 
+	if o.Limit != nil {
+
+		// query param limit
+		var qrLimit int64
+
+		if o.Limit != nil {
+			qrLimit = *o.Limit
+		}
+		qLimit := swag.FormatInt64(qrLimit)
+		if qLimit != "" {
+
+			if err := r.SetQueryParam("limit", qLimit); err != nil {
+				return err
+			}
+		}
+	}
+
 	if o.OrderBy != nil {
 
 		// query param order_by
@@ -406,6 +428,23 @@ func (o *GetAPIV1SessionsParams) WriteToRequest(r runtime.ClientRequest, reg str
 		if qOrderDir != "" {
 
 			if err := r.SetQueryParam("order_dir", qOrderDir); err != nil {
+				return err
+			}
+		}
+	}
+
+	if o.Page != nil {
+
+		// query param page
+		var qrPage int64
+
+		if o.Page != nil {
+			qrPage = *o.Page
+		}
+		qPage := swag.FormatInt64(qrPage)
+		if qPage != "" {
+
+			if err := r.SetQueryParam("page", qPage); err != nil {
 				return err
 			}
 		}
