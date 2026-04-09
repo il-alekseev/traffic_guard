@@ -50,11 +50,11 @@ type RequestPoint struct {
 }
 
 type GetSessionsResponse struct {
-	Data []Session      `json:"data"` // Список сессий
-	Meta PaginationMeta `json:"meta"` // Метаданные пагинации
-	//Count uint           `json:"count"` // Число сессий в ответе
-	//Total uint           `json:"total"` // Общее количество сессий
-
+	Data []Session `json:"data"` // Список сессий
+	//Meta PaginationMeta `json:"meta"` // Метаданные пагинации // TODO: Костыль ниже! потом эту строчку расскоментировать, а нижние убрать
+	Count uint `json:"count"` // Число сессий в ответе
+	Total uint `json:"total"` // Общее количество сессий
+	Pages uint `json:"pages"` // Общее количество страниц
 }
 
 type GetDetectionsResponse struct {

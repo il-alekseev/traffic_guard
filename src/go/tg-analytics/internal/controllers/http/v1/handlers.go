@@ -104,14 +104,17 @@ func (s *Server) GetSessions(c *gin.Context) {
 	// Формируем ответ
 	response := dto.GetSessionsResponse{
 		Data: sessions,
-		Meta: dto.PaginationMeta{
-			Page:  req.Page,
-			Limit: req.Limit,
-			Total: total,
-			Pages: int(math.Ceil(float64(total) / float64(req.Limit))),
-		},
-		//Count: uint(len(sessions)),
-		//Total: uint(total),
+		// TODO: Костыль!
+		//Meta: dto.PaginationMeta{
+		//	Page:  req.Page,
+		//	Limit: req.Limit,
+		//	Total: total,
+		//	Pages: int(math.Ceil(float64(total) / float64(req.Limit))),
+		//},
+		// TODO: убрать потом
+		Pages: uint(math.Ceil(float64(total) / float64(req.Limit))),
+		Count: uint(len(sessions)),
+		Total: uint(total),
 	}
 	c.JSON(http.StatusOK, response)
 }
