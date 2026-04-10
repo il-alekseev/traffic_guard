@@ -64,7 +64,7 @@ type DomainControlLists struct {
 
 type URL struct {
 	ID            uint      `gorm:"primaryKey;column:id" json:"id"`
-	Path          string    `gorm:"type:varchar(2048);not null" json:"path"`
+	Path          string    `gorm:"type:TEXT;not null" json:"path"`
 	Proto         string    `gorm:"type:varchar(10);not null" json:"proto"`
 	DomainID      uint      `gorm:"type:integer;not null;index" json:"domain_id"`
 	IDSLogsAt     time.Time `gorm:"column:ids_logs_at;type:timestamp" json:"ids_logs_at"`
