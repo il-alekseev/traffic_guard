@@ -27,6 +27,7 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 			domains.country as location,
 			domains.path as domain,
 			domains.categorized_at as categorized_at,
+			domains.neg_rate,
 			COUNT(*) as request_count,
 			devices.hostname as host_name,
 			categories.name as category,
@@ -60,9 +61,11 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 	// Коэффициент >= значения, заданного в .env
 	case "Рекомендуется блокировка":
 		query = query.Where("domains.neg_rate >= ?", thresh)
+		query = query.Where("actions.action IS NULL")
 	// Коэффициент < значения, заданного в .env
 	case "Требуется проверка":
 		query = query.Where("domains.neg_rate < ?", thresh)
+		query = query.Where("actions.action IS NULL")
 	// Выявление заблокировано пользователем, то же самое, что и action=Заблокирован
 	case "Заблокирован":
 		query = query.Where("actions.action = ?", "Заблокировано")
@@ -88,7 +91,7 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 
 	// Группируем по уникальным детекциям
 	query = query.Group(fmt.Sprintf(`
-    domains.ip, domains.port, domains.country, domains.path, domains.categorized_at,
+    domains.ip, domains.port, domains.country, domains.path, domains.categorized_at, domains.neg_rate,
     devices.hostname, categories.name, COALESCE(actions.action, '%s')
 `, pkg.ActionTypeUnresolved.String()))
 

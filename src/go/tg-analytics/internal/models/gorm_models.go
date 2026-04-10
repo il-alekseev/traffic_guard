@@ -43,6 +43,7 @@ type Domain struct {
 	CategorizedAt time.Time `gorm:"type:timestamp;" json:"categorized_at"`
 	ActionID      uint      `gorm:"column:action_id;default:0" json:"action_id"`
 	AnalysisCount uint      `gorm:"column:analysis_count;default:0" json:"analysis_count"`
+	NegRate       float32   `gorm:"type:real;default:0" json:"neg_rate"`
 }
 
 // Action представляет таблицу action

@@ -35,6 +35,7 @@ type Detection struct {
 	Description   string    `json:"description"`
 	Action        string    `json:"action"`
 	CategorizedAt time.Time `json:"categorized_at"`
+	NegRate       float32   `json:"neg_rate"`
 }
 
 type DetectionStat struct {
