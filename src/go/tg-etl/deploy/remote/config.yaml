@@ -36,6 +36,7 @@ etl_controller:
   refresh: 10
   batchsize: 100
   ml_attemps: 20
+  blacklist_tries_count: 10
   
 kafka:
   host: "192.168.130.112"  

@@ -55,19 +55,14 @@ type Action struct {
 	DomainID  uint      `gorm:"type:integer;not null;index" json:"domain_id"`
 }
 
-// Пока приходит только одна категория контента, поэтому эти таблицы не нужны
-// Category представляет таблицу content_category
-/*type ContentCategory struct {
+// Мультикатегорийность (при условии получения только одной категории из ML-ки)
+// DomainCategory представляет таблицу domain_category
+type DomainCategory struct {
 	ID         uint    `gorm:"primaryKey" json:"id"`
+	DomainID   uint    `gorm:"type:integer;not null;index" json:"domain_id"`
 	CategoryID uint    `gorm:"type:integer" json:"category_id"`
-	Percent    float64 `gorm:"type:float" json:"percent"`
+	Count      float64 `gorm:"type:integer" json:"count"` // Сколько раз категория получалась от ML-ки
 }
-
-// CategoryDomain представляет таблицу category_domain (связующая таблица)
-type CategoryDomain struct {
-	ContentCategoryID uint `gorm:"primaryKey;column:content_category_id" json:"content_category_id"`
-	DomainID          uint `gorm:"primaryKey;column:domain_id" json:"domain_id"`
-}*/
 
 // DomainControlLists представляет таблицу domain_control_lists белого и черного списка доменов
 type DomainControlLists struct {

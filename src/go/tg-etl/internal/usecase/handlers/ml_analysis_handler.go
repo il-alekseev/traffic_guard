@@ -13,22 +13,26 @@ import (
 )
 
 // MLAnalysisHandler обрабатывает сообщения из ML топика
+// TODO:  вынести настройки списков в отдельную структуру-конфиг
 type MLAnalysisHandler struct {
-	mlAttemps uint
-	q         usecase.QueryUsecase
-	l         *slog.Logger
+	mlAttemps   uint
+	maxNegCount uint
+	q           usecase.QueryUsecase
+	l           *slog.Logger
 }
 
 // NewMLAnalysisHandler создает новый обработчик ML анализа
-func NewMLAnalysisHandler(mlAttemps uint, queryUsecase usecase.QueryUsecase, logger *slog.Logger) *MLAnalysisHandler {
+func NewMLAnalysisHandler(mlAttemps uint, maxNegCount uint, queryUsecase usecase.QueryUsecase, logger *slog.Logger) *MLAnalysisHandler {
 	return &MLAnalysisHandler{
-		mlAttemps: mlAttemps,
-		q:         queryUsecase,
-		l:         logger,
+		mlAttemps:   mlAttemps,
+		maxNegCount: maxNegCount,
+		q:           queryUsecase,
+		l:           logger,
 	}
 }
 
 // HandleMLAnalysis обрабатывает результат ML анализа
+// TODO: Оптимизировать функцию
 func (h *MLAnalysisHandler) HandleMLAnalysis(ctx context.Context, result models.MLAnalysisResult) {
 	// парсим RequestID
 	requestID, err := uuid.Parse(result.RequestID)
@@ -36,6 +40,7 @@ func (h *MLAnalysisHandler) HandleMLAnalysis(ctx context.Context, result models.
 		h.l.ErrorContext(ctx, "failed to parse request_id to uuid", wsl.Err(err))
 		return
 	}
+
 	// Обновляем время получения метаданных для URL по requestID
 	url := models.URL{
 		GetCategoryAt: time.Now(),
@@ -50,21 +55,24 @@ func (h *MLAnalysisHandler) HandleMLAnalysis(ctx context.Context, result models.
 		h.l.ErrorContext(ctx, "failed to handle ML data", wsl.Err(err))
 		return
 	}
+
 	// Если вернулся nil, значит есть несовпадение между категориями ETL и ML
 	if category == nil {
 		h.l.ErrorContext(ctx, "category not recognized", wsl.String("name", result.RecognisedClass))
 		return
 	}
+
 	// Находим домен по RequestID
 	domain, err := h.q.GetDomainByRequestID(ctx, requestID)
 	if err != nil {
-		h.l.ErrorContext(ctx, "failed to handle ML data", wsl.Err(err))
+		h.l.ErrorContext(ctx, "failed to get domain by request_id", wsl.Err(err))
 		return
 	}
 	if domain == nil {
 		h.l.WarnContext(ctx, "domain not found", wsl.String("request_id", requestID.String()))
 		return
 	}
+
 	// Обрабатываем случай, когда нашлась и категория, и домен
 	// Проверяем, находится ли домен в одном из списков
 	list, err := h.q.GetListByDomainID(ctx, domain.ID)
@@ -77,6 +85,7 @@ func (h *MLAnalysisHandler) HandleMLAnalysis(ctx context.Context, result models.
 			wsl.String("list", *list), wsl.String("domain", domain.Path))
 		return
 	}
+
 	if category.Type != models.CategoryTypeNeutral {
 		h.l.InfoContext(ctx, "Processing ML analysis result",
 			slog.String("request_id", result.RequestID),
@@ -84,36 +93,72 @@ func (h *MLAnalysisHandler) HandleMLAnalysis(ctx context.Context, result models.
 			slog.String("category", category.Name),
 		)
 	}
+
 	// Домен не лежит в списках
-	// Если категория контента негативная - вносим его в черный список
-	if category.Type == models.CategoryTypeNegative {
-		if err := h.q.AddDomainToList(ctx, *domain, models.Blacklist); err != nil {
-			h.l.ErrorContext(ctx, "AddDomainToList", wsl.Err(err))
+	// Добавляем или увеличиваем на 1 число встречаемости категории в таблице DomainCategory
+	if err := h.q.AddDomainCategory(ctx, *category, domain.ID); err != nil {
+		h.l.ErrorContext(ctx, "failed to add domain category in db", wsl.Err(err))
+		return
+	}
+
+	// Обновляем запись о домене
+	if category.Type == models.CategoryTypePositive {
+		// Если категория положительная, инкрементируем число проверок
+		domain.AnalysisCount++
+
+		// Если достигли или превысили порог, вносим в белый список
+		if domain.AnalysisCount >= h.mlAttemps {
+			if err := h.q.AddDomainToList(ctx, *domain, models.Whitelist); err != nil {
+				h.l.ErrorContext(ctx, "failed to add domain to whitelist", wsl.Err(err))
+			} else {
+				h.l.DebugContext(ctx, "domain added to whitelist",
+					wsl.String("domain", domain.Path))
+			}
 		}
+	}
+
+	// Обновляем наиболее негативную категорию домена
+	newCat, perc, err := h.q.GetMostNegativeCategoryByDomainID(ctx, domain.ID)
+	if err != nil {
+		h.l.ErrorContext(ctx, "failed to get most negative category", wsl.Err(err))
+		// Не возвращаемся, продолжаем с текущими значениями
+	} else if newCat != nil {
+		// Обновляем вероятность
+		domain.NegRate = perc
+
+		// Если ID категорий не совпадает, обновляем и время категории
+		if category.ID != newCat.ID {
+			domain.CategoryID = int(newCat.ID)
+			domain.CategorizedAt = time.Now()
+		}
+	} else {
+		h.l.WarnContext(ctx, "no negative categories found for domain", wsl.Int("domain_id", int(domain.ID)))
+	}
+
+	// Проверяем, нужно ли включать домен в черный список
+	if category.Type == models.CategoryTypeNegative {
+		negCount, err := h.q.GetNegativeCategoriesTotalByDomainID(ctx, domain.ID)
+		if err != nil {
+			h.l.ErrorContext(ctx, "failed to get negative categories total", wsl.Err(err))
+		} else if negCount >= int(h.maxNegCount) {
+			if err := h.q.AddDomainToList(ctx, *domain, models.Blacklist); err != nil {
+				h.l.ErrorContext(ctx, "failed to add domain to blacklist", wsl.Err(err))
+			} else {
+				h.l.DebugContext(ctx, "domain added to blacklist",
+					wsl.String("domain", domain.Path),
+					wsl.Int("neg_count", negCount))
+			}
+		}
+
 		h.l.DebugContext(ctx, "got domain category",
 			wsl.String("domain", domain.Path),
 			wsl.String("category", category.Name),
 		)
-		// Обновляем категорию домена
-		domain.CategoryID = int(category.ID)
-		domain.CategorizedAt = time.Now()
-	} else if category.Type == models.CategoryTypePositive {
-		// Если категория положительная, инкрементируем число проверок домена для получения положительного статуса на 1
-		// проверяем, не достигло ли число успешых проверок на положительный контент константе
-		domain.AnalysisCount++
-		// Если достигло, то вносим домен в белый список
-		if domain.AnalysisCount == h.mlAttemps {
-			if err := h.q.AddDomainToList(ctx, *domain, models.Whitelist); err != nil {
-				h.l.ErrorContext(ctx, "AddDomainToList", wsl.Err(err))
-			}
-			h.l.DebugContext(ctx, "domain is positive",
-				wsl.String("domain", domain.Path),
-			)
-		}
 	}
+
+	// Обновляем сам домен
 	if err := h.q.UpdateDomain(ctx, *domain); err != nil {
-		h.l.ErrorContext(ctx, "UpdateDomain", wsl.Err(err))
-		return
+		h.l.ErrorContext(ctx, "failed to update domain", wsl.Err(err))
 	}
 }
 

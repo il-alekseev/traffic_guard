@@ -169,7 +169,7 @@ func Run(cfg *config.Config) {
 	// Инициализация обработчиков Kafka сообщений
 	logger.InfoContext(ctx, "ETL service", wsl.Info("Initializing Kafka handlers"))
 	metadataHandler := handlers.NewMetadataHandler(q, &logger)
-	mlAnalysisHandler := handlers.NewMLAnalysisHandler(cfg.MLAttemps, q, &logger)
+	mlAnalysisHandler := handlers.NewMLAnalysisHandler(cfg.MLAttemps, cfg.BlacklistTriesCount, q, &logger)
 	consumerHandlers := handlers.NewCompositeHandler(metadataHandler, mlAnalysisHandler, &logger)
 
 	// Запуск обработчиков Kafka сообщений
