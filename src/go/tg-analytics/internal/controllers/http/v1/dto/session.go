@@ -38,6 +38,26 @@ type Detection struct {
 	NegRate       float32   `json:"neg_rate"`
 }
 
+type Detection_v2 struct {
+	IP            string         `json:"ip"`
+	Port          int            `json:"port"`
+	Location      string         `json:"location"`
+	Domain        string         `json:"domain"`
+	RequestCount  int            `json:"request_count"`
+	HostName      string         `json:"hostname"`
+	Category      string         `json:"category"`
+	Description   string         `json:"description"`
+	Action        string         `json:"action"`
+	CategorizedAt time.Time      `json:"categorized_at"`
+	NegRate       float32        `json:"neg_rate"`
+	Categories    []CategoryStat `json:"categories"`
+}
+
+type CategoryStat struct {
+	Name string  `json:"name"`
+	Rate float32 `json:"rate"`
+}
+
 type DetectionStat struct {
 	Detected   int64 `json:"detected"`
 	Allowed    int64 `json:"accepted"`

@@ -56,6 +56,8 @@ func (s *Server) configureRouter() {
 			detections.GET("/", s.GetDetections)
 			detections.GET("/stat", s.GetDetectionStat)
 			detections.PATCH("/act", s.Act)
+			// Версия запроса с получением процентов по всем негативным категориям домена
+			detections.GET("/detections_v2", s.GetDetections_v2)
 		}
 		// Вкладка Отыеты
 		reports := v1.Group("/reports")

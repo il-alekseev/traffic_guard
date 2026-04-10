@@ -23,6 +23,8 @@ type RepoPGInterface interface {
 	// Detections
 	GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, thresh float32, action string, p models.Pagination, s string, sorting models.Sorting) ([]dto.Detection, int64, error)
 	GetDetectionStat(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter) (dto.DetectionStat, error)
+	GetTopDetectionsv2(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, thresh float32, action string, p models.Pagination, search string, sorting models.Sorting) ([]dto.Detection_v2, int64, error)
+
 	// Actions
 	Act(ctx context.Context, username, action, path string) error
 	GetDomainAction(ctx context.Context, path string) (string, error)
