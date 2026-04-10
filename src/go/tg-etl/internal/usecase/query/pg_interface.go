@@ -8,6 +8,8 @@ import (
 )
 
 type ETLRepoPGInterface interface {
+	GetActionByDomainID(ctx context.Context, id uint) (*models.Action, error)
+
 	CreateDevice(ctx context.Context, device models.Device) error
 	GetDeviceByID(ctx context.Context, id int) (*models.Device, error)
 	GetDevices(ctx context.Context) ([]models.Device, error)

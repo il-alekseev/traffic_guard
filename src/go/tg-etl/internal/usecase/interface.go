@@ -19,6 +19,7 @@ type ProcessorUseCase interface {
 
 // QueryUsecase - композитный интерфейс для всех запросов
 type QueryUsecase interface {
+	ActionUseCase
 	SourceUseCase
 	DomainUseCase
 	DeviceUseCase
@@ -28,6 +29,11 @@ type QueryUsecase interface {
 	ListUseCase
 	URLUseCase
 	LastLogUseCase
+}
+
+// ActionUseCase
+type ActionUseCase interface {
+	GetActionByDomainID(ctx context.Context, id uint) (*models.Action, error)
 }
 
 // SourceUseCase определяет методы для работы с источниками

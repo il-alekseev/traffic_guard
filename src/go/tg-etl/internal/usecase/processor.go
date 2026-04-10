@@ -527,14 +527,27 @@ func (uc *UseCase) processStatus(ctx context.Context, log models.IdsLog, domain 
 		if err != nil {
 			return models.StatusAllowed, fmt.Errorf("failed to get list for domain: %w", err)
 		}
-		if list == nil {
-			return models.StatusAllowed, nil
-		} else {
-			if domain.ActionID == 0 {
+		// если находится в черном списке
+		if list != nil && *list == models.Blacklist.String() {
+			// Проверяем, принято ли решение по домену, который находится в черном списке
+			if domain.ActionID == 0 { // решение еще не принято -> ожидает
 				return models.StatusPending, nil
 			} else {
-				return models.StatusAnomaly, nil
+				// Проверяем, какое действие было выбрано для домена
+				action, err := uc.q.GetActionByDomainID(ctx, domain.ID)
+				if err != nil {
+					return models.StatusAllowed, fmt.Errorf("failed to get action for domain: %w", err)
+				}
+				// если принято решение заблокировать домен, но все равно происходит обращение к домену -> аномалия
+				if action != nil && action.Action == "deny" { // TODO: добавить структуру сюда вместо жестко прописанного поля
+					return models.StatusAnomaly, nil
+				} else {
+					return models.StatusAllowed, nil
+				}
 			}
+		} else {
+			// Иначе домен находится либо в белом списке, либо его вообще нет в списке -> разрешенный
+			return models.StatusAllowed, nil
 		}
 	}
 }
