@@ -51,10 +51,6 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 	if f.TopCategory != "" {
 		query = query.Where("categories.name = ?", f.TopCategory)
 	}
-	if f.Status != "" {
-		query = query.Where("categories.name = ?", f.TopCategory)
-	}
-
 	// TODO: Убрать костыль после правок на фронте!
 	// Фильтрация по статусу выявления
 	switch f.Status {
