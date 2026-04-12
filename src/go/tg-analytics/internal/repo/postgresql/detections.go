@@ -90,7 +90,7 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 
 	// Группируем по уникальным детекциям (убираем description из GROUP BY, т.к. это агрегация)
 	query = query.Group(fmt.Sprintf(`
-		domains.ip, domains.port, domains.country, domains.path, domains.categorized_at,
+		domains.id, domains.ip, domains.port, domains.country, domains.path, domains.categorized_at, domains.neg_rate, 
 		devices.hostname, categories.name, COALESCE(actions.action, '%s')
 	`, pkg.ActionTypeUnresolved.String()))
 
