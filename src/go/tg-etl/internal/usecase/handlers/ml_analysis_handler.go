@@ -46,7 +46,7 @@ func (h *MLAnalysisHandler) HandleMLAnalysis(ctx context.Context, result models.
 		GetCategoryAt: time.Now(),
 	}
 	if err := h.q.UpdateURLByRequestID(ctx, requestID, url); err != nil {
-		h.l.ErrorContext(ctx, "failed to handle URL metadata", wsl.Err(err))
+		h.l.WarnContext(ctx, "failed to handle URL metadata", wsl.Err(err))
 	}
 
 	// Находим категорию
@@ -158,7 +158,7 @@ func (h *MLAnalysisHandler) HandleMLAnalysis(ctx context.Context, result models.
 
 	// Обновляем сам домен
 	if err := h.q.UpdateDomain(ctx, *domain); err != nil {
-		h.l.ErrorContext(ctx, "failed to update domain", wsl.Err(err))
+		h.l.WarnContext(ctx, "failed to update domain", wsl.Err(err))
 	}
 }
 

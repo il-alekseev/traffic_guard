@@ -59,9 +59,9 @@ type Action struct {
 // DomainCategory представляет таблицу domain_category
 type DomainCategory struct {
 	ID         uint    `gorm:"primaryKey" json:"id"`
-	DomainID   uint    `gorm:"type:integer;not null;index" json:"domain_id"`
-	CategoryID uint    `gorm:"type:integer" json:"category_id"`
-	Count      float64 `gorm:"type:integer" json:"count"` // Сколько раз категория получалась от ML-ки
+	DomainID   uint    `gorm:"type:integer;not null;index;uniqueIndex:idx_domain_category" json:"domain_id"`
+	CategoryID uint    `gorm:"type:integer;not null;index;uniqueIndex:idx_domain_category" json:"category_id"`
+	Count      float64 `gorm:"type:integer" json:"count"`
 }
 
 // DomainControlLists представляет таблицу domain_control_lists белого и черного списка доменов

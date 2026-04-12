@@ -64,6 +64,7 @@ var (
 	DepressiveContentSuicide  = Category{ID: 27, Name: "Депрессивный контент", Type: CategoryTypeNegative}
 	AlcoholTobacco            = Category{ID: 28, Name: "Алкоголь и табак", Type: CategoryTypeNegative}
 	PositiveCategory          = Category{ID: 29, Name: "Положительная категория", Type: CategoryTypePositive}
+	AllowedCategory           = Category{ID: 30, Name: "Разрешенный ресурс", Type: CategoryTypePositive}
 )
 
 // Все категории для удобного доступа
@@ -97,6 +98,7 @@ var PredefinedCategories = []Category{
 	DepressiveContentSuicide,
 	AlcoholTobacco,
 	PositiveCategory,
+	AllowedCategory,
 }
 
 // String возвращает строковое представление категории
