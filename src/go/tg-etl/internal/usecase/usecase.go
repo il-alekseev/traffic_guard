@@ -52,5 +52,9 @@ func New(cfg *config.Config, q QueryUsecase, kc kafka.Client, l slog.Logger, use
 		userCl:    userCl,
 		blclient:  blclient,
 	}
+	// Синхронизируем устройства с ролями Keycloak
+	if err := uc.syncRolesForDevices(ctx); err != nil {
+		return nil, fmt.Errorf("failed to sync devices with roles: %v", err)
+	}
 	return &uc, nil
 }

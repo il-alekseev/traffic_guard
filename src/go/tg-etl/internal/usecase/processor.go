@@ -152,11 +152,12 @@ func (uc *UseCase) getDevice(ctx context.Context, log models.IdsLog) (*models.De
 	newValue["hostname"] = device.HostName
 
 	record := pkg.DtoBusinessLog{
-		Description: "Создание нового устройства",
-		Entity:      "Device",
+		Description: fmt.Sprintf("создание нового устройства %s", device.HostName),
+		Entity:      "device",
 		EntityID:    strconv.FormatUint(uint64(device.ID), 10),
 		UserName:    values.ThisServiceName,
 		NewValue:    newValue,
+		OldValue:    "",
 		EventType:   "CREATE",
 	}
 

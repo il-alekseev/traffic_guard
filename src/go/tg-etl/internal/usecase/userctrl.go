@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 	"tg-etl/pkg/usercontrol/roles"
@@ -57,6 +58,37 @@ func (uc *UseCase) addRolesToKeyCloak(
 			userClReq.GetPayload().Message,
 		)
 		return err
+	}
+	return nil
+}
+
+// syncRolesForDevices - проверяет наличие ролей для устройств, лежащих в БД и в случае их отсутствия - создает их
+func (uc *UseCase) syncRolesForDevices(ctx context.Context) error {
+	method := "checkRolesForDevices"
+	// Получаем авторизацию для usercontrol
+	authInfo, err := uc.getServiceAuthInfo(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get auth: %w", err)
+	}
+	// Получаем список всех устройств в БД
+	devs, err := uc.q.GetDevices(ctx)
+	if err != nil {
+		return fmt.Errorf("%s: failed to get devices: %w", method, err)
+	}
+	for _, d := range devs {
+		// Проверяем, создавалась ли уже роль для данного сетевого узла
+		roleExists, err := uc.hasDeviceInRoles(&authInfo, d.HostName)
+		if err != nil {
+			return fmt.Errorf("failed to get roles for device: %w", err)
+		}
+		// Если не создавалась, то создаем
+		if !roleExists {
+			if err = uc.addRolesToKeyCloak(ctx, &authInfo, d.HostName); err != nil {
+				return fmt.Errorf("failed to create role for device: %w", err)
+			}
+		}
+		uc.l.InfoContext(ctx, "created new device", slog.String("device name", d.HostName))
+
 	}
 	return nil
 }
