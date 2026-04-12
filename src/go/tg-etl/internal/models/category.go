@@ -26,13 +26,6 @@ func (t CategoryType) String() string {
 	}
 }
 
-// Category представляет категорию в базе данных
-type Category struct {
-	ID   uint         `gorm:"primaryKey;autoIncrement" json:"id"`
-	Name string       `gorm:"type:varchar(255);not null;uniqueIndex" json:"name"`
-	Type CategoryType `gorm:"type:varchar(20);not null;default:'neutral'" json:"type"`
-}
-
 // Предопределенные категории с уникальными ID
 var (
 	Unknown                   = Category{ID: 1, Name: "Неизвестный класс", Type: CategoryTypeNeutral}

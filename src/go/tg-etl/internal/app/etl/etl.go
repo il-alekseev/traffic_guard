@@ -116,11 +116,10 @@ func Run(cfg *config.Config) {
 		models.Domain{},
 		models.Action{},
 		models.Category{},
-		//models.ContentCategory{},
-		//models.CategoryDomain{},
 		models.DomainControlLists{},
 		models.URL{},
 		models.LastLog{},
+		models.DomainCategory{},
 	)
 	if err != nil {
 		logger.ErrorContext(ctx, "ETL service", wsl.String("create ETL db connection error", err.Error()))

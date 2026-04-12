@@ -90,3 +90,10 @@ type LastLog struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	Timestamp time.Time `gorm:"type:timestamptz;not null" json:"timestamp"`
 }
+
+// Category представляет категорию в базе данных
+type Category struct {
+	ID   uint         `gorm:"primaryKey;autoIncrement" json:"id"`
+	Name string       `gorm:"type:varchar(255);not null;uniqueIndex" json:"name"`
+	Type CategoryType `gorm:"type:varchar(20);not null;default:'neutral'" json:"type"`
+}
