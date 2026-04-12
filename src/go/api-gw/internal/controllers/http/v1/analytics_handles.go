@@ -556,6 +556,7 @@ func (s *Server) getDetections(c *gin.Context) {
 	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
 	to := c.DefaultQuery("to", "now")
 	hostname := c.Query("hostname")
+	status := c.Query("_status")
 	category := c.Query("category")
 	action := c.Query("action")
 	page, err := strconv.ParseInt(c.Query("page"), 10, 64)
@@ -587,6 +588,7 @@ func (s *Server) getDetections(c *gin.Context) {
 		To:       &to,
 		Hostname: &hostname,
 		Category: &category,
+		Status:   &status,
 		Action:   &action,
 		Page:     &page,
 		Limit:    &limit,
@@ -884,6 +886,7 @@ func (s *Server) getSessions(c *gin.Context) {
 	to := c.DefaultQuery("to", "now")
 	hostname := c.Query("hostname")
 	category := c.Query("category")
+	status := c.Query("status")
 	typeStr := c.Query("type")
 	search := c.Query("search")
 	page, err := strconv.ParseInt(c.Query("page"), 10, 64)
@@ -915,6 +918,7 @@ func (s *Server) getSessions(c *gin.Context) {
 		To:       &to,
 		Hostname: &hostname,
 		Category: &category,
+		Status:   &status,
 		Type:     &typeStr,
 		Search:   &search,
 		Page:     &page,
