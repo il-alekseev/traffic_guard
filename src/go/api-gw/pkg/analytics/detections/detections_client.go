@@ -60,6 +60,8 @@ type ClientService interface {
 
 	GetAPIV1DetectionsStat(params *GetAPIV1DetectionsStatParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV1DetectionsStatOK, error)
 
+	GetAPIV2Detections(params *GetAPIV2DetectionsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV2DetectionsOK, error)
+
 	SetTransport(transport runtime.ClientTransport)
 }
 
@@ -142,6 +144,47 @@ func (a *Client) GetAPIV1DetectionsStat(params *GetAPIV1DetectionsStatParams, au
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAPIV1DetectionsStat: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	panic(msg)
+}
+
+/*
+GetAPIV2Detections получениеs списка выявлений версия 2
+
+Возвращает расширенный список выявлений с детальной статистикой по категориям за указанный временной период с пагинацией и фильтрацией
+*/
+func (a *Client) GetAPIV2Detections(params *GetAPIV2DetectionsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAPIV2DetectionsOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewGetAPIV2DetectionsParams()
+	}
+	op := &runtime.ClientOperation{
+		ID:                 "GetAPIV2Detections",
+		Method:             "GET",
+		PathPattern:        "/api/v2/detections",
+		ProducesMediaTypes: []string{"application/json"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http"},
+		Params:             params,
+		Reader:             &GetAPIV2DetectionsReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
+	if err != nil {
+		return nil, err
+	}
+	success, ok := result.(*GetAPIV2DetectionsOK)
+	if ok {
+		return success, nil
+	}
+	// unexpected success response
+	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+	msg := fmt.Sprintf("unexpected success response for GetAPIV2Detections: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 

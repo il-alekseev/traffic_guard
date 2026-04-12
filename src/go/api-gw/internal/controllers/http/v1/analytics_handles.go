@@ -9,6 +9,7 @@ import (
 	"api-gateway/pkg/analytics/reports"
 	"api-gateway/pkg/analytics/sessions"
 	"api-gateway/pkg/models"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -600,6 +601,106 @@ func (s *Server) getDetections(c *gin.Context) {
 		}
 
 		s.ErrorResponse(c, http.StatusBadRequest, "Detections.GetAPIV1Detections", err)
+		return
+	}
+
+	c.JSON(resp.Code(), resp.GetPayload())
+}
+
+// getDetectionsV2 -
+// @Summary Получение списка выявлений (версия 2)
+// @Description Возвращает расширенный список выявлений с детальной статистикой по категориям за указанный временной период с пагинацией и фильтрацией
+// @Tags detections
+// @Accept json
+// @Produce json
+// @Param from query string false "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)" default(now-10m)
+// @Param to query string false "Конец временного диапазона (формат: now, 2023-12-01T11:00:00Z)" default(now)
+// @Param hostname query string false "Фильтр по имени хоста"
+// @Param status query string false "Фильтр по статусу выявления" Enums(Рекомендуется_блокировка, Требуется_проверка, Заблокирован)
+// @Param category query string false "Фильтр по категории" Enums(Агрессия, расизм, терроризм, Ботнеты, Веб-почта, Досуг и развлечения, Интернет-магазины, Компьютерные игры, Криптомайнинг, Наркотики, Порнография и секс, Прокси и анонимайзеры, Реестр запрещенных сайтов, Сайты для взрослых, Сайты распространяющие вирусы, Социальные сети, Торренты и Р2Р-сети, Файловые архивы, Фильмы и видео онлайн, Фишинг, Чаты и мессенджеры, Дополнительно, Криптоджекинг, Реклама, Онлайн-игры, Игровые платформы, Вредоносное ПО, Азартные игры, Депресивный контент и суицид, Алкоголь, табак)
+// @Param action query string false "Действие пользователя" Enums(Разрешено, Заблокировано, Не решено)
+// @Param page query int false "Номер страницы" default(1) minimum(1)
+// @Param limit query int false "Количество записей на странице" default(10) minimum(1) maximum(100)
+// @Param search query string false "Поиск по URL или IP адресу домена"
+// @Param order_by query string false "Поле для сортировки" default(categorized_at) Enums(domain, request_count, categorized_at)
+// @Param order_dir query string false "Направление сортировки (asc/desc)" default(desc) Enums(asc, desc)
+// @Security BearerAuth
+// @Success 200 {object} models.DtoGetDetectionsResponseV2 "Успешный ответ"
+// @Failure 400 {object} models.DtoErrorResponse "Неверный формат параметров"
+// @Failure 403 {object} models.DtoErrorResponse "Недостаточно прав для доступа к выявлениям"
+// @Failure 500 {object} models.DtoErrorResponse "Внутренняя ошибка сервера"
+// @Router /api/v1/analytics/detections_v2 [get]
+func (s *Server) getDetectionsV2(c *gin.Context) {
+	// Создаем authInfoWriter для передачи токена
+	authInfo, err := utils.GetAuthInfo(c)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "utils.GetAuthInfo(c)", err)
+		return
+	}
+
+	// Парсим входные данные
+	from := c.DefaultQuery("from", "now-10m") // по умолчанию выдает последние 10 минут
+	to := c.DefaultQuery("to", "now")
+	hostname := c.Query("hostname")
+	status := c.Query("status")
+	category := c.Query("category")
+	action := c.Query("action")
+
+	page, err := strconv.ParseInt(c.DefaultQuery("page", "1"), 10, 64)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "Parse int page", err)
+		return
+	}
+
+	limit, err := strconv.ParseInt(c.DefaultQuery("limit", "10"), 10, 64)
+	if err != nil {
+		s.ErrorResponse(c, http.StatusBadRequest, "Parse int limit", err)
+		return
+	}
+
+	// Валидация limit
+	if limit < 1 || limit > 100 {
+		s.ErrorResponse(c, http.StatusBadRequest, "limit must be between 1 and 100", fmt.Errorf("invalid limit: %d", limit))
+		return
+	}
+
+	// Валидация page
+	if page < 1 {
+		s.ErrorResponse(c, http.StatusBadRequest, "page must be greater than 0", fmt.Errorf("invalid page: %d", page))
+		return
+	}
+
+	search := c.Query("search")
+	orderBy := c.DefaultQuery("order_by", "categorized_at")
+	orderDir := c.DefaultQuery("order_dir", "desc")
+
+	// Валидация orderDir
+	if orderDir != "asc" && orderDir != "desc" {
+		s.ErrorResponse(c, http.StatusBadRequest, "order_dir must be asc or desc", fmt.Errorf("invalid order_dir: %s", orderDir))
+		return
+	}
+
+	// Вызов API клиента (версия 2)
+	resp, err := s.analyticsCL.Detections.GetAPIV2Detections(&detections.GetAPIV2DetectionsParams{
+		From:     &from,
+		To:       &to,
+		Hostname: &hostname,
+		Status:   &status,
+		Category: &category,
+		Action:   &action,
+		Page:     &page,
+		Limit:    &limit,
+		Search:   &search,
+		OrderBy:  &orderBy,
+		OrderDir: &orderDir,
+	}, authInfo)
+	if err != nil {
+		if conflictErr, ok := err.(ResponseErrorInterface); ok {
+			c.JSON(conflictErr.Code(), conflictErr.GetPayload())
+			return
+		}
+
+		s.ErrorResponse(c, http.StatusBadRequest, "Detections.GetAPIV2Detections", err)
 		return
 	}
 

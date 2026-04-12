@@ -7,6 +7,13 @@ definitions:
       name:
         type: string
     type: object
+  dto.CategoryStat:
+    properties:
+      name:
+        type: string
+      rate:
+        type: number
+    type: object
   dto.Detection:
     properties:
       action:
@@ -25,6 +32,37 @@ definitions:
         type: string
       location:
         type: string
+      neg_rate:
+        type: number
+      port:
+        type: integer
+      request_count:
+        type: integer
+    type: object
+  dto.Detection_v2:
+    properties:
+      action:
+        type: string
+      categories:
+        items:
+          $ref: '#/definitions/dto.CategoryStat'
+        type: array
+      categorized_at:
+        type: string
+      category:
+        type: string
+      description:
+        type: string
+      domain:
+        type: string
+      hostname:
+        type: string
+      ip:
+        type: string
+      location:
+        type: string
+      neg_rate:
+        type: number
       port:
         type: integer
       request_count:
@@ -90,6 +128,15 @@ definitions:
         - $ref: '#/definitions/dto.PaginationMeta'
         description: Метаданные пагинации
     type: object
+  dto.GetDetectionsResponseV2:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.Detection_v2'
+        type: array
+      meta:
+        $ref: '#/definitions/dto.PaginationMeta'
+    type: object
   dto.GetProhActivityResponse:
     properties:
       count:
@@ -103,15 +150,21 @@ definitions:
     type: object
   dto.GetSessionsResponse:
     properties:
+      count:
+        description: 'Meta PaginationMeta `json:"meta"` // Метаданные пагинации //
+          TODO: Костыль ниже! потом эту строчку расскоментировать, а нижние убрать'
+        type: integer
       data:
         description: Список сессий
         items:
           $ref: '#/definitions/dto.Session'
         type: array
-      meta:
-        allOf:
-        - $ref: '#/definitions/dto.PaginationMeta'
-        description: Метаданные пагинации
+      pages:
+        description: Общее количество страниц
+        type: integer
+      total:
+        description: Общее количество сессий
+        type: integer
     type: object
   dto.PaginationMeta:
     properties:
@@ -1398,6 +1451,137 @@ paths:
       summary: Получение версии сервиса
       tags:
       - utils
+  /api/v2/detections:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает расширенный список выявлений с детальной статистикой
+        по категориям за указанный временной период с пагинацией и фильтрацией
+      parameters:
+      - default: now-10m
+        description: 'Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)'
+        in: query
+        name: from
+        type: string
+      - default: now
+        description: 'Конец временного диапазона (формат: now, 2023-12-01T11:00:00Z)'
+        in: query
+        name: to
+        type: string
+      - description: Фильтр по имени хоста
+        in: query
+        name: hostname
+        type: string
+      - description: Фильтр по статусу выявления
+        enum:
+        - Рекомендуется_блокировка
+        - Требуется_проверка
+        - Заблокирован
+        in: query
+        name: status
+        type: string
+      - description: Фильтр по категории
+        enum:
+        - Агрессия
+        - расизм
+        - терроризм
+        - Ботнеты
+        - Веб-почта
+        - Досуг и развлечения
+        - Интернет-магазины
+        - Компьютерные игры
+        - Криптомайнинг
+        - Наркотики
+        - Порнография и секс
+        - Прокси и анонимайзеры
+        - Реестр запрещенных сайтов
+        - Сайты для взрослых
+        - Сайты распространяющие вирусы
+        - Социальные сети
+        - Торренты и Р2Р-сети
+        - Файловые архивы
+        - Фильмы и видео онлайн
+        - Фишинг
+        - Чаты и мессенджеры
+        - Дополнительно
+        - Криптоджекинг
+        - Реклама
+        - Онлайн-игры
+        - Игровые платформы
+        - Вредоносное ПО
+        - Азартные игры
+        - Депресивный контент и суицид
+        - Алкоголь
+        - табак
+        in: query
+        name: category
+        type: string
+      - description: Действие пользователя
+        enum:
+        - Разрешено
+        - Заблокировано
+        - Не решено
+        in: query
+        name: action
+        type: string
+      - default: 1
+        description: Номер страницы
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 10
+        description: Количество записей на странице
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - description: Поиск по URL или IP адресу домена
+        in: query
+        name: search
+        type: string
+      - default: categorized_at
+        description: Поле для сортировки
+        enum:
+        - domain
+        - request_count
+        - categorized_at
+        in: query
+        name: order_by
+        type: string
+      - default: desc
+        description: Направление сортировки (asc/desc)
+        enum:
+        - asc
+        - desc
+        in: query
+        name: order_dir
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный ответ
+          schema:
+            $ref: '#/definitions/dto.GetDetectionsResponseV2'
+        "400":
+          description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к выявлениям
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение списка выявлений (версия 2)
+      tags:
+      - detections
 schemes:
 - http
 securityDefinitions:

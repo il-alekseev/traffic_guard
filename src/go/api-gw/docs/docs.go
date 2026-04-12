@@ -927,6 +927,181 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/analytics/detections_v2": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает расширенный список выявлений с детальной статистикой по категориям за указанный временной период с пагинацией и фильтрацией",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "detections"
+                ],
+                "summary": "Получение списка выявлений (версия 2)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "now-10m",
+                        "description": "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона (формат: now, 2023-12-01T11:00:00Z)",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени хоста",
+                        "name": "hostname",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "Рекомендуется_блокировка",
+                            "Требуется_проверка",
+                            "Заблокирован"
+                        ],
+                        "type": "string",
+                        "description": "Фильтр по статусу выявления",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "Агрессия",
+                            "расизм",
+                            "терроризм",
+                            "Ботнеты",
+                            "Веб-почта",
+                            "Досуг и развлечения",
+                            "Интернет-магазины",
+                            "Компьютерные игры",
+                            "Криптомайнинг",
+                            "Наркотики",
+                            "Порнография и секс",
+                            "Прокси и анонимайзеры",
+                            "Реестр запрещенных сайтов",
+                            "Сайты для взрослых",
+                            "Сайты распространяющие вирусы",
+                            "Социальные сети",
+                            "Торренты и Р2Р-сети",
+                            "Файловые архивы",
+                            "Фильмы и видео онлайн",
+                            "Фишинг",
+                            "Чаты и мессенджеры",
+                            "Дополнительно",
+                            "Криптоджекинг",
+                            "Реклама",
+                            "Онлайн-игры",
+                            "Игровые платформы",
+                            "Вредоносное ПО",
+                            "Азартные игры",
+                            "Депресивный контент и суицид",
+                            "Алкоголь",
+                            "табак"
+                        ],
+                        "type": "string",
+                        "description": "Фильтр по категории",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "Разрешено",
+                            "Заблокировано",
+                            "Не решено"
+                        ],
+                        "type": "string",
+                        "description": "Действие пользователя",
+                        "name": "action",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Количество записей на странице",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поиск по URL или IP адресу домена",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "domain",
+                            "request_count",
+                            "categorized_at"
+                        ],
+                        "type": "string",
+                        "default": "categorized_at",
+                        "description": "Поле для сортировки",
+                        "name": "order_by",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "default": "desc",
+                        "description": "Направление сортировки (asc/desc)",
+                        "name": "order_dir",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoGetDetectionsResponseV2"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Недостаточно прав для доступа к выявлениям",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/analytics/devices": {
             "get": {
                 "security": [
@@ -2524,6 +2699,19 @@ const docTemplate = `{
                 }
             }
         },
+        "models.DtoCategoryStat": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "name",
+                    "type": "string"
+                },
+                "rate": {
+                    "description": "rate",
+                    "type": "number"
+                }
+            }
+        },
         "models.DtoCountResponse": {
             "type": "object",
             "properties": {
@@ -2585,6 +2773,10 @@ const docTemplate = `{
                     "description": "location",
                     "type": "string"
                 },
+                "neg_rate": {
+                    "description": "neg rate",
+                    "type": "number"
+                },
                 "port": {
                     "description": "port",
                     "type": "integer"
@@ -2625,6 +2817,62 @@ const docTemplate = `{
                 },
                 "unresolved": {
                     "description": "unresolved",
+                    "type": "integer"
+                }
+            }
+        },
+        "models.DtoDetectionV2": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "description": "action",
+                    "type": "string"
+                },
+                "categories": {
+                    "description": "categories",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DtoCategoryStat"
+                    }
+                },
+                "categorized_at": {
+                    "description": "categorized at",
+                    "type": "string"
+                },
+                "category": {
+                    "description": "category",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "description",
+                    "type": "string"
+                },
+                "domain": {
+                    "description": "domain",
+                    "type": "string"
+                },
+                "hostname": {
+                    "description": "hostname",
+                    "type": "string"
+                },
+                "ip": {
+                    "description": "ip",
+                    "type": "string"
+                },
+                "location": {
+                    "description": "location",
+                    "type": "string"
+                },
+                "neg_rate": {
+                    "description": "neg rate",
+                    "type": "number"
+                },
+                "port": {
+                    "description": "port",
+                    "type": "integer"
+                },
+                "request_count": {
+                    "description": "request count",
                     "type": "integer"
                 }
             }
@@ -2715,6 +2963,26 @@ const docTemplate = `{
                 }
             }
         },
+        "models.DtoGetDetectionsResponseV2": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "data",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DtoDetectionV2"
+                    }
+                },
+                "meta": {
+                    "description": "meta",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.DtoPaginationMeta"
+                        }
+                    ]
+                }
+            }
+        },
         "models.DtoGetProhActivityResponse": {
             "type": "object",
             "properties": {
@@ -2738,6 +3006,10 @@ const docTemplate = `{
         "models.DtoGetSessionsResponse": {
             "type": "object",
             "properties": {
+                "count": {
+                    "description": "Meta PaginationMeta ` + "`" + `json:\"meta\"` + "`" + ` // Метаданные пагинации // TODO: Костыль ниже! потом эту строчку расскоментировать, а нижние убрать",
+                    "type": "integer"
+                },
                 "data": {
                     "description": "Список сессий",
                     "type": "array",
@@ -2745,27 +3017,13 @@ const docTemplate = `{
                         "$ref": "#/definitions/models.DtoSession"
                     }
                 },
-                "meta": {
-                    "description": "Метаданные пагинации",
-                    "type": "object",
-                    "properties": {
-                        "limit": {
-                            "description": "Количество элементов на странице",
-                            "type": "integer"
-                        },
-                        "page": {
-                            "description": "Текущая страница (начинается с 1)",
-                            "type": "integer"
-                        },
-                        "pages": {
-                            "description": "Общее количество страниц",
-                            "type": "integer"
-                        },
-                        "total": {
-                            "description": "Общее количество элементов",
-                            "type": "integer"
-                        }
-                    }
+                "pages": {
+                    "description": "Общее количество страниц",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "Общее количество сессий",
+                    "type": "integer"
                 }
             }
         },
