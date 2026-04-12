@@ -12,6 +12,10 @@ swagger:
 run: 
 	go run ./cmd/usercontrol/main.go
 
+.PHONY: gen-blog
+gen-blog:
+	swagger generate client -c blog -f ../blog/docs/swagger.json -A blog -t pkg/blog 
+
 .PHONY: vet
 vet:
 	go vet ./...

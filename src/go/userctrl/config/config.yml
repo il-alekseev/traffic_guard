@@ -13,14 +13,10 @@ logger:
   log_level: 'debug'
   rollbar_env: 'usercontrol'
 
-bizlogrepo:
-  pool_max: 2
-  host: "192.168.130.112"
-  user: "config_user"
-  pass: "config_password"
-  dbname: "blog"
-  port: "5433"
-  sslmode: "disable"
+blog_cl:
+  proto: "http"
+  host: "127.0.0.1"
+  port: "8004"
 
 keycloak:
   proto: "https"
