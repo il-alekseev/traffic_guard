@@ -79,12 +79,18 @@ func (r *ELTRepoPG) UpdateURLByRequestID(ctx context.Context, requestID uuid.UUI
 	err := r.db.WithTx(ctx, func(tx *gorm.DB) error {
 		// Создаем map для обновления только переданных полей
 		updates := make(map[string]interface{})
-
+		// Обновляем только те поля, которые были явно заданы (не zero value)
 		if !newURL.GetCategoryAt.IsZero() {
-			updates["put_kafka_at"] = newURL.GetCategoryAt
+			updates["get_category_at"] = newURL.GetCategoryAt
 		}
 		if !newURL.GetMetaDataAt.IsZero() {
-			updates["get_category_at"] = newURL.GetMetaDataAt
+			updates["get_metadata_at"] = newURL.GetMetaDataAt
+		}
+		if !newURL.PutKafkaAt.IsZero() {
+			updates["put_kafka_at"] = newURL.PutKafkaAt
+		}
+		if !newURL.IDSLogsAt.IsZero() {
+			updates["ids_logs_at"] = newURL.IDSLogsAt
 		}
 
 		// Если нет полей для обновления - выходим

@@ -938,7 +938,7 @@ paths:
         - Требуется_проверка
         - Заблокирован
         in: query
-        name: status
+        name: _status
         type: string
       - description: Фильтр по категории
         enum:

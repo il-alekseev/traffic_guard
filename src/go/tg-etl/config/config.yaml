@@ -24,11 +24,11 @@ ksu_postgres:
 
 etl_postgres:
   pool_max: 2
-  host: "localhost"
-  user: "etl"
-  pass: "etlpassword"
+  host: "192.168.130.112"
+  user: "etl_user"
+  pass: "etl_password"
   dbname: "etl"
-  port: "5432"
+  port: "5433"
   sslmode: "disable"
   
 etl_controller:
@@ -52,5 +52,5 @@ usercontrol:
 
 blog_serv:
   proto: "http"
-  host: "127.0.0.1"
+  host: "192.168.130.112"
   port: "8004"

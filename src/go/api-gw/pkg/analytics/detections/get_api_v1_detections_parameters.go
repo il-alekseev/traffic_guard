@@ -62,6 +62,12 @@ GetAPIV1DetectionsParams contains all the parameters to send to the API endpoint
 */
 type GetAPIV1DetectionsParams struct {
 
+	/* Status.
+
+	   Фильтр по статусу выявления
+	*/
+	Status *string
+
 	/* Action.
 
 	   Действие пользователя
@@ -125,12 +131,6 @@ type GetAPIV1DetectionsParams struct {
 	   Поиск по URL или IP адресу домена
 	*/
 	Search *string
-
-	/* Status.
-
-	   Фильтр по статусу выявления
-	*/
-	Status *string
 
 	/* To.
 
@@ -217,6 +217,17 @@ func (o *GetAPIV1DetectionsParams) WithHTTPClient(client *http.Client) *GetAPIV1
 // SetHTTPClient adds the HTTPClient to the get API v1 detections params
 func (o *GetAPIV1DetectionsParams) SetHTTPClient(client *http.Client) {
 	o.HTTPClient = client
+}
+
+// WithStatus adds the status to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) WithStatus(status *string) *GetAPIV1DetectionsParams {
+	o.SetStatus(status)
+	return o
+}
+
+// SetStatus adds the status to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) SetStatus(status *string) {
+	o.Status = status
 }
 
 // WithAction adds the action to the get API v1 detections params
@@ -318,17 +329,6 @@ func (o *GetAPIV1DetectionsParams) SetSearch(search *string) {
 	o.Search = search
 }
 
-// WithStatus adds the status to the get API v1 detections params
-func (o *GetAPIV1DetectionsParams) WithStatus(status *string) *GetAPIV1DetectionsParams {
-	o.SetStatus(status)
-	return o
-}
-
-// SetStatus adds the status to the get API v1 detections params
-func (o *GetAPIV1DetectionsParams) SetStatus(status *string) {
-	o.Status = status
-}
-
 // WithTo adds the to to the get API v1 detections params
 func (o *GetAPIV1DetectionsParams) WithTo(to *string) *GetAPIV1DetectionsParams {
 	o.SetTo(to)
@@ -347,6 +347,23 @@ func (o *GetAPIV1DetectionsParams) WriteToRequest(r runtime.ClientRequest, reg s
 		return err
 	}
 	var res []error
+
+	if o.Status != nil {
+
+		// query param _status
+		var qrStatus string
+
+		if o.Status != nil {
+			qrStatus = *o.Status
+		}
+		qStatus := qrStatus
+		if qStatus != "" {
+
+			if err := r.SetQueryParam("_status", qStatus); err != nil {
+				return err
+			}
+		}
+	}
 
 	if o.Action != nil {
 
@@ -496,23 +513,6 @@ func (o *GetAPIV1DetectionsParams) WriteToRequest(r runtime.ClientRequest, reg s
 		if qSearch != "" {
 
 			if err := r.SetQueryParam("search", qSearch); err != nil {
-				return err
-			}
-		}
-	}
-
-	if o.Status != nil {
-
-		// query param status
-		var qrStatus string
-
-		if o.Status != nil {
-			qrStatus = *o.Status
-		}
-		qStatus := qrStatus
-		if qStatus != "" {
-
-			if err := r.SetQueryParam("status", qStatus); err != nil {
 				return err
 			}
 		}

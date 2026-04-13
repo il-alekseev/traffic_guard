@@ -26,6 +26,6 @@ func main() {
 		slog.Error(err.Error())
 		return
 	}
-	cfg.App.DevVersion = "0.1.2-dev.12"
+	cfg.App.DevVersion = "0.1.2-dev.13"
 	etl.Run(cfg)
 }

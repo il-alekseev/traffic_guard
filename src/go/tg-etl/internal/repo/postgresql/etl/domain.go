@@ -88,6 +88,9 @@ func (r *ELTRepoPG) UpdateDomainByID(ctx context.Context, domain models.Domain, 
 		if domain.AnalysisCount != 0 {
 			updates["analysis_count"] = domain.AnalysisCount
 		}
+		if domain.NegRate != 0 {
+			updates["neg_rate"] = domain.NegRate
+		}
 		if !domain.CategorizedAt.IsZero() {
 			updates["categorized_at"] = domain.CategorizedAt
 		}

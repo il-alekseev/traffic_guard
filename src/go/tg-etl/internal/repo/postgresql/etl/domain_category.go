@@ -71,7 +71,19 @@ func (r *ELTRepoPG) GetNegativeCategoriesStatByDomainID(ctx context.Context, id 
 	return result, nil
 }
 
-// GetMostNegativeCategoryByDomainID - получает самую часто встречающуюся негативную категорию домена
+// GetMostNegativeCategoryByDomainID - получает самую часто встречающуюся негативную категорию домена.
+//
+// Функция анализирует все негативные категории, связанные с доменом, и возвращает ту,
+// которая имеет наибольшее значение count в таблице domain_categories.
+//
+// Параметры:
+//   - ctx: контекст выполнения
+//   - id: идентификатор домена (domain.ID)
+//
+// Возвращает:
+//   - *models.Category: объект категории с наибольшим количеством вхождений
+//   - float32: вероятность (отношение count категории к общему count всех негативных категорий домена)
+//   - error: ошибка при выполнении запроса или если категория не найдена
 func (r *ELTRepoPG) GetMostNegativeCategoryByDomainID(ctx context.Context, id uint) (*models.Category, float32, error) {
 	type Result struct {
 		Name  string
@@ -98,7 +110,12 @@ func (r *ELTRepoPG) GetMostNegativeCategoryByDomainID(ctx context.Context, id ui
 		err = fmt.Errorf("failed to get most negative category for domain %d: %w", id, err)
 		return nil, 0, slogger.WrapError(ctx, err)
 	}
-	return cat, result.Count, nil
+	total, err := r.GetNegativeCategoriesTotalByDomainID(ctx, id)
+	if err != nil {
+		err = fmt.Errorf("failed to get total negative categories for domain %d: %w", id, err)
+		return nil, 0, slogger.WrapError(ctx, err)
+	}
+	return cat, result.Count / float32(total), nil
 }
 
 // AddDomainCategory прибавляет 1, если категория уже встречалась, или создает новую категорию

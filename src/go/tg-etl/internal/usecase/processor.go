@@ -218,6 +218,9 @@ func (uc *UseCase) getSource(ctx context.Context, log models.IdsLog) (*models.So
 }
 
 func (uc *UseCase) getDomainAndURL(ctx context.Context, log models.IdsLog) (*models.Domain, *models.URL, error) {
+	uc.l.DebugContext(ctx, "got domain from KSU: ",
+		wsl.String("url", log.Payload),
+	)
 	// Находим path и URL из лога
 	if log.Payload != "" {
 		return uc.handleURLWithDomain(ctx, log, log.DestDomain, log.Payload, log.DestIP, log.DestPort)
@@ -516,21 +519,26 @@ func (uc *UseCase) createSession(ctx context.Context, log models.IdsLog, source 
 }
 
 func (uc *UseCase) processStatus(ctx context.Context, log models.IdsLog, domain *models.Domain) (models.Status, error) {
-	// log.Action = allowed && not in blacklist -> Разрешен
-	// log.Action = allowed && in blacklist && actionID != 0 -> Запрещен
-	// log.Action = allowed && in blacklist && actionID == 0 -> Ожидает
-	// log.Action = blocked -> Заблокирован
+	// Алгоритм определения статуса:
+	// 1. Если log.Action == "blocked" -> Заблокирован
+	// 2. Если категория домена положительная или нейтральная -> Разрешен
+	// 3. Если категория негативная:
+	//    - domain.ActionID == 0 (решение не принято) -> Ожидает
+	//    - domain.ActionID != 0 (решение принято):
+	//      - action.Action == "Заблокировано" -> Аномалия (доступ к заблокированному домену)
+	//      - иначе -> Разрешен
 	if log.Action == "blocked" {
 		return models.StatusBlocked, nil
 	} else {
-		// Проверяем, находится ли домен в черном списке
-		list, err := uc.q.GetListByDomainID(ctx, domain.ID)
+		// Проверяем категорию домена
+		cat, err := uc.q.GetCategoryByID(ctx, uint(domain.CategoryID))
 		if err != nil {
-			return models.StatusAllowed, fmt.Errorf("failed to get list for domain: %w", err)
+			return models.StatusAllowed, fmt.Errorf("failed to get category for domain: %w", err)
 		}
-		// если находится в черном списке
-		if list != nil && *list == models.Blacklist.String() {
-			// Проверяем, принято ли решение по домену, который находится в черном списке
+		// если категория положительная или нейтральная -> разрешенный
+		if cat.Type != models.CategoryTypeNegative {
+			return models.StatusAllowed, nil
+		} else { // Если категория негативная, смотрим, было ли совершено действия над доменом
 			if domain.ActionID == 0 { // решение еще не принято -> ожидает
 				return models.StatusPending, nil
 			} else {
@@ -540,16 +548,14 @@ func (uc *UseCase) processStatus(ctx context.Context, log models.IdsLog, domain 
 					return models.StatusAllowed, fmt.Errorf("failed to get action for domain: %w", err)
 				}
 				// если принято решение заблокировать домен, но все равно происходит обращение к домену -> аномалия
-				if action != nil && action.Action == "deny" { // TODO: добавить структуру сюда вместо жестко прописанного поля
+				if action != nil && action.Action == "Заблокировано" { // TODO: добавить структуру сюда вместо жестко прописанного поля
 					return models.StatusAnomaly, nil
 				} else {
 					return models.StatusAllowed, nil
 				}
 			}
-		} else {
-			// Иначе домен находится либо в белом списке, либо его вообще нет в списке -> разрешенный
-			return models.StatusAllowed, nil
 		}
+
 	}
 }
 

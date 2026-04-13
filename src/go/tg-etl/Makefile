@@ -1,4 +1,4 @@
-RUN_TYPE ?= local
+RUN_TYPE ?= remote
 ETL_URL="http://127.0.0.1:7000/swagger/doc.json"
 USERCONTROL_URL="http://192.168.130.112:8002/swagger/doc.json"
 BLOG_URL="http://127.0.0.1:8004/swagger/doc.json"

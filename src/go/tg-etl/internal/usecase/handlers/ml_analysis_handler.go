@@ -72,7 +72,10 @@ func (h *MLAnalysisHandler) HandleMLAnalysis(ctx context.Context, result models.
 		h.l.WarnContext(ctx, "domain not found", wsl.String("request_id", requestID.String()))
 		return
 	}
-
+	h.l.DebugContext(ctx, "reseived message from ML: ",
+		wsl.String("domain", domain.Path),
+		wsl.String("category", result.RecognisedClass),
+	)
 	// Обрабатываем случай, когда нашлась и категория, и домен
 	// Проверяем, находится ли домен в одном из списков
 	list, err := h.q.GetListByDomainID(ctx, domain.ID)
@@ -122,12 +125,18 @@ func (h *MLAnalysisHandler) HandleMLAnalysis(ctx context.Context, result models.
 	if err != nil {
 		h.l.ErrorContext(ctx, "failed to get most negative category", wsl.Err(err))
 		// Не возвращаемся, продолжаем с текущими значениями
-	} else if newCat != nil {
+	}
+	// Если домен ни разу не определялся как негативный и категория новая, изменяем его положительную категорию
+	if newCat == nil && domain.CategoryID != int(category.ID) {
+		domain.CategoryID = int(category.ID)
+		domain.CategorizedAt = time.Now()
+	}
+	// Если домен хотя бы раз определялся как негативный, то обновляем его рейтинг негативных категорий и категорию тоже
+	if newCat != nil {
 		// Обновляем вероятность
 		domain.NegRate = perc
-
-		// Если ID категорий не совпадает, обновляем и время категории
-		if category.ID != newCat.ID {
+		// Если ID категорий не совпадает, обновляем
+		if domain.CategoryID != int(newCat.ID) {
 			domain.CategoryID = int(newCat.ID)
 			domain.CategorizedAt = time.Now()
 		}

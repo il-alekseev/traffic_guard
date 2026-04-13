@@ -624,7 +624,7 @@ const docTemplate = `{
                         ],
                         "type": "string",
                         "description": "Фильтр по статусу выявления",
-                        "name": "status",
+                        "name": "_status",
                         "in": "query"
                     },
                     {

@@ -11,7 +11,7 @@ import (
 
 func (r *ELTRepoPG) GetActionByDomainID(ctx context.Context, id uint) (*models.Action, error) {
 	var action models.Action
-	err := r.db.GetDB().WithContext(ctx).First(&action, id).Error
+	err := r.db.GetDB().WithContext(ctx).Where("domain_id = ?", id).First(&action).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
