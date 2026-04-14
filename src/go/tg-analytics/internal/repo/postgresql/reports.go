@@ -248,16 +248,17 @@ func (r *RepoPG) GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, h
 			actions.created_at as action_created_at,
 			actions.action as action,
 			COUNT(*) as total,
-			COUNT(CASE WHEN sessions.datetime_utc < domains.categorized_at THEN 1 END) as before_block,
-			COUNT(CASE WHEN sessions.datetime_utc >= domains.categorized_at AND sessions.status != ? THEN 1 END) as after_block,
+			COUNT(CASE WHEN sessions.datetime_utc < actions.created_at THEN 1 END) as before_block,
+			COUNT(CASE WHEN sessions.datetime_utc >= actions.created_at THEN 1 END) as after_block,
 			COUNT(CASE WHEN sessions.status = ? THEN 1 END) as pending
-		`, status.StatusPending.String(), status.StatusPending.String()).
+		`, status.StatusPending.String()).
 		Joins("LEFT JOIN devices ON sessions.device_id = devices.id").
 		Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
 		Joins("LEFT JOIN categories ON domains.category_id = categories.id").
 		Joins("LEFT JOIN actions ON domains.action_id = actions.id").
-		Where("sessions.status = ?", status.StatusAnomaly.String()). // Только аномальные сессии
-		Where("categories.type = ?", pkg.CategoryTypeNegative)       // Только негативные категории
+		//Where("sessions.status = ?", status.StatusAnomaly.String()). // Только аномальные сессии
+		Where("categories.type = ?", pkg.CategoryTypeNegative.String()). // Только негативные категории
+		Where("actions.action = ?", pkg.ActionTypeDenied.String())
 
 	// Применяем временной диапазон
 	if tr != nil && !tr.From.IsZero() && !tr.To.IsZero() {
