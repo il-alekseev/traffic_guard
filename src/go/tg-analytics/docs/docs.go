@@ -2123,7 +2123,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "anomalies_list_page": {
-                    "$ref": "#/definitions/models.TopAnomaliesPage"
+                    "$ref": "#/definitions/models.DevicesAnomaliesListPage"
                 },
                 "categories_page": {
                     "$ref": "#/definitions/models.TopCategoriesPage"

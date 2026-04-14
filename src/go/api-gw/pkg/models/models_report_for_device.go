@@ -19,7 +19,7 @@ import (
 type ModelsReportForDevice struct {
 
 	// anomalies list page
-	AnomaliesListPage *ModelsTopAnomaliesPage `json:"anomalies_list_page,omitempty"`
+	AnomaliesListPage *ModelsDevicesAnomaliesListPage `json:"anomalies_list_page,omitempty"`
 
 	// categories page
 	CategoriesPage *ModelsTopCategoriesPage `json:"categories_page,omitempty"`

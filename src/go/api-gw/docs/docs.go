@@ -3788,7 +3788,7 @@ const docTemplate = `{
                     "description": "anomalies list page",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/models.ModelsTopAnomaliesPage"
+                            "$ref": "#/definitions/models.ModelsDevicesAnomaliesListPage"
                         }
                     ]
                 },

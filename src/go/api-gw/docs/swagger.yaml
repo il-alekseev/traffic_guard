@@ -803,7 +803,7 @@ definitions:
     properties:
       anomalies_list_page:
         allOf:
-        - $ref: '#/definitions/models.ModelsTopAnomaliesPage'
+        - $ref: '#/definitions/models.ModelsDevicesAnomaliesListPage'
         description: anomalies list page
       categories_page:
         allOf:

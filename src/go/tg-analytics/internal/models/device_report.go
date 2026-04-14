@@ -21,10 +21,10 @@ type DeviceAnalyticsPage struct {
 }
 
 type ReportForDevice struct {
-	From                time.Time           `json:"from"`
-	To                  time.Time           `json:"to"`
-	HostName            string              `json:"hostname"`
-	DeviceAnalyticsPage DeviceAnalyticsPage `json:"device_analytics_page"`
-	AnomaliesListPage   TopAnomaliesPage    `json:"anomalies_list_page"`
-	CategoriesPage      TopCategoriesPage   `json:"categories_page"`
+	From                time.Time                `json:"from"`
+	To                  time.Time                `json:"to"`
+	HostName            string                   `json:"hostname"`
+	DeviceAnalyticsPage DeviceAnalyticsPage      `json:"device_analytics_page"`
+	AnomaliesListPage   DevicesAnomaliesListPage `json:"anomalies_list_page"`
+	CategoriesPage      TopCategoriesPage        `json:"categories_page"`
 }

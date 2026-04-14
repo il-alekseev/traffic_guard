@@ -241,7 +241,7 @@ func (r *RepoPG) GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, h
 
 	query := r.db.GetDB().WithContext(ctx).Table("sessions").
 		Select(`
-			devices.hostname as hostname,
+			devices.hostname as host_name,
 			domains.path as url,
 			domains.categorized_at as categorized_at,
 			actions.created_at as action_created_at,
@@ -290,17 +290,16 @@ func (r *RepoPG) GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, h
 		var status string = "Не решено"
 		if anomaly.ActionCreatedAt != nil && !anomaly.ActionCreatedAt.IsZero() {
 			// Если есть действие, считаем разницу между действием и категоризацией
-			duration := anomaly.ActionCreatedAt.Sub(anomaly.CategorizedAt)
+			duration := anomaly.CategorizedAt.Sub(*anomaly.ActionCreatedAt)
 			liveCount = int64(duration.Hours() / 24) // Переводим в дни
-			// TODO: переделать под Enum
-			if anomaly.Action == "allow" {
+			if anomaly.Action == pkg.ActionTypeAllowed.String() {
 				status = "Разрешено"
 			} else {
 				status = "Заблокировано"
 			}
 		} else {
-			// Если действия нет, считаем разницу от текущего времени до конца временного диапазона
-			duration := time.Now().UTC().Sub(tr.To)
+			// Если действия нет, считаем разницу от текущего времени до момента, когда аномалия была определена как выявление
+			duration := anomaly.CategorizedAt.Sub(time.Now().UTC())
 			liveCount = int64(duration.Hours() / 24) // Переводим в дни
 		}
 
@@ -354,21 +353,23 @@ func (r *RepoPG) GetTopAnomalies(ctx context.Context, tr *trparser.TimeRange) ([
 	// Получаем основную статистику по устройствам с аномалиями
 	query := r.db.GetDB().WithContext(ctx).Table("sessions").
 		Select(`
-			devices.hostname as hostname,
+			devices.hostname as host_name,
 			COUNT(*) as requests,
 			COUNT(CASE WHEN sessions.status = ? THEN 1 END) as anomalies,
 			COUNT(CASE WHEN sessions.status = ? THEN 1 END) as blocks,
 			COUNT(CASE WHEN domains.category_id IS NOT NULL AND categories.type = ? THEN 1 END) as all_detections,
 			COUNT(CASE WHEN domains.category_id IS NOT NULL AND categories.type = ? AND (domains.action_id IS NULL OR domains.action_id = 0) THEN 1 END) as unresolved_detections,
-			COUNT(CASE WHEN domains.category_id IS NOT NULL AND categories.type = ? AND domains.action_id > 0 AND actions.action = 'block' THEN 1 END) as blocked_detections,
-			COUNT(CASE WHEN domains.category_id IS NOT NULL AND categories.type = ? AND domains.action_id > 0 AND actions.action = 'allow' THEN 1 END) as allowed_detections
+			COUNT(CASE WHEN domains.category_id IS NOT NULL AND categories.type = ? AND domains.action_id > 0 AND actions.action = ? THEN 1 END) as blocked_detections, 
+			COUNT(CASE WHEN domains.category_id IS NOT NULL AND categories.type = ? AND domains.action_id > 0 AND actions.action = ? THEN 1 END) as allowed_detections
 		`,
 			status.StatusAnomaly.String(),
 			status.StatusBlocked.String(),
-			pkg.CategoryTypeNegative,
-			pkg.CategoryTypeNegative,
-			pkg.CategoryTypeNegative,
-			pkg.CategoryTypeNegative).
+			pkg.CategoryTypeNegative.String(),
+			pkg.CategoryTypeNegative.String(),
+			pkg.CategoryTypeNegative.String(),
+			pkg.ActionTypeAllowed.String(),
+			pkg.CategoryTypeNegative.String(),
+			pkg.ActionTypeDenied.String()).
 		Joins("LEFT JOIN devices ON sessions.device_id = devices.id").
 		Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
 		Joins("LEFT JOIN categories ON domains.category_id = categories.id").
@@ -380,7 +381,6 @@ func (r *RepoPG) GetTopAnomalies(ctx context.Context, tr *trparser.TimeRange) ([
 	if tr != nil && !tr.From.IsZero() && !tr.To.IsZero() {
 		query = query.Where("sessions.datetime_utc BETWEEN ? AND ?", tr.From, tr.To)
 	}
-
 	err := query.
 		Group("devices.hostname").
 		Having("COUNT(CASE WHEN sessions.status = ? THEN 1 END) > 0", status.StatusAnomaly.String()). // Используем исходное выражение вместо псевдонима
