@@ -15,11 +15,10 @@ import (
 )
 
 // GetTopDetections возвращает список детекций с пагинацией с сортировкой и поиском
-func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, action string, p models.Pagination, search string, sorting models.Sorting) ([]dto.Detection, int64, error) {
+func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, thresh float32, action string, p models.Pagination, search string, sorting models.Sorting) ([]dto.Detection, int64, error) {
 	var detections []dto.Detection
 	var total int64
 
-	// TODO: пока поле "Описание" дублирует категорию
 	query := r.db.GetDB().WithContext(ctx).Table("sessions").
 		Select(fmt.Sprintf(`
 			domains.ip,
@@ -27,12 +26,18 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 			domains.country as location,
 			domains.path as domain,
 			domains.categorized_at as categorized_at,
+			domains.neg_rate,
 			COUNT(*) as request_count,
 			devices.hostname as host_name,
 			categories.name as category,
-			categories.name as description,
+			COALESCE((
+				SELECT string_agg(c2.name, ', ' ORDER BY dc2.count DESC)
+				FROM domain_categories dc2
+				JOIN categories c2 ON c2.id = dc2.category_id
+				WHERE dc2.domain_id = domains.id AND c2.type = '%s'
+			), '') as description,
 			COALESCE(actions.action, '%s') as action
-		`, pkg.ActionTypeUnresolved.String())).
+		`, pkg.CategoryTypeNegative.String(), pkg.ActionTypeUnresolved.String())).
 		Joins("LEFT JOIN devices ON sessions.device_id = devices.id").
 		Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
 		Joins("LEFT JOIN actions ON domains.action_id = actions.id").
@@ -52,9 +57,24 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 		query = query.Where("categories.name = ?", f.TopCategory)
 	}
 
+	// Фильтрация по статусу выявления
+	switch f.Status {
+	case "Все":
+		break
+	case "Рекомендуется блокировка":
+		query = query.Where("domains.neg_rate >= ?", thresh)
+		query = query.Where("actions.action IS NULL")
+	case "Требуется проверка":
+		query = query.Where("domains.neg_rate < ?", thresh)
+		query = query.Where("actions.action IS NULL")
+	case "Заблокирован":
+		query = query.Where("actions.action = ?", "Заблокировано")
+	default:
+		break
+	}
+
 	// Применяем фильтр по действию
 	if action != "" {
-		// Для действия "Не решено" ищем записи где actions.action IS NULL
 		if action == pkg.ActionTypeUnresolved.String() {
 			query = query.Where("actions.action IS NULL")
 		} else {
@@ -68,11 +88,11 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 		query = query.Where("domains.path ILIKE ? OR domains.ip ILIKE ?", searchPattern, searchPattern)
 	}
 
-	// Группируем по уникальным детекциям
+	// Группируем по уникальным детекциям (убираем description из GROUP BY, т.к. это агрегация)
 	query = query.Group(fmt.Sprintf(`
-    domains.ip, domains.port, domains.country, domains.path, domains.categorized_at,
-    devices.hostname, categories.name, COALESCE(actions.action, '%s')
-`, pkg.ActionTypeUnresolved.String()))
+		domains.id, domains.ip, domains.port, domains.country, domains.path, domains.categorized_at, domains.neg_rate, 
+		devices.hostname, categories.name, COALESCE(actions.action, '%s')
+	`, pkg.ActionTypeUnresolved.String()))
 
 	// Получаем общее количество записей (до пагинации)
 	if err := query.Count(&total).Error; err != nil {
@@ -88,7 +108,6 @@ func (r *RepoPG) GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f
 		}
 		query = query.Order(orderField + " " + orderDirection)
 	} else {
-		// Сортируем по количеству запросов (по убыванию) и по времени определения категории по умолчанию
 		query = query.Order("request_count DESC, categorized_at DESC")
 	}
 
@@ -118,7 +137,7 @@ func getDetectionOrderField(orderBy string) string {
 	case "categorized_at":
 		return "domains.categorized_at"
 	default:
-		return "request_count" // поле по умолчанию
+		return "request_count"
 	}
 }
 

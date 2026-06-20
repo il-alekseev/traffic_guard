@@ -15,9 +15,8 @@ import (
 	"userctrl/config"
 	"userctrl/docs"
 	httpserver_v1 "userctrl/internal/controllers/http/v1"
-	"userctrl/internal/repo/blogrepo"
 	"userctrl/internal/usecase"
-	"userctrl/pkg/bizlogger"
+	blog "userctrl/pkg/blog/blog"
 	"userctrl/pkg/grafanaclient"
 	"userctrl/pkg/grafcookier"
 	"userctrl/pkg/keycloakclient"
@@ -27,6 +26,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	goapi "github.com/grafana/grafana-openapi-client-go/client"
+
+	httptransport "github.com/go-openapi/runtime/client"
 )
 
 func makeDSN(host, user, pass, dbname, port, sslmode string) string {
@@ -101,34 +102,6 @@ func Run(cfg *config.Config) error {
 		return err
 	}
 
-	// формирование строки подключения к БД blog
-	bizLogDSN := makeDSN(
-		cfg.BizLogRepo.Host,
-		cfg.BizLogRepo.User,
-		cfg.BizLogRepo.Pass,
-		cfg.BizLogRepo.DBName,
-		cfg.BizLogRepo.Port,
-		cfg.BizLogRepo.SSLMode,
-	)
-
-	bizLogDB, err := getDB(bizLogDSN, logger,
-		&bizlogger.BusinessLog{},
-	)
-	if err != nil {
-		err = fmt.Errorf("db=%s: error=%w", cfg.BizLogRepo.DBName, err)
-		logger.ErrorContext(ctx, err.Error())
-		return err
-	}
-	// инициализация объекта для записи логово в БД
-	bizLogRepo := blogrepo.New(bizLogDB)
-	mainContext := context.Background()
-	blog, blogCancle, err := bizlogger.New(mainContext, bizLogRepo, time.Minute, time.Minute)
-	if err != nil {
-		err = fmt.Errorf("bizlogger.New, host=%s: error=%w", cfg.BizLogRepo.Host, err)
-		logger.ErrorContext(ctx, err.Error())
-		return err
-	}
-
 	// инициализация клиента grafana
 	grafanaURL := fmt.Sprintf(
 		"%s://%s:%s",
@@ -166,13 +139,21 @@ func Run(cfg *config.Config) error {
 
 	grafanaCl := grafanaclient.NewGrafanaClient(tr, "generic_oauth", logger)
 
+	blogCl := blog.New(
+		httptransport.New(
+			cfg.BlogCl.Host+":"+cfg.BlogCl.Port,
+			"/",
+			[]string{cfg.BlogCl.Proto},
+		),
+		nil,
+	)
 	// инициализация слоя бизнес логики
 	uc := usecase.New(
 		cfg,
 		kc,
 		grafCookier,
 		grafanaCl,
-		blog,
+		blogCl,
 		logger,
 	)
 
@@ -194,7 +175,6 @@ func Run(cfg *config.Config) error {
 	// Ожидаем сигнала
 	<-signalChan
 	log.Println("Received shutdown signal, stopping server...")
-	blogCancle()
 
 	// Останавливаем сервер
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

@@ -19,6 +19,8 @@ type ProcessorUseCase interface {
 
 // QueryUsecase - композитный интерфейс для всех запросов
 type QueryUsecase interface {
+	ActionUseCase
+	DomainCategoryUseCase
 	SourceUseCase
 	DomainUseCase
 	DeviceUseCase
@@ -28,6 +30,21 @@ type QueryUsecase interface {
 	ListUseCase
 	URLUseCase
 	LastLogUseCase
+}
+
+// DomainCategoryUseCase
+type DomainCategoryUseCase interface {
+	GetNegativeCategoriesByDomainID(ctx context.Context, id uint) (string, error)
+	GetNegativeCategoriesStatByDomainID(ctx context.Context, id uint) (map[string]float32, error)
+	GetMostNegativeCategoryByDomainID(ctx context.Context, id uint) (*models.Category, float32, error)
+	AddDomainCategory(ctx context.Context, c models.Category, id uint) error
+	GetNegativeCategoriesTotalByDomainID(ctx context.Context, id uint) (int, error)
+	GetNegativeCatWithPercByDomainID(ctx context.Context, id uint) (string, float32, error)
+}
+
+// ActionUseCase
+type ActionUseCase interface {
+	GetActionByDomainID(ctx context.Context, id uint) (*models.Action, error)
 }
 
 // SourceUseCase определяет методы для работы с источниками

@@ -87,7 +87,7 @@ func Run(cfg *config.Config) {
 		nil,
 	)
 
-	u := usecase.New(db, mdb, blclient, logger)
+	u := usecase.New(db, mdb, blclient, cfg.Analytics, logger)
 
 	server := httpserver.New(cfg, logger, u)
 

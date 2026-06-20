@@ -12,7 +12,7 @@ type RepoPGInterface interface {
 	GetDevices(ctx context.Context, hostname string) ([]string, error)
 	GetContentCategories(ctx context.Context) ([]string, error)
 	// Sessions
-	GetSessions(ctx context.Context, tr *trparser.TimeRange, f models.SessionFilter, search string, count uint, s models.Sorting) ([]dto.Session, int64, error)
+	GetSessions(ctx context.Context, tr *trparser.TimeRange, f models.SessionFilter, p models.Pagination, search string, s models.Sorting) ([]dto.Session, int64, error)
 	// Dashboards
 	GetTopCategories(ctx context.Context, tr *trparser.TimeRange, f models.CategoryFilter, count int) ([]dto.Category, error)
 	GetRequestStat(ctx context.Context, tr *trparser.TimeRange, hostname, requestType string, count uint) (models.RequestStat, error)
@@ -21,8 +21,10 @@ type RepoPGInterface interface {
 	GetAnomalies(ctx context.Context, tr *trparser.TimeRange, hostname string) (dto.GetAnomaliesResponse, error)
 	GetProhActivity(ctx context.Context, tr *trparser.TimeRange, hostname string) (dto.GetProhActivityResponse, error)
 	// Detections
-	GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, action string, p models.Pagination, s string, sorting models.Sorting) ([]dto.Detection, int64, error)
+	GetTopDetections(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, thresh float32, action string, p models.Pagination, s string, sorting models.Sorting) ([]dto.Detection, int64, error)
 	GetDetectionStat(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter) (dto.DetectionStat, error)
+	GetTopDetectionsv2(ctx context.Context, tr *trparser.TimeRange, f models.DetectionFilter, thresh float32, action string, p models.Pagination, search string, sorting models.Sorting) ([]dto.Detection_v2, int64, error)
+
 	// Actions
 	Act(ctx context.Context, username, action, path string) error
 	GetDomainAction(ctx context.Context, path string) (string, error)

@@ -342,3 +342,25 @@ export const remToPx = (rem: number): number => {
 
   return rem * rootFontSize;
 }
+
+export const getUTCDateString = (date: Date): string => {
+  return `${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}`;
+};
+
+export const normalizeStartDate = (date: Date): Date => {
+  return new Date(Date.UTC(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    0, 0, 0, 0
+  ));
+};
+
+export const normalizeEndDate = (date: Date): Date => {
+  return new Date(Date.UTC(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    23, 59, 59, 999
+  ));
+};

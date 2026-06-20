@@ -12,14 +12,13 @@ import (
 )
 
 // GetSessions возвращает список сессий с пагинацией
-func (u *Usecase) GetSessions(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.SessionFilter, search string, count uint, s models.Sorting) ([]dto.Session, int64, error) {
+func (u *Usecase) GetSessions(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.SessionFilter, p models.Pagination, search string, s models.Sorting) ([]dto.Session, int64, error) {
 	method := "GetSessions"
 	u.l.InfoContext(ctx,
 		method,
 		slog.Any("time_range", tr),
 		slog.Any("filter", f),
 		slog.String("search", search),
-		slog.Any("count", count),
 		slog.Any("sorting", s),
 	)
 
@@ -29,7 +28,7 @@ func (u *Usecase) GetSessions(ctx context.Context, userMeta *models.UserMeta, tr
 		f.HostName = userMeta.ContextID
 	}
 
-	sessions, total, err := u.db.GetSessions(ctx, tr, f, search, count, s)
+	sessions, total, err := u.db.GetSessions(ctx, tr, f, p, search, s)
 	if err != nil {
 		err = fmt.Errorf("%s: failed to get sessions: %w", method, err)
 		u.l.ErrorContext(ctx, "Database operation failed",

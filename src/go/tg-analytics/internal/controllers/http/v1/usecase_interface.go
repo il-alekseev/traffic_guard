@@ -13,7 +13,7 @@ type UseCaseInterface interface {
 	GetContentCategories(ctx context.Context) ([]string, error)
 
 	// Sessions
-	GetSessions(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.SessionFilter, search string, count uint, s models.Sorting) ([]dto.Session, int64, error)
+	GetSessions(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.SessionFilter, p models.Pagination, search string, s models.Sorting) ([]dto.Session, int64, error)
 
 	// Dashboards
 	GetTopCategories(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.CategoryFilter, count int) ([]dto.Category, error)
@@ -26,7 +26,7 @@ type UseCaseInterface interface {
 	// Detections
 	GetTopDetections(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.DetectionFilter, action string, p models.Pagination, s string, sorting models.Sorting) ([]dto.Detection, int64, error)
 	GetDetectionStat(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.DetectionFilter) (dto.DetectionStat, error)
-
+	GetTopDetections_v2(ctx context.Context, userMeta *models.UserMeta, tr *trparser.TimeRange, f models.DetectionFilter, a string, p models.Pagination, s string, sorting models.Sorting) ([]dto.Detection_v2, int64, error)
 	// Actions
 	Act(ctx context.Context, userMeta *models.UserMeta, action, path string) error
 

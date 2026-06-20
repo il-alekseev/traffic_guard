@@ -93,7 +93,7 @@
 <script setup lang="ts">
 import CalendarIcon from "~/assets/img/calendar.svg"
 import ArrowIcon from "~/assets/img/arrow-down.svg";
-import { makeUTCDate } from "~/helpers/index";
+import { getUTCDateString, makeUTCDate, normalizeEndDate, normalizeStartDate } from "~/helpers/index";
 
 interface CalendarDay {
   date: Date
@@ -143,14 +143,15 @@ const formattedDateRange = computed(() => {
   }
 
   const formatDate = (date: Date) => {
-    const day = date.getDate()
-    const month = monthNamesShort[date.getMonth()]
+    const day = date.getUTCDate()
+    const month = monthNamesShort[date.getUTCMonth()]
+    
     return `${day} ${month}`
   }
 
   const start = formatDate(startDate.value)
   const end = formatDate(endDate.value)
-  const year = endDate.value.getFullYear()
+  const year = endDate.value.getUTCFullYear()
 
   return `${start} - ${end}, ${year}`
 })
@@ -226,29 +227,40 @@ const selectPeriod = (period: string) => {
   selectedPeriod.value = period
   isPeriodMenuOpen.value = false
   
-  const today = new Date()
-  const start = new Date(today)
-  let end = new Date(today)
+  const today = new Date();
+  const end = normalizeEndDate(today);
+  
+  let start: Date;
   
   switch (period) {
     case 'День':
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      start = normalizeStartDate(yesterday);
       break
     case 'Неделя':
-      end = new Date(today.setDate(today.getDate() + 7))
+      const weekAgo = new Date(today);
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      start = normalizeStartDate(weekAgo);
       break
     case 'Месяц':
-      end = new Date(today.setMonth(today.getMonth() + 1))
+      const monthAgo = new Date(today);
+      monthAgo.setMonth(monthAgo.getMonth() - 1);
+      start = normalizeStartDate(monthAgo);
       break
     case 'Год':
-      end = new Date(today.setFullYear(today.getFullYear() + 1))
+      const yearAgo = new Date(today);
+      yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+      start = normalizeStartDate(yearAgo);
       break
+    default:
+      start = normalizeStartDate(today);
   }
   
   startDate.value = start
   endDate.value = end
   emit('update:modelValue', { from: startDate.value, to: endDate.value })
 }
-
 const previousMonth = () => {
   currentDate.value = new Date(
     currentDate.value.getFullYear(),
@@ -268,15 +280,20 @@ const nextMonth = () => {
 const selectDate = (date: Date, isCurrentMonth: boolean) => {
   if (!isCurrentMonth) return
   
+  const normalizedDate = normalizeStartDate(date);
+  
   if (!tempStartDate.value || (tempStartDate.value && tempEndDate.value)) {
-    tempStartDate.value = date
-    tempEndDate.value = null
+    tempStartDate.value = normalizedDate;
+    tempEndDate.value = null;
   } else {
-    if (date < tempStartDate.value) {
-      tempEndDate.value = tempStartDate.value
-      tempStartDate.value = date
+    if (normalizedDate < tempStartDate.value) {
+      tempEndDate.value = normalizeEndDate(tempStartDate.value);
+      tempStartDate.value = normalizedDate;
+    } else if (normalizedDate.getTime() === tempStartDate.value.getTime()) {
+      tempStartDate.value = normalizedDate;
+      tempEndDate.value = normalizeEndDate(normalizedDate);
     } else {
-      tempEndDate.value = date
+      tempEndDate.value = normalizeEndDate(normalizedDate);
     }
   }
 }
@@ -302,9 +319,9 @@ const changeYear = () => {
 
 const isSelected = (date: Date): boolean => {
   if (!tempStartDate.value) return false
-  const dateStr = date.toDateString()
-  return dateStr === tempStartDate.value.toDateString() || 
-         (tempEndDate.value && dateStr === tempEndDate.value.toDateString()) as boolean
+  const dateStr = getUTCDateString(date);
+  return dateStr === getUTCDateString(tempStartDate.value) || 
+         (tempEndDate.value && dateStr === getUTCDateString(tempEndDate.value)) as boolean
 }
 
 const isInRange = (date: Date): boolean => {
@@ -314,12 +331,12 @@ const isInRange = (date: Date): boolean => {
 
 const isStartDate = (date: Date): boolean => {
   if (!tempStartDate.value) return false
-  return date.toDateString() === tempStartDate.value.toDateString()
+  return getUTCDateString(date) === getUTCDateString(tempStartDate.value)
 }
 
 const isEndDate = (date: Date): boolean => {
   if (!tempEndDate.value) return false
-  return date.toDateString() === tempEndDate.value.toDateString()
+  return getUTCDateString(date) === getUTCDateString(tempEndDate.value)
 }
 
 const clearDates = () => {
@@ -328,12 +345,17 @@ const clearDates = () => {
 }
 
 const applyDates = () => {
-  startDate.value = tempStartDate.value
-  endDate.value = tempEndDate.value
+  if (tempStartDate.value && !tempEndDate.value) {
+    startDate.value = tempStartDate.value;
+    endDate.value = normalizeEndDate(tempStartDate.value);
+  } else {
+    startDate.value = tempStartDate.value;
+    endDate.value = tempEndDate.value;
+  }
+  
   emit('update:modelValue', { from: startDate.value, to: endDate.value })
   isCalendarOpen.value = false
 }
-
 onMounted(() => {
   document.addEventListener('keydown', handleEscape);
 })
@@ -344,7 +366,7 @@ onUnmounted(() => {
 
 watch(
   () => [props.modelValue?.from, props.modelValue?.to],
-  ([from, to]) => {
+  ([from, to]) => {    
     startDate.value = from ? new Date(from) : null;
     endDate.value = to ? new Date(to) : null;
   },

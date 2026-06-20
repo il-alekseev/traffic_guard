@@ -13,8 +13,8 @@ all: generate build
 # Генерация кода из OpenAPI спецификации
 .PHONY: gen-a
 gen-a:
-	swagger generate client -c analytics -f $(ANALYTICS_URL) -A analytics -t pkg
-	# swagger generate client -c analytics -f ../tg-analytics/docs/swagger.json -A analytics -t pkg
+#	swagger generate client -c analytics -f $(ANALYTICS_URL) -A analytics -t pkg
+	swagger generate client -c analytics -f ../tg-analytics/docs/swagger.json -A analytics -t pkg
 
 .PHONY: gen-u 
 gen-u:
@@ -38,9 +38,9 @@ clean:
 .PHONY: swagger
 swagger:
 	swag init -g ./internal/controllers/http/v1/server.go -o ./docs
-	# убирает поле omitempty которое добавляется при кодогенерации клиентов
-	#find pkg -type f -name '*.go' -exec sed -i '' 's/,omitempty//' {} + # для macos
-    #find pkg -type f -name '*.go' -exec sed -i 's/,omitempty//' {} + # для Linux
+# убирает поле omitempty которое добавляется при кодогенерации клиентов
+# find pkg -type f -name '*.go' -exec sed -i '' 's/,omitempty//' {} + # для macos
+#find pkg -type f -name '*.go' -exec sed -i 's/,omitempty//' {} + # для Linux
 
 .PHONY: vet
 vet:

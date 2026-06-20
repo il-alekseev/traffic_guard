@@ -35,6 +35,27 @@ type Detection struct {
 	Description   string    `json:"description"`
 	Action        string    `json:"action"`
 	CategorizedAt time.Time `json:"categorized_at"`
+	NegRate       float32   `json:"neg_rate"`
+}
+
+type Detection_v2 struct {
+	IP            string         `json:"ip"`
+	Port          int            `json:"port"`
+	Location      string         `json:"location"`
+	Domain        string         `json:"domain"`
+	RequestCount  int            `json:"request_count"`
+	HostName      string         `json:"hostname"`
+	Category      string         `json:"category"`
+	Description   string         `json:"description"`
+	Action        string         `json:"action"`
+	CategorizedAt time.Time      `json:"categorized_at"`
+	NegRate       float32        `json:"neg_rate"`
+	Categories    []CategoryStat `json:"categories"`
+}
+
+type CategoryStat struct {
+	Name string  `json:"name"`
+	Rate float32 `json:"rate"`
 }
 
 type DetectionStat struct {
@@ -50,9 +71,11 @@ type RequestPoint struct {
 }
 
 type GetSessionsResponse struct {
-	Data  []Session `json:"data"`  // Список сессий
-	Count uint      `json:"count"` // Число сессий в ответе
-	Total uint      `json:"total"` // Общее количество сессийы
+	Data []Session `json:"data"` // Список сессий
+	//Meta PaginationMeta `json:"meta"` // Метаданные пагинации // TODO: Костыль ниже! потом эту строчку расскоментировать, а нижние убрать
+	Count uint `json:"count"` // Число сессий в ответе
+	Total uint `json:"total"` // Общее количество сессий
+	Pages uint `json:"pages"` // Общее количество страниц
 }
 
 type GetDetectionsResponse struct {

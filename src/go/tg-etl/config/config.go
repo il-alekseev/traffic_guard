@@ -63,10 +63,11 @@ type (
 	}
 
 	EtlController struct {
-		CacheTTL  int  `env-required:"true" yaml:"cache_ttl" env:"ETL_CACHE_TTL"`
-		Refresh   uint `env-required:"true" yaml:"refresh" env:"ETL_REFRESH"`
-		BatchSize uint `env-required:"true" yaml:"batchsize" env:"ETL_BATCHSIZE"`
-		MLAttemps uint `env-required:"true" yaml:"ml_attemps" env:"ETL_ML_ATTEMPS"`
+		CacheTTL            int  `env-required:"true" yaml:"cache_ttl" env:"ETL_CACHE_TTL"`
+		Refresh             uint `env-required:"true" yaml:"refresh" env:"ETL_REFRESH"`
+		BatchSize           uint `env-required:"true" yaml:"batchsize" env:"ETL_BATCHSIZE"`
+		MLAttemps           uint `env-required:"true" yaml:"ml_attemps" env:"ETL_ML_ATTEMPS"`
+		BlacklistTriesCount uint `env-required:"true" yaml:"blacklist_tries_count" env:"ETL_BLACKLIST_TRIES_COUNT"`
 	}
 
 	Kafka struct {

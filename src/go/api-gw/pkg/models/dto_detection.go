@@ -41,6 +41,9 @@ type DtoDetection struct {
 	// location
 	Location string `json:"location,omitempty"`
 
+	// neg rate
+	NegRate float64 `json:"neg_rate,omitempty"`
+
 	// port
 	Port int64 `json:"port,omitempty"`
 

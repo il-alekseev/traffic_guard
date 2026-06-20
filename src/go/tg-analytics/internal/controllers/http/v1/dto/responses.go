@@ -55,3 +55,9 @@ type GetProhActivityResponse struct {
 	Count     uint      `json:"count"`
 	Data      []uint    `json:"data"`
 }
+
+// GetDetectionsResponseV2 представляет ответ со списком выявлений (версия 2)
+type GetDetectionsResponseV2 struct {
+	Data []Detection_v2 `json:"data"`
+	Meta PaginationMeta `json:"meta"`
+}

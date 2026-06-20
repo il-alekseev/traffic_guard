@@ -43,6 +43,7 @@ type Domain struct {
 	CategorizedAt time.Time `gorm:"type:timestamp;" json:"categorized_at"`
 	ActionID      uint      `gorm:"column:action_id;default:0" json:"action_id"`
 	AnalysisCount uint      `gorm:"column:analysis_count;default:0" json:"analysis_count"`
+	NegRate       float32   `gorm:"type:real;default:0" json:"neg_rate"`
 }
 
 // Action представляет таблицу action
@@ -54,19 +55,14 @@ type Action struct {
 	DomainID  uint      `gorm:"type:integer;not null;index" json:"domain_id"`
 }
 
-// Пока приходит только одна категория контента, поэтому эти таблицы не нужны
-// Category представляет таблицу content_category
-/*type ContentCategory struct {
+// Мультикатегорийность (при условии получения только одной категории из ML-ки)
+// DomainCategory представляет таблицу domain_category
+type DomainCategory struct {
 	ID         uint    `gorm:"primaryKey" json:"id"`
-	CategoryID uint    `gorm:"type:integer" json:"category_id"`
-	Percent    float64 `gorm:"type:float" json:"percent"`
+	DomainID   uint    `gorm:"type:integer;not null;index;uniqueIndex:idx_domain_category" json:"domain_id"`
+	CategoryID uint    `gorm:"type:integer;not null;index;uniqueIndex:idx_domain_category" json:"category_id"`
+	Count      float64 `gorm:"type:integer" json:"count"`
 }
-
-// CategoryDomain представляет таблицу category_domain (связующая таблица)
-type CategoryDomain struct {
-	ContentCategoryID uint `gorm:"primaryKey;column:content_category_id" json:"content_category_id"`
-	DomainID          uint `gorm:"primaryKey;column:domain_id" json:"domain_id"`
-}*/
 
 // DomainControlLists представляет таблицу domain_control_lists белого и черного списка доменов
 type DomainControlLists struct {
@@ -78,7 +74,7 @@ type DomainControlLists struct {
 
 type URL struct {
 	ID            uint      `gorm:"primaryKey;column:id" json:"id"`
-	Path          string    `gorm:"type:varchar(2048);not null" json:"path"`
+	Path          string    `gorm:"type:TEXT;not null" json:"path"`
 	Proto         string    `gorm:"type:varchar(10);not null" json:"proto"`
 	DomainID      uint      `gorm:"type:integer;not null;index" json:"domain_id"`
 	IDSLogsAt     time.Time `gorm:"column:ids_logs_at;type:timestamp" json:"ids_logs_at"`
@@ -93,4 +89,11 @@ type URL struct {
 type LastLog struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	Timestamp time.Time `gorm:"type:timestamptz;not null" json:"timestamp"`
+}
+
+// Category представляет категорию в базе данных
+type Category struct {
+	ID   uint         `gorm:"primaryKey;autoIncrement" json:"id"`
+	Name string       `gorm:"type:varchar(255);not null;uniqueIndex" json:"name"`
+	Type CategoryType `gorm:"type:varchar(20);not null;default:'neutral'" json:"type"`
 }

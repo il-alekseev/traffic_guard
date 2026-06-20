@@ -19,13 +19,16 @@ import (
 // swagger:model dto.GetSessionsResponse
 type DtoGetSessionsResponse struct {
 
-	// Число сессий в ответе
+	// Meta PaginationMeta `json:"meta"` // Метаданные пагинации // TODO: Костыль ниже! потом эту строчку расскоментировать, а нижние убрать
 	Count int64 `json:"count,omitempty"`
 
 	// Список сессий
 	Data []*DtoSession `json:"data"`
 
-	// Общее количество сессийы
+	// Общее количество страниц
+	Pages int64 `json:"pages,omitempty"`
+
+	// Общее количество сессий
 	Total int64 `json:"total,omitempty"`
 }
 

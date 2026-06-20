@@ -26,6 +26,8 @@
       </div>
     </div>
 
+    <div ref="dashboardPageScrollRef" class="dashboard-page__scroll">
+      <div class="dashboard-page__canvas">
     <div class="dashboard-data">
       <div class="dashboard-grid">
         <DashboardCard class="dashboard__trafic" title="Трафик" :legend="{input: {name: 'Входящий', color: '#37C84F'}, output: {name: 'Исходящий', color: '#2563EB'}}">
@@ -260,6 +262,8 @@
         </div>
       </div>
     </template>
+      </div>
+    </div>
 
     <SideModal
       v-model="isShowFilters"
@@ -294,7 +298,7 @@ import DashboardTrafficChart from "~/components/dashboard-grid/TrafficSplineChar
 import DashboardAnomalies from '~/components/dashboard-grid/DashboardAnomalies.vue';
 import ReloadIcon from "~/assets/img/reload.svg"
 import FilterIcon from "~/assets/img/filter-icon.svg"
-import { getCurrentDateWithOffset, isValidDateString, remToPx } from '~/helpers';
+import { getCurrentDateWithOffset, isValidDateString, normalizeEndDate, normalizeStartDate } from '~/helpers';
 import type { DashboardDeviceRequestsSplineChart, DashboardRequestsType } from '~/types/dashboard';
 import RequestsSplineChart from '~/components/dashboard-grid/devices/RequestsSplineChart.vue';
 import { useDeviceColors } from '~/composables/useDeviceColors';
@@ -311,6 +315,9 @@ definePageMeta({
 });
 
 const { generateColor } = useDeviceColors();
+
+const dashboardPageScrollRef = ref<HTMLElement | null>(null);
+useGrabScroll(dashboardPageScrollRef);
 
 const TOPS_COUNT = 5;
 const TRAFFIC_COUNT = 20;
@@ -624,8 +631,8 @@ const closeFilters = () => {
 }
 
 const dateRange = ref<{ from: Date | null; to: Date | null }>({
-  from: getCurrentDateWithOffset(-1, 'd'),
-  to: getCurrentDateWithOffset()
+  from: normalizeStartDate(getCurrentDateWithOffset(-1, 'd')),
+  to: normalizeEndDate(getCurrentDateWithOffset())
 })
 const deviceFilter = ref<string | undefined>();
 const filtersData = computed<DashboardFilter | null>(() => {
@@ -650,11 +657,11 @@ const initFiltersFromUrl = () => {
   
   dateRange.value.from = isValidDateString(fromStr)
     ? new Date(fromStr!)
-    : getCurrentDateWithOffset(-1, 'd');
+    : normalizeStartDate(getCurrentDateWithOffset(-1, 'd'));
 
   dateRange.value.to = isValidDateString(toStr)
     ? new Date(toStr!)
-    : getCurrentDateWithOffset();
+    : normalizeEndDate(getCurrentDateWithOffset());
 };
 
 const updateUrlParams = () => {
@@ -704,6 +711,44 @@ watch(
 </script>
 
 <style lang="scss" scoped>
+$dashboard-canvas-floor: calc(1920px - 22rem);
+
+.dashboard-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.dashboard-page__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Тач: нативный скролл overflow. Мышь: grab, если есть что прокручивать (см. composable useGrabScroll) */
+.dashboard-page__scroll.grab-scroll--can-grab {
+  cursor: grab;
+}
+
+.dashboard-page__scroll.grab-scroll--can-grab.grab-scroll--dragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.dashboard-page__canvas {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+@media (max-width: 1919px) {
+  .dashboard-page__canvas {
+    min-width: $dashboard-canvas-floor;
+  }
+}
 
 .dashboard__header-block, .dashboard-nodes__header-block {
   display: flex;
@@ -731,8 +776,6 @@ watch(
   margin-top: 1.5rem;
   display: flex;
   flex-direction: column;
-  overflow-x: auto;
-  min-height: calc(100vh - 21rem);
   margin-bottom: 1.5rem;
 }
 
@@ -743,10 +786,10 @@ watch(
 
 .dashboard-grid {
   width: 100%;
+  min-width: 0;
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
-  overflow: hidden;
 }
 
 
@@ -827,10 +870,12 @@ watch(
 
 .dashboard__trafic {
   min-height: 14.25rem;
+  max-width: 100%;
+  width: 100%;
 }
 
 .dashboard__proh-activity {
-  max-width: 65rem;
+  max-width: 100%;
   width: 100%;
 }
 
@@ -839,7 +884,38 @@ watch(
   row-gap: 0.75rem;
   column-gap: 1rem;
   flex-wrap: wrap;
-  max-width: 65rem;
+  max-width: 100%;
+  width: 100%;
+}
+
+.dashboard__request {
+  flex: 1 1 calc((100% - 1rem) / 2);
+  min-width: 0;
+  max-width: calc((100% - 1rem) / 2);
+}
+
+.dashboard__top-categories {
+  flex: 1 1 calc((100% - 1rem) / 2);
+  min-width: 0;
+  max-width: calc((100% - 1rem) / 2);
+}
+
+.dashboard__top-detections {
+  flex: 1 1 calc((100% - 1rem) / 2);
+  min-width: 0;
+  max-width: calc((100% - 1rem) / 2);
+}
+
+.dashboard__anomalies {
+  flex: 1 1 calc((100% - 1rem) / 2);
+  min-width: 0;
+  max-width: calc((100% - 1rem) / 2);
+}
+
+.dashboard-node__trafic {
+  flex: 1 1 calc((100% - 1rem) / 2);
+  min-width: 0;
+  max-width: calc((100% - 1rem) / 2);
 }
 
 .device__status {
@@ -880,163 +956,10 @@ watch(
 }
 
 .dashboard__logs {
+  flex: 1 1 calc((100% - 1rem) / 2);
+  min-width: 0;
+  max-width: calc((100% - 1rem) / 2);
   padding-bottom: 0;
-}
-
-@media screen and (min-width: 1921px) {
-  .dashboard-grid {
-    max-width: 130rem;
-  }
-
-  .dashboard__trafic {
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .dashboard__proh-activity {
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .dashboard__requests {
-    max-width: 49%;
-    width: 100%;
-  }
-
-  .dashboard__request {
-    max-width: 49%;
-    width: 100%;
-  }
-
-  .dashboard__top-categories {
-    width: 24.65%;
-  }
-
-  .dashboard__top-detections {
-    width: 24.65%;
-  }
-
-  .dashboard__anomalies {
-    width: 49.5%;
-  }
-
-  .dashboard__logs {
-    width: 49.5%;
-  }
-}
-
-@media screen and (max-width: 1919px) {
-  .dashboard__trafic {
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .dashboard__proh-activity {
-    max-width: 100%;
-    width: 100%;
-  }
-
-
-  .dashboard__requests {
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .dashboard__request {
-    width: 49.3%;
-  }
-
-  .dashboard__top-categories {
-    width: 49.3%;
-  }
-
-  .dashboard__top-detections {
-    width: 49.3%;
-  }
-
-  .dashboard__anomalies {
-    width: 49.3%;
-  }
-
-  .dashboard__logs {
-    width: 49.3%;
-  }
-
-  .dashboard-node__trafic {
-    width: 49.3%;
-  }
-}
-
-@media screen and (max-width: 1500px) {
-  .dashboard__trafic {
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .dashboard__requests {
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .dashboard__request {
-    width: 49%;
-  }
-
-  .dashboard__top-categories {
-    width: 49%;
-  }
-
-  .dashboard__top-detections {
-    width: 49%;
-  }
-
-  .dashboard__anomalies {
-    width: 49%;
-  }
-
-  .dashboard__logs {
-    width: 49%;
-  }
-
-  .dashboard-node__trafic {
-    width: 49%;
-  }
-}
-
-@media screen and (max-width: 780px) {
-  .dashboard__trafic {
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .dashboard__requests {
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .dashboard__request {
-    width: 100%;
-  }
-
-  .dashboard__top-categories {
-    width: 100%;
-  }
-
-  .dashboard__top-detections {
-    width: 100%;
-  }
-
-  .dashboard__anomalies {
-    width: 100%;
-  }
-
-  .dashboard__logs {
-    width: 100%;
-  }
-
-  .dashboard-node__trafic {
-    width: 100%;
-  }
 }
 
 </style>

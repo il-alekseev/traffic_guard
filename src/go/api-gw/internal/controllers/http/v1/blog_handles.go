@@ -5,10 +5,11 @@ import (
 	"api-gateway/internal/controllers/http/v1/values"
 	"api-gateway/pkg/blogserv/operations"
 	"api-gateway/pkg/models"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // users godoc
@@ -72,7 +73,7 @@ func (s *Server) logs(c *gin.Context) {
 // @Summary      Добавление логов в БД
 // @Tags logs
 // @Security 	 BearerAuth
-// @Param record body models.DtoDtoBusinessLog true "Структура записи бизнес лога"
+// @Param record body models.DtoBusinessLog true "Структура записи бизнес лога"
 // @Success      200  {object}  models.DtoSuccessResponse "Успех"
 // @Failure 500 {object} models.ModelsAPIError "internal error"
 // @Router       /api/v1/blog/add [post]

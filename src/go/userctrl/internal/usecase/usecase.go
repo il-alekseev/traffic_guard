@@ -3,7 +3,7 @@ package usecase
 import (
 	"log/slog"
 	"userctrl/config"
-	"userctrl/pkg/bizlogger"
+	"userctrl/pkg/blog/blog"
 	"userctrl/pkg/grafanaclient"
 	"userctrl/pkg/grafcookier"
 	"userctrl/pkg/keycloakclient"
@@ -19,7 +19,7 @@ type UseCase struct {
 	kc             keycloakclient.KeycloakClientInterface
 	grafanaCookier grafcookier.GrafCookierInterface
 	grafanaCl      *grafanaclient.GrafanaClient
-	blog           bizlogger.LoggerInterface
+	blogCl         *blog.Blog
 	l              slog.Logger
 }
 
@@ -29,14 +29,14 @@ func New(
 	kc keycloakclient.KeycloakClientInterface,
 	grafanaCookier grafcookier.GrafCookierInterface,
 	grafanaCl *grafanaclient.GrafanaClient,
-	blog bizlogger.LoggerInterface,
+	blogCl *blog.Blog,
 	l slog.Logger,
 ) *UseCase {
 	uc := UseCase{
 		kc:             kc,
 		grafanaCookier: grafanaCookier,
 		grafanaCl:      grafanaCl,
-		blog:           blog,
+		blogCl:         blogCl,
 		l:              l,
 	}
 	return &uc

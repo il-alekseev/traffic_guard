@@ -226,37 +226,39 @@ func (r *RepoPG) GetDevicesAnalytics(ctx context.Context, tr *trparser.TimeRange
 // GetAnomaliesList возвращает список аномалий
 func (r *RepoPG) GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, hostname string) ([]models.DeviceAnomaly, error) {
 	type anomalyTemp struct {
-		HostName        string     `json:"hostname"`
-		URL             string     `json:"url"`
-		CategorizedAt   time.Time  `json:"categorized_at"`
-		ActionCreatedAt *time.Time `json:"action_created_at"`
-		Action          string     `json:"action"`
-		Total           uint       `json:"total"`
-		BeforeBlock     uint       `json:"before_block"`
-		AfterBlock      uint       `json:"after_block"`
-		Pending         uint       `json:"pending"`
+		HostName        string     `gorm:"column:host_name" json:"hostname"`
+		URL             string     `gorm:"column:url" json:"url"`
+		CategorizedAt   time.Time  `gorm:"column:categorized_at" json:"categorized_at"`
+		ActionCreatedAt *time.Time `gorm:"column:action_created_at" json:"action_created_at"`
+		Action          string     `gorm:"column:action" json:"action"`
+		Total           uint       `gorm:"column:total" json:"total"`
+		BeforeBlock     uint       `gorm:"column:before_block" json:"before_block"`
+		AfterBlock      uint       `gorm:"column:after_block" json:"after_block"`
+		Pending         uint       `gorm:"column:pending" json:"pending"`
 	}
 
 	var tempResults []anomalyTemp
 
+	// Запрос для получения аномалий
 	query := r.db.GetDB().WithContext(ctx).Table("sessions").
 		Select(`
-			devices.hostname as hostname,
+			devices.hostname as host_name,
 			domains.path as url,
 			domains.categorized_at as categorized_at,
 			actions.created_at as action_created_at,
 			actions.action as action,
 			COUNT(*) as total,
-			COUNT(CASE WHEN sessions.datetime_utc < domains.categorized_at THEN 1 END) as before_block,
-			COUNT(CASE WHEN sessions.datetime_utc >= domains.categorized_at AND sessions.status != ? THEN 1 END) as after_block,
+			COUNT(CASE WHEN sessions.datetime_utc < actions.created_at THEN 1 END) as before_block,
+			COUNT(CASE WHEN sessions.datetime_utc >= actions.created_at THEN 1 END) as after_block,
 			COUNT(CASE WHEN sessions.status = ? THEN 1 END) as pending
-		`, status.StatusPending.String(), status.StatusPending.String()).
+		`, status.StatusPending.String()).
 		Joins("LEFT JOIN devices ON sessions.device_id = devices.id").
 		Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
 		Joins("LEFT JOIN categories ON domains.category_id = categories.id").
 		Joins("LEFT JOIN actions ON domains.action_id = actions.id").
-		Where("sessions.status = ?", status.StatusAnomaly.String()). // Только аномальные сессии
-		Where("categories.type = ?", pkg.CategoryTypeNegative)       // Только негативные категории
+		//Where("sessions.status = ?", status.StatusAnomaly.String()). // Только аномальные сессии
+		Where("categories.type = ?", pkg.CategoryTypeNegative.String()). // Только негативные категории
+		Where("actions.action = ?", pkg.ActionTypeDenied.String())
 
 	// Применяем временной диапазон
 	if tr != nil && !tr.From.IsZero() && !tr.To.IsZero() {
@@ -277,12 +279,12 @@ func (r *RepoPG) GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, h
 		return []models.DeviceAnomaly{}, fmt.Errorf("failed to get anomalies list: %w", err)
 	}
 
-	// Если нет данных, возвращаем пустой слайс
-	if tempResults == nil {
-		return []models.DeviceAnomaly{}, nil
+	// Получаем список всех устройств
+	allDevices, err := r.GetDevices(ctx, hostname)
+	if err != nil {
+		return []models.DeviceAnomaly{}, err
 	}
-
-	// Группируем по устройствам
+	// Группируем аномалии по устройствам
 	deviceAnomalies := make(map[string][]models.AnomalyReport)
 	for _, anomaly := range tempResults {
 		// Вычисляем LiveCount как разницу в днях
@@ -290,18 +292,20 @@ func (r *RepoPG) GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, h
 		var status string = "Не решено"
 		if anomaly.ActionCreatedAt != nil && !anomaly.ActionCreatedAt.IsZero() {
 			// Если есть действие, считаем разницу между действием и категоризацией
-			duration := anomaly.ActionCreatedAt.Sub(anomaly.CategorizedAt)
+			duration := anomaly.CategorizedAt.Sub(*anomaly.ActionCreatedAt)
 			liveCount = int64(duration.Hours() / 24) // Переводим в дни
-			// TODO: переделать под Enum
-			if anomaly.Action == "allow" {
+			if anomaly.Action == pkg.ActionTypeAllowed.String() {
 				status = "Разрешено"
 			} else {
 				status = "Заблокировано"
 			}
 		} else {
-			// Если действия нет, считаем разницу от текущего времени до конца временного диапазона
-			duration := time.Now().UTC().Sub(tr.To)
+			// Если действия нет, считаем разницу от текущего времени до момента категоризации
+			duration := time.Now().UTC().Sub(anomaly.CategorizedAt)
 			liveCount = int64(duration.Hours() / 24) // Переводим в дни
+			if liveCount < 0 {
+				liveCount = 0
+			}
 		}
 
 		anomalyReport := models.AnomalyReport{
@@ -323,11 +327,16 @@ func (r *RepoPG) GetAnomaliesList(ctx context.Context, tr *trparser.TimeRange, h
 		deviceAnomalies[anomaly.HostName] = append(deviceAnomalies[anomaly.HostName], anomalyReport)
 	}
 
-	// Преобразуем в конечный формат
-	result := make([]models.DeviceAnomaly, 0, len(deviceAnomalies))
-	for hostname, anomalies := range deviceAnomalies {
+	// Формируем результат, включая устройства без аномалий
+	result := make([]models.DeviceAnomaly, 0, len(allDevices))
+	for _, deviceHostname := range allDevices {
+		anomalies, exists := deviceAnomalies[deviceHostname]
+		if !exists {
+			// Если у устройства нет аномалий, добавляем пустой список
+			anomalies = []models.AnomalyReport{}
+		}
 		result = append(result, models.DeviceAnomaly{
-			HostName:    hostname,
+			HostName:    deviceHostname,
 			AnomalyStat: anomalies,
 		})
 	}
@@ -354,91 +363,117 @@ func (r *RepoPG) GetTopAnomalies(ctx context.Context, tr *trparser.TimeRange) ([
 	// Получаем основную статистику по устройствам с аномалиями
 	query := r.db.GetDB().WithContext(ctx).Table("sessions").
 		Select(`
-			devices.hostname as hostname,
+			devices.hostname as host_name,
 			COUNT(*) as requests,
 			COUNT(CASE WHEN sessions.status = ? THEN 1 END) as anomalies,
 			COUNT(CASE WHEN sessions.status = ? THEN 1 END) as blocks,
 			COUNT(CASE WHEN domains.category_id IS NOT NULL AND categories.type = ? THEN 1 END) as all_detections,
 			COUNT(CASE WHEN domains.category_id IS NOT NULL AND categories.type = ? AND (domains.action_id IS NULL OR domains.action_id = 0) THEN 1 END) as unresolved_detections,
-			COUNT(CASE WHEN domains.category_id IS NOT NULL AND categories.type = ? AND domains.action_id > 0 AND actions.action = 'block' THEN 1 END) as blocked_detections,
-			COUNT(CASE WHEN domains.category_id IS NOT NULL AND categories.type = ? AND domains.action_id > 0 AND actions.action = 'allow' THEN 1 END) as allowed_detections
+			COUNT(CASE WHEN domains.category_id IS NOT NULL AND categories.type = ? AND domains.action_id > 0 AND actions.action = ? THEN 1 END) as blocked_detections, 
+			COUNT(CASE WHEN domains.category_id IS NOT NULL AND categories.type = ? AND domains.action_id > 0 AND actions.action = ? THEN 1 END) as allowed_detections
 		`,
 			status.StatusAnomaly.String(),
 			status.StatusBlocked.String(),
-			pkg.CategoryTypeNegative,
-			pkg.CategoryTypeNegative,
-			pkg.CategoryTypeNegative,
-			pkg.CategoryTypeNegative).
+			pkg.CategoryTypeNegative.String(),
+			pkg.CategoryTypeNegative.String(),
+			pkg.CategoryTypeNegative.String(),
+			pkg.ActionTypeAllowed.String(),
+			pkg.CategoryTypeNegative.String(),
+			pkg.ActionTypeDenied.String()).
 		Joins("LEFT JOIN devices ON sessions.device_id = devices.id").
 		Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
 		Joins("LEFT JOIN categories ON domains.category_id = categories.id").
 		Joins("LEFT JOIN actions ON domains.action_id = actions.id").
-		Where("devices.hostname IS NOT NULL").
-		Where("sessions.status = ?", status.StatusAnomaly.String()) // Только устройства с аномалиями
+		Where("devices.hostname IS NOT NULL")
 
 	// Применяем временной диапазон
 	if tr != nil && !tr.From.IsZero() && !tr.To.IsZero() {
 		query = query.Where("sessions.datetime_utc BETWEEN ? AND ?", tr.From, tr.To)
 	}
-
 	err := query.
 		Group("devices.hostname").
-		Having("COUNT(CASE WHEN sessions.status = ? THEN 1 END) > 0", status.StatusAnomaly.String()). // Используем исходное выражение вместо псевдонима
-		Order("anomalies DESC").                                                                      // Сортируем по количеству аномалий
+		Order("anomalies DESC").
 		Find(&tempResults).Error
 
 	if err != nil {
 		return []models.DeviceAnomalyAnalytics{}, fmt.Errorf("failed to get top anomalies: %w", err)
 	}
 
-	// Если нет данных, возвращаем пустой слайс
-	if tempResults == nil {
-		return []models.DeviceAnomalyAnalytics{}, nil
+	// Получаем список всех устройств
+	allDevices, err := r.GetDevices(ctx, "")
+	if err != nil {
+		return []models.DeviceAnomalyAnalytics{}, fmt.Errorf("failed to get top anomalies: %w", err)
+	}
+
+	// Создаем карту для быстрого доступа к результатам
+	deviceStatsMap := make(map[string]deviceAnomalyTemp)
+	for _, device := range tempResults {
+		deviceStatsMap[device.HostName] = device
 	}
 
 	// Получаем количество уникальных аномальных ресурсов для каждого устройства
-	for i := range tempResults {
-		var resourcesCount int64
-		err := r.db.GetDB().WithContext(ctx).Table("sessions").
-			Distinct("domains.path").
-			Joins("LEFT JOIN devices ON sessions.device_id = devices.id").
-			Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
-			Joins("LEFT JOIN categories ON domains.category_id = categories.id").
-			Where("devices.hostname = ?", tempResults[i].HostName).
-			Where("sessions.status = ?", status.StatusAnomaly.String()).
-			Where("categories.type = ?", pkg.CategoryTypeNegative).
-			Count(&resourcesCount).Error
+	result := make([]models.DeviceAnomalyAnalytics, 0, len(allDevices))
+	for _, deviceHostname := range allDevices {
+		// Получаем статистику устройства (если есть)
+		deviceStats, exists := deviceStatsMap[deviceHostname]
 
-		if err != nil {
-			r.l.WarnContext(ctx, "failed to count anomaly resources", slog.String("hostname", tempResults[i].HostName), slog.Any("error", err))
-			tempResults[i].AnomalyResourcesCount = 0
+		var anomaliesCount, blocksCount, requestsCount uint
+		var allDetections, unresolvedDetections, blockedDetections, allowedDetections uint
+
+		if exists {
+			anomaliesCount = deviceStats.Anomalies
+			blocksCount = deviceStats.Blocks
+			requestsCount = deviceStats.Requests
+			allDetections = deviceStats.AllDetections
+			unresolvedDetections = deviceStats.UnresolvedDetections
+			blockedDetections = deviceStats.BlockedDetections
+			allowedDetections = deviceStats.AllowedDetections
+
+			// Подсчитываем количество уникальных аномальных ресурсов только если есть аномалии
+			if anomaliesCount > 0 {
+				var resourcesCount int64
+				err := r.db.GetDB().WithContext(ctx).Table("sessions").
+					Distinct("domains.path").
+					Joins("LEFT JOIN devices ON sessions.device_id = devices.id").
+					Joins("LEFT JOIN domains ON sessions.domain_id = domains.id").
+					Joins("LEFT JOIN categories ON domains.category_id = categories.id").
+					Where("devices.hostname = ?", deviceHostname).
+					Where("sessions.status = ?", status.StatusAnomaly.String()).
+					Where("categories.type = ?", pkg.CategoryTypeNegative).
+					Count(&resourcesCount).Error
+
+				if err != nil {
+					r.l.WarnContext(ctx, "failed to count anomaly resources", slog.String("hostname", deviceHostname), slog.Any("error", err))
+				}
+			}
 		} else {
-			tempResults[i].AnomalyResourcesCount = uint(resourcesCount)
+			// Если у устройства нет аномалий, все значения остаются нулевыми
+			// Явно инициализируем переменные нулями (они уже инициализированы)
 		}
-	}
 
-	// Преобразуем результат в нужный формат
-	result := make([]models.DeviceAnomalyAnalytics, 0, len(tempResults))
-	for _, device := range tempResults {
 		result = append(result, models.DeviceAnomalyAnalytics{
-			HostName: device.HostName,
+			HostName: deviceHostname,
 			Traffic: models.Traffic{
 				Input:  0, // Заглушка
 				Output: 0, // Заглушка
 			},
-			Requests: device.Requests,
+			Requests: requestsCount,
 			AnomalyBlockStat: models.AnomalyBlockStat{
-				Anomalies: device.Anomalies,
-				Blocks:    device.Blocks,
-				All:       device.Anomalies + device.Blocks,
+				Anomalies: anomaliesCount,
+				Blocks:    blocksCount,
+				All:       anomaliesCount + blocksCount,
 			},
 			Detections: models.DetectionReport{
-				All:        device.AllDetections,
-				Unresolved: device.UnresolvedDetections,
-				Blocked:    device.BlockedDetections,
-				Allowed:    device.AllowedDetections,
+				All:        allDetections,
+				Unresolved: unresolvedDetections,
+				Blocked:    blockedDetections,
+				Allowed:    allowedDetections,
 			},
 		})
+	}
+	// Если нет устройств вообще, возвращаем пустой слайс
+	if len(result) == 0 {
+		return []models.DeviceAnomalyAnalytics{}, nil
 	}
 
 	return result, nil

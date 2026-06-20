@@ -59,7 +59,7 @@ export interface AnomalyStatItem {
 
 export interface AnomalyReportItem {
   hostname: string;
-  anomaly_stat: AnomalyStatItem,
+  anomaly_stat: AnomalyStatItem[],
 }
 
 export interface ReportCategoryItem {
@@ -145,22 +145,6 @@ export interface CategoriesDeviceData {
     output: number
   }
 }
-
-// export interface AnomalyTopReportItem {
-//   hostname: string,
-//   requests: number,
-//   anomaly_block_stat: AnomaliesAndBlocksStat
-//   detections: {
-//     all: number,
-//     allowed: number,
-//     blocked: number,
-//     unresolved: number
-//   },
-//   traffic: {
-//     input: number,
-//     output: number
-//   }
-// }
 
 export interface ReportData {
   from: string,

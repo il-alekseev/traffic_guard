@@ -8,6 +8,14 @@ import (
 )
 
 type ETLRepoPGInterface interface {
+	GetNegativeCategoriesByDomainID(ctx context.Context, id uint) (string, error)
+	GetNegativeCategoriesStatByDomainID(ctx context.Context, id uint) (map[string]float32, error)
+	GetMostNegativeCategoryByDomainID(ctx context.Context, id uint) (*models.Category, float32, error)
+	AddDomainCategory(ctx context.Context, c models.Category, id uint) error
+	GetNegativeCategoriesTotalByDomainID(ctx context.Context, id uint) (int, error)
+
+	GetActionByDomainID(ctx context.Context, id uint) (*models.Action, error)
+
 	CreateDevice(ctx context.Context, device models.Device) error
 	GetDeviceByID(ctx context.Context, id int) (*models.Device, error)
 	GetDevices(ctx context.Context) ([]models.Device, error)

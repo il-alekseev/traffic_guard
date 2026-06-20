@@ -122,6 +122,7 @@
               Сбросить пароль
             </BaseButton>
             <BaseButton
+              v-if="!isEditingSelf"
               class="extras__btn"
               type="button"
               variant="danger"
@@ -209,10 +210,35 @@ interface createUserDTO {
   email: string;
   password: string;
 }
-const allowedRoles = ref<{id: string, name: string}[]>([{id: 'SA', name: 'Системный администратор'}, {id: 'CA', name: 'Администратор узла NGFW'}]);
 
 const usersControlStore = useUsersControlStore();
 const userStore = useUserStore();
+
+const canAssignSystemAdmin = computed(
+  () => getOnlyRole(userStore.role) === 'SA' || userStore.isSuperAdmin,
+);
+
+const isEditingSelf = computed(
+  () =>
+    !!props.userData?.user_id &&
+    props.userData.user_id === userStore.user?.user_id,
+);
+
+const allowedRoles = computed(() => {
+  const sa = { id: 'SA', name: 'Системный администратор' };
+  const ca = { id: 'CA', name: 'Администратор узла NGFW' };
+  if (canAssignSystemAdmin.value) {
+    return [sa, ca];
+  }
+  if (
+    props.manageType === 'update' &&
+    props.userData &&
+    getOnlyRole(props.userData.role) === 'SA'
+  ) {
+    return [sa];
+  }
+  return [ca];
+});
 const loading = ref(false);
 const loadingResetPass = ref(false);
 const loadingDelete = ref(false);
@@ -280,6 +306,7 @@ const resetPassword = async () => {
 const deleteUser = async () => {
   if (loading.value || loadingDelete.value || loadingResetPass.value) return;
   if (!props.userData || !props.userData.user_id) return;
+  if (isEditingSelf.value) return;
 
   loadingDelete.value = true;
 
@@ -349,10 +376,26 @@ if (!form.login.trim()) {
   if (!form.role.id) {
     errors.role = 'Выберите роль';
     isValid = false;
+  } else if (
+    form.role.id === 'SA' &&
+    !canAssignSystemAdmin.value &&
+    !(
+      props.manageType === 'update' &&
+      props.userData &&
+      getOnlyRole(props.userData.role) === 'SA'
+    )
+  ) {
+    errors.role = 'Недостаточно прав для назначения роли системного администратора';
+    isValid = false;
+  } else if (form.role.id === 'CA' && !String(form.device.id).trim()) {
+    errors.role = 'Выберите узел NGFW';
+    isValid = false;
   }
 
   return isValid;
 };
+
+const buildRolePayload = (): string => form.role.id === 'SA' ? form.role.id : `${form.role.id}-${form.device.id}`;
 
 const createUser = async () => {
   if (loading.value) return;
@@ -367,7 +410,7 @@ const createUser = async () => {
 
   try {
     const password = getTempPassword();
-    const fullRole = form.role.id === 'SA' ? form.role.id : form.role.id + '-' + form.device.id
+    const fullRole = buildRolePayload();
 
     const data: createUserDTO = {
       login: form.login.trim(),
@@ -417,7 +460,7 @@ const editProfile = async () => {
       first_name: form.first_name,
       last_name: form.last_name,
       patronymic: form.patronymic,
-      role: form.role.id,
+      role: buildRolePayload(),
       email: form.email,
     }
 
@@ -468,7 +511,7 @@ const editUser = async () => {
       first_name: form.first_name,
       last_name: form.last_name,
       patronymic: form.patronymic,
-      role: form.role.id,
+      role: buildRolePayload(),
       email: form.email,
     }
 

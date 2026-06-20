@@ -95,7 +95,7 @@ import FilterForm, { type DetectionsFilter } from '~/components/filters/Detectio
 import ReloadIcon from "~/assets/img/reload.svg"
 import FilterIcon from "~/assets/img/filter-icon.svg"
 import ArrowLeftIcon from "~/assets/img/arrow-left.svg"
-import { getCurrentDateWithOffset, isCategory, isValidDateString } from '~/helpers';
+import { getCurrentDateWithOffset, isCategory, isValidDateString, normalizeEndDate, normalizeStartDate } from '~/helpers';
 import type { Categories } from '~/types/categories';
 import DetectionsChipFilter from '~/components/filters/DetectionsChipFilter.vue';
 
@@ -339,11 +339,11 @@ const initFiltersFromUrl = () => {
   
   dateRange.value.from = isValidDateString(fromStr)
     ? new Date(fromStr!)
-    : getCurrentDateWithOffset(-1, 'd');
+    : normalizeStartDate(getCurrentDateWithOffset(-1, 'd'));
 
   dateRange.value.to = isValidDateString(toStr)
     ? new Date(toStr!)
-    : getCurrentDateWithOffset();
+    : normalizeEndDate(getCurrentDateWithOffset());
 };
 
 const updateUrlParams = () => {
@@ -403,8 +403,8 @@ watch(
 );
 
 const dateRange = ref<{ from: Date | null; to: Date | null }>({
-  from: getCurrentDateWithOffset(-1, 'd'),
-  to: getCurrentDateWithOffset()
+  from: normalizeStartDate(getCurrentDateWithOffset(-1, 'd')),
+  to: normalizeEndDate(getCurrentDateWithOffset())
 })
 
 const loadingCardActs = ref<boolean[]>([])
@@ -477,7 +477,6 @@ watch(dateRange, () => {
   display: flex;
   flex-direction: column;
   overflow-x: auto;
-  min-height: calc(100vh - 21rem);
 }
 
 .resources-grid {
@@ -576,7 +575,7 @@ watch(dateRange, () => {
 }
 
 .detectios__pagination {
-  margin-top: auto;
+  margin-top: 1rem;
 }
 
 @media screen and (max-width: 1919px) {
@@ -584,18 +583,5 @@ watch(dateRange, () => {
     max-width: 49%;
     width: 49%;
   }
-
-  .detections-data {
-    min-height: calc(100vh - 20rem);
-  }
 }
-
-@media screen and (max-width: 1440px) {
-  .detections-data {
-    min-height: calc(100vh - 13rem);
-  }
-}
-
-
-
 </style>

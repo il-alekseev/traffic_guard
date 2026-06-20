@@ -7,16 +7,17 @@ import (
 )
 
 type GetTopDetectionsRequest struct {
-	From     string `form:"from" binding:"omitempty"`
-	To       string `form:"to" binding:"omitempty"`
-	Action   string `form:"action" binding:"omitempty"`
-	HostName string `form:"hostname" binding:"omitempty,max=100"`
-	Category string `form:"category" binding:"omitempty,max=50"`
-	Page     int    `form:"page" binding:"omitempty,min=1"`
-	Limit    int    `form:"limit" binding:"omitempty,min=1"`
-	Search   string `form:"search" binding:"omitempty,max=200"`
-	OrderBy  string `form:"order_by" binding:"omitempty"`
-	OrderDir string `form:"order_dir" binding:"omitempty,oneof=asc desc"`
+	From            string `form:"from" binding:"omitempty"`
+	To              string `form:"to" binding:"omitempty"`
+	Action          string `form:"action" binding:"omitempty"`
+	HostName        string `form:"hostname" binding:"omitempty,max=100"`
+	Category        string `form:"category" binding:"omitempty,max=50"`
+	DetectionStatus string `form:"_status" binding:"omitempty,max=50"` // TODO:  костыль, переделать, когда будет обнова на фронте
+	Page            int    `form:"page" binding:"omitempty,min=1"`
+	Limit           int    `form:"limit" binding:"omitempty,min=1"`
+	Search          string `form:"search" binding:"omitempty,max=200"`
+	OrderBy         string `form:"order_by" binding:"omitempty"`
+	OrderDir        string `form:"order_dir" binding:"omitempty,oneof=asc desc"`
 }
 
 // Normalize нормализует значения запроса
@@ -27,6 +28,7 @@ func (r *GetTopDetectionsRequest) Normalize() {
 	r.Search = strings.TrimSpace(r.Search)
 	r.OrderBy = strings.TrimSpace(r.OrderBy)
 	r.OrderDir = strings.TrimSpace(r.OrderDir)
+	r.DetectionStatus = strings.TrimSpace(r.DetectionStatus)
 
 	// Устанавливаем значения по умолчанию
 	if r.From == "" {
@@ -100,6 +102,12 @@ func (r *GetTopDetectionsRequest) Validate() error {
 		return fmt.Errorf("invalid order_by field")
 	}
 
+	// Валидация статуса выявления
+	// TODO: убрать из возможных значений значение "Все"
+	allowedStatuses := []string{"Все", "Рекомендуется блокировка", "Требуется проверка", "Заблокирован", ""}
+	if !contains(allowedStatuses, r.DetectionStatus) {
+		return fmt.Errorf("invalid status field")
+	}
 	return nil
 }
 

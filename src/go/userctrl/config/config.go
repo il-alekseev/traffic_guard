@@ -9,13 +9,13 @@ import (
 type (
 	// Config - объединение всех переменных
 	Config struct {
-		App        `yaml:"app"`
-		HTTP       `yaml:"http"`
-		Log        `yaml:"logger"`
-		BizLogRepo `yaml:"bizlogrepo"`
-		Swagger    `yaml:"swagger"`
-		KeyCloak   `yaml:"keycloak"`
-		Grafana    `yaml:"grafana"`
+		App      `yaml:"app"`
+		HTTP     `yaml:"http"`
+		Log      `yaml:"logger"`
+		Swagger  `yaml:"swagger"`
+		KeyCloak `yaml:"keycloak"`
+		Grafana  `yaml:"grafana"`
+		BlogCl   `yaml:"blog_cl"`
 	}
 
 	// App - основные метаданные приложения
@@ -33,17 +33,6 @@ type (
 	// Log - настройка уровня логирования
 	Log struct {
 		Level string `env-required:"true" yaml:"log_level"   env:"USER_CTRL_LOG_LEVEL"`
-	}
-
-	// BizLogRepo - параметры подключение к БД для сохранения бизнес логов
-	BizLogRepo struct {
-		PoolMax int    `env-required:"true" yaml:"pool_max" env:"USER_CTRL_BLOG_POOL_MAX"`
-		Host    string `env-required:"true" yaml:"host" env:"USER_CTRL_BLOG_HOST"`
-		Port    string `env-required:"true" yaml:"port" env:"USER_CTRL_BLOG_PORT"`
-		User    string `env-required:"true" yaml:"user" env:"USER_CTRL_BLOG_USER"`
-		Pass    string `env-required:"true" yaml:"pass" env:"USER_CTRL_BLOG_PASS"`
-		DBName  string `env-required:"true" yaml:"dbname" env:"USER_CTRL_BLOG_DBNAME"`
-		SSLMode string `env-required:"true" yaml:"sslmode" env:"USER_CTRL_BLOG_SSLMODE"`
 	}
 
 	// Swagger - хост для swagger
@@ -73,6 +62,14 @@ type (
 		AuthPath string `env-required:"true" yaml:"auth_path" env:"USER_CTRL_GRAFANA_AUTH_PATH"`
 		Username string `env-required:"true" yaml:"username" env:"USER_CTRL_GRAFANA_USERNAME"`
 		Pass     string `env-required:"true" yaml:"pass" env:"USER_CTRL_GRAFANA_PASS"`
+	}
+
+	// TODO: везде клиентов других сервисов переписать под такой стандарт
+	// BlogCL - клиент для создания бизнес-логов
+	BlogCl struct {
+		Proto string `env-required:"true" yaml:"proto" env:"USER_CTRL_BLOG_PROTO"`
+		Host  string `env-required:"true" yaml:"host" env:"USER_CTRL_BLOG_HOST"`
+		Port  string `env-required:"true" yaml:"port" env:"USER_CTRL_BLOG_PORT"`
 	}
 )
 

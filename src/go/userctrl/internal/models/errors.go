@@ -13,4 +13,5 @@ var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrInvalidToken       = errors.New("invalid token")
 	ErrPermissionDenied   = errors.New("permission denied")
+	ErrUserSelfDeletion   = errors.New("user cannot delete themselves")
 )

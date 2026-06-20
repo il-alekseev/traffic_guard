@@ -227,7 +227,7 @@ func (uc *UseCase) Create(ctx context.Context, meta *models.UserMeta, u dto.User
 	}
 
 	resUser := convertUserFromKeyCloakClient(kcuser)
-	uc.blogCreateUser(*meta, resUser)
+	uc.blogCreateUser(ctx, *meta, resUser)
 	return resUser, nil
 }
 
@@ -300,6 +300,7 @@ func (uc *UseCase) Update(ctx context.Context, meta *models.UserMeta, userID str
 		return err
 	}
 	uc.blogUpdateUser(
+		ctx,
 		*meta,
 		convertUserFromKeyCloakClient(oldUser),
 		convertUserFromKeyCloakClient(newUser),
@@ -310,6 +311,10 @@ func (uc *UseCase) Update(ctx context.Context, meta *models.UserMeta, userID str
 // Delete удаляет пользователя
 func (uc *UseCase) Delete(ctx context.Context, meta *models.UserMeta, userID string) error {
 	log := uc.l.With(wsl.Label("method", "Delete"))
+	// Пользователь не может удалить сам себя
+	if meta.UUID == userID {
+		return models.ErrUserSelfDeletion
+	}
 
 	// Проверка базовых прав доступа
 	switch meta.ShortRole {
@@ -371,7 +376,7 @@ func (uc *UseCase) Delete(ctx context.Context, meta *models.UserMeta, userID str
 		return slogger.WrapError(ctx, err)
 	}
 
-	uc.blogDeleteUser(*meta, convertUserFromKeyCloakClient(user))
+	uc.blogDeleteUser(ctx, *meta, convertUserFromKeyCloakClient(user))
 
 	return nil
 }
@@ -446,7 +451,7 @@ func (uc *UseCase) ResetPassword(ctx context.Context, meta *models.UserMeta, use
 		log.ErrorContext(ctx, "failed to get user for auditing", wsl.Err(err))
 		// Не прерываем выполнение, так как операция уже выполнена
 	} else {
-		uc.blogResertUserPass(*meta, convertUserFromKeyCloakClient(user))
+		uc.blogResetUserPass(ctx, *meta, convertUserFromKeyCloakClient(user))
 	}
 
 	return nil

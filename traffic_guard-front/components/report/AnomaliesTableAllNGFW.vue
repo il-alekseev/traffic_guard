@@ -26,13 +26,13 @@
                   </td>
                 </tr>
                 
-                <tr v-for="item in group" :key="item.anomaly_stat.url" class="table__row">
+                <tr v-for="(stat, index) in group" :key="`${ngfwName}-${stat.url}-${index}`" class="table__row">
                   <td class="table__cell table__cell--url">
-                    <span>{{ item.anomaly_stat.url || '–' }}</span>
+                    <span>{{ stat.url || '–' }}</span>
                   </td>
                   <td class="table__cell table__cell--status">
-                    <span v-if="item.anomaly_stat.status && item.anomaly_stat.live_count" :class="['status-badge', `status-badge--${getStatusColor(item.anomaly_stat.status)}`]">
-                      {{ item.anomaly_stat.live_count || '–' }}
+                    <span v-if="stat.status && stat.live_count" :class="['status-badge', `status-badge--${getStatusColor(stat.status)}`]">
+                      {{ stat.live_count || '–' }}
                     </span>
                     <span v-else>
                       –
@@ -41,24 +41,24 @@
                   <td class="table__cell table__cell--traffic">
                     <div class="traffic">
                       <span class="traffic__item traffic__item--up">
-                        ↑ {{ formatTraffic(item.anomaly_stat.traffic.output) }}
+                        ↑ {{ formatTraffic(stat.traffic?.output) }}
                       </span>
                       <span class="traffic__item traffic__item--down">
-                        ↓ {{ formatTraffic(item.anomaly_stat.traffic.input) }}
+                        ↓ {{ formatTraffic(stat.traffic?.input) }}
                       </span>
                     </div>
                   </td>
                   <td class="table__cell table__cell--requests">
-                    <span class="requests">{{ formatTraffic(item.anomaly_stat.stat.all) }}</span>
+                    <span class="requests">{{ formatTraffic(stat.stat.all) }}</span>
                   </td>
                   <td class="table__cell table__cell--before-block">
-                    <span class="before-block">{{ formatTraffic(item.anomaly_stat.stat.before_block) }}</span>
+                    <span class="before-block">{{ formatTraffic(stat.stat.before_block) }}</span>
                   </td>
                   <td class="table__cell table__cell--waiting">
-                    <span class="waiting">{{ formatTraffic(item.anomaly_stat.stat.pending) }}</span>
+                    <span class="waiting">{{ formatTraffic(stat.stat.pending) }}</span>
                   </td>
                   <td class="table__cell table__cell--after-block">
-                    <span class="after-block">{{ formatTraffic(item.anomaly_stat.stat.after_block) }}</span>
+                    <span class="after-block">{{ formatTraffic(stat.stat.after_block) }}</span>
                   </td>
                 </tr>
               </template>
@@ -72,7 +72,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { AnomalyReportItem } from '~/types/reports';
+import type { AnomalyReportItem, AnomalyStatItem } from '~/types/reports';
 import BaseLayout from '~/components/report/BaseLayout.vue';
 import { formatTraffic } from '~/helpers';
 import { useDeviceColors } from '~/composables/useDeviceColors';
@@ -84,17 +84,17 @@ const props = defineProps<{
 
 const { generateColor } = useDeviceColors();
 
-const groupedData = computed<Record<string, AnomalyReportItem[]> | null>(() => {
-  const groups: Record<string, AnomalyReportItem[]> = {};
+const groupedData = computed<Record<string, AnomalyStatItem[]> | null>(() => {
+  const groups: Record<string, AnomalyStatItem[]> = {};
   if (!props.data) return null
-  
+
   props.data.forEach(item => {
     if (!groups[item.hostname]) {
       groups[item.hostname] = [];
     }
-    groups[item.hostname].push(item);
+    groups[item.hostname].push(...(item.anomaly_stat ?? []));
   });
-  
+
   return groups;
 });
 

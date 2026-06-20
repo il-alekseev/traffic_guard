@@ -6,11 +6,12 @@ package blogserv
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	"api-gateway/pkg/blogserv/operations"
-
 	"github.com/go-openapi/runtime"
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
+
+	"api-gateway/pkg/blogserv/operations"
+	"api-gateway/pkg/blogserv/utils"
 )
 
 // Default blogserv HTTP client.
@@ -56,6 +57,7 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Blogserv {
 	cli := new(Blogserv)
 	cli.Transport = transport
 	cli.Operations = operations.New(transport, formats)
+	cli.Utils = utils.New(transport, formats)
 	return cli
 }
 
@@ -102,6 +104,8 @@ func (cfg *TransportConfig) WithSchemes(schemes []string) *TransportConfig {
 type Blogserv struct {
 	Operations operations.ClientService
 
+	Utils utils.ClientService
+
 	Transport runtime.ClientTransport
 }
 
@@ -109,4 +113,5 @@ type Blogserv struct {
 func (c *Blogserv) SetTransport(transport runtime.ClientTransport) {
 	c.Transport = transport
 	c.Operations.SetTransport(transport)
+	c.Utils.SetTransport(transport)
 }

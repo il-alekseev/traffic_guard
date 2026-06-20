@@ -1,5 +1,33 @@
 basePath: /
 definitions:
+  models.DtoBusinessLog:
+    properties:
+      context:
+        description: context
+        type: string
+      description:
+        description: description
+        type: string
+      entity:
+        description: user, context
+        type: string
+      entity_id:
+        description: userID or ContextID
+        type: string
+      event_type:
+        description: CREATE, UPDATE, DELETE
+        type: string
+      new_value:
+        description: new value
+      old_value:
+        description: old value
+      user_name:
+        description: user name
+        type: string
+      user_role:
+        description: SA, CA
+        type: string
+    type: object
   models.DtoCategory:
     properties:
       access_count:
@@ -8,6 +36,15 @@ definitions:
       name:
         description: name
         type: string
+    type: object
+  models.DtoCategoryStat:
+    properties:
+      name:
+        description: name
+        type: string
+      rate:
+        description: rate
+        type: number
     type: object
   models.DtoCountResponse:
     properties:
@@ -53,6 +90,9 @@ definitions:
       location:
         description: location
         type: string
+      neg_rate:
+        description: neg rate
+        type: number
       port:
         description: port
         type: integer
@@ -84,6 +124,47 @@ definitions:
         description: unresolved
         type: integer
     type: object
+  models.DtoDetectionV2:
+    properties:
+      action:
+        description: action
+        type: string
+      categories:
+        description: categories
+        items:
+          $ref: '#/definitions/models.DtoCategoryStat'
+        type: array
+      categorized_at:
+        description: categorized at
+        type: string
+      category:
+        description: category
+        type: string
+      description:
+        description: description
+        type: string
+      domain:
+        description: domain
+        type: string
+      hostname:
+        description: hostname
+        type: string
+      ip:
+        description: ip
+        type: string
+      location:
+        description: location
+        type: string
+      neg_rate:
+        description: neg rate
+        type: number
+      port:
+        description: port
+        type: integer
+      request_count:
+        description: request count
+        type: integer
+    type: object
   models.DtoDeviceStatResponse:
     properties:
       count:
@@ -99,42 +180,6 @@ definitions:
         items:
           type: string
         type: array
-    type: object
-  models.DtoDtoBusinessLog:
-    properties:
-      context:
-        description: context
-        type: string
-      context_str:
-        description: context str
-        type: string
-      description:
-        description: description
-        type: string
-      entity:
-        description: user, context
-        type: string
-      entity_id:
-        description: userID or ContextID
-        type: string
-      event_type:
-        description: Timestamp   time.Time `json:"timestamp,omitzero" gorm:"column:timestamp;type:timestamp
-          with time zone;not null"`
-        type: string
-      new_value:
-        allOf:
-        - $ref: '#/definitions/models.DtoValue'
-        description: new value
-      old_value:
-        allOf:
-        - $ref: '#/definitions/models.DtoValue'
-        description: old value
-      user_name:
-        description: user name
-        type: string
-      user_role:
-        description: SA, CA
-        type: string
     type: object
   models.DtoErrorResponse:
     properties:
@@ -180,6 +225,18 @@ definitions:
             type: integer
         type: object
     type: object
+  models.DtoGetDetectionsResponseV2:
+    properties:
+      data:
+        description: data
+        items:
+          $ref: '#/definitions/models.DtoDetectionV2'
+        type: array
+      meta:
+        allOf:
+        - $ref: '#/definitions/models.DtoPaginationMeta'
+        description: meta
+    type: object
   models.DtoGetProhActivityResponse:
     properties:
       count:
@@ -197,15 +254,19 @@ definitions:
   models.DtoGetSessionsResponse:
     properties:
       count:
-        description: Число сессий в ответе
+        description: 'Meta PaginationMeta `json:"meta"` // Метаданные пагинации //
+          TODO: Костыль ниже! потом эту строчку расскоментировать, а нижние убрать'
         type: integer
       data:
         description: Список сессий
         items:
           $ref: '#/definitions/models.DtoSession'
         type: array
+      pages:
+        description: Общее количество страниц
+        type: integer
       total:
-        description: Общее количество сессийы
+        description: Общее количество сессий
         type: integer
     type: object
   models.DtoLogUser:
@@ -447,30 +508,6 @@ definitions:
         allOf:
         - $ref: '#/definitions/models.DtoPaginationMeta'
         description: meta
-    type: object
-  models.DtoValue:
-    properties:
-      email:
-        description: email
-        type: string
-      first_name:
-        description: first name
-        type: string
-      last_name:
-        description: last name
-        type: string
-      login:
-        description: login
-        type: string
-      patronymic:
-        description: patronymic
-        type: string
-      role:
-        description: role
-        type: string
-      user_id:
-        description: user id
-        type: string
     type: object
   models.ModelsAPIError:
     properties:
@@ -766,7 +803,7 @@ definitions:
     properties:
       anomalies_list_page:
         allOf:
-        - $ref: '#/definitions/models.ModelsTopAnomaliesPage'
+        - $ref: '#/definitions/models.ModelsDevicesAnomaliesListPage'
         description: anomalies list page
       categories_page:
         allOf:
@@ -1403,6 +1440,14 @@ paths:
         in: query
         name: hostname
         type: string
+      - description: Фильтр по статусу выявления
+        enum:
+        - Рекомендуется_блокировка
+        - Требуется_проверка
+        - Заблокирован
+        in: query
+        name: status
+        type: string
       - description: Фильтр по категории
         enum:
         - Агрессия
@@ -1626,6 +1671,137 @@ paths:
       summary: Получение статистики по выявлениям
       tags:
       - detections
+  /api/v1/analytics/detections_v2:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает расширенный список выявлений с детальной статистикой
+        по категориям за указанный временной период с пагинацией и фильтрацией
+      parameters:
+      - default: now-10m
+        description: 'Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)'
+        in: query
+        name: from
+        type: string
+      - default: now
+        description: 'Конец временного диапазона (формат: now, 2023-12-01T11:00:00Z)'
+        in: query
+        name: to
+        type: string
+      - description: Фильтр по имени хоста
+        in: query
+        name: hostname
+        type: string
+      - description: Фильтр по статусу выявления
+        enum:
+        - Рекомендуется_блокировка
+        - Требуется_проверка
+        - Заблокирован
+        in: query
+        name: status
+        type: string
+      - description: Фильтр по категории
+        enum:
+        - Агрессия
+        - расизм
+        - терроризм
+        - Ботнеты
+        - Веб-почта
+        - Досуг и развлечения
+        - Интернет-магазины
+        - Компьютерные игры
+        - Криптомайнинг
+        - Наркотики
+        - Порнография и секс
+        - Прокси и анонимайзеры
+        - Реестр запрещенных сайтов
+        - Сайты для взрослых
+        - Сайты распространяющие вирусы
+        - Социальные сети
+        - Торренты и Р2Р-сети
+        - Файловые архивы
+        - Фильмы и видео онлайн
+        - Фишинг
+        - Чаты и мессенджеры
+        - Дополнительно
+        - Криптоджекинг
+        - Реклама
+        - Онлайн-игры
+        - Игровые платформы
+        - Вредоносное ПО
+        - Азартные игры
+        - Депресивный контент и суицид
+        - Алкоголь
+        - табак
+        in: query
+        name: category
+        type: string
+      - description: Действие пользователя
+        enum:
+        - Разрешено
+        - Заблокировано
+        - Не решено
+        in: query
+        name: action
+        type: string
+      - default: 1
+        description: Номер страницы
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 10
+        description: Количество записей на странице
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - description: Поиск по URL или IP адресу домена
+        in: query
+        name: search
+        type: string
+      - default: categorized_at
+        description: Поле для сортировки
+        enum:
+        - domain
+        - request_count
+        - categorized_at
+        in: query
+        name: order_by
+        type: string
+      - default: desc
+        description: Направление сортировки (asc/desc)
+        enum:
+        - asc
+        - desc
+        in: query
+        name: order_dir
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный ответ
+          schema:
+            $ref: '#/definitions/models.DtoGetDetectionsResponseV2'
+        "400":
+          description: Неверный формат параметров
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "403":
+          description: Недостаточно прав для доступа к выявлениям
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            $ref: '#/definitions/models.DtoErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Получение списка выявлений (версия 2)
+      tags:
+      - detections
   /api/v1/analytics/devices:
     get:
       consumes:
@@ -1808,14 +1984,29 @@ paths:
         in: query
         name: type
         type: string
+      - description: Фильтр по статусу
+        enum:
+        - Разрешен
+        - Запрещен
+        - Ожидает
+        - Аномалия
+        in: query
+        name: status
+        type: string
       - description: Поиск по URL, IP адресу пользователя или IP адресу домена
         in: query
         name: search
         type: string
-      - default: 25
-        description: Количество возвращаемых сессий
+      - default: 1
+        description: Номер страницы
         in: query
-        maximum: 500
+        minimum: 1
+        name: page
+        type: integer
+      - default: 10
+        description: Количество записей на странице
+        in: query
+        maximum: 100
         minimum: 1
         name: count
         type: integer
@@ -1990,7 +2181,7 @@ paths:
         name: record
         required: true
         schema:
-          $ref: '#/definitions/models.DtoDtoBusinessLog'
+          $ref: '#/definitions/models.DtoBusinessLog'
       responses:
         "200":
           description: Успех

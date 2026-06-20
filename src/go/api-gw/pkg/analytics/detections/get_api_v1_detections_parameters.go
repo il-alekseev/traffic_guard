@@ -62,6 +62,12 @@ GetAPIV1DetectionsParams contains all the parameters to send to the API endpoint
 */
 type GetAPIV1DetectionsParams struct {
 
+	/* Status.
+
+	   Фильтр по статусу выявления
+	*/
+	Status *string
+
 	/* Action.
 
 	   Действие пользователя
@@ -213,6 +219,17 @@ func (o *GetAPIV1DetectionsParams) SetHTTPClient(client *http.Client) {
 	o.HTTPClient = client
 }
 
+// WithStatus adds the status to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) WithStatus(status *string) *GetAPIV1DetectionsParams {
+	o.SetStatus(status)
+	return o
+}
+
+// SetStatus adds the status to the get API v1 detections params
+func (o *GetAPIV1DetectionsParams) SetStatus(status *string) {
+	o.Status = status
+}
+
 // WithAction adds the action to the get API v1 detections params
 func (o *GetAPIV1DetectionsParams) WithAction(action *string) *GetAPIV1DetectionsParams {
 	o.SetAction(action)
@@ -330,6 +347,23 @@ func (o *GetAPIV1DetectionsParams) WriteToRequest(r runtime.ClientRequest, reg s
 		return err
 	}
 	var res []error
+
+	if o.Status != nil {
+
+		// query param _status
+		var qrStatus string
+
+		if o.Status != nil {
+			qrStatus = *o.Status
+		}
+		qStatus := qrStatus
+		if qStatus != "" {
+
+			if err := r.SetQueryParam("_status", qStatus); err != nil {
+				return err
+			}
+		}
+	}
 
 	if o.Action != nil {
 

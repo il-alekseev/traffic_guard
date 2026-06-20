@@ -70,9 +70,9 @@ type GetAPIV1SessionsParams struct {
 
 	/* Count.
 
-	   Количество возвращаемых сессий
+	   Количество записей на странице
 
-	   Default: 25
+	   Default: 10
 	*/
 	Count *int64
 
@@ -106,11 +106,25 @@ type GetAPIV1SessionsParams struct {
 	*/
 	OrderDir *string
 
+	/* Page.
+
+	   Номер страницы
+
+	   Default: 1
+	*/
+	Page *int64
+
 	/* Search.
 
 	   Поиск по URL, IP адресу пользователя или IP адревсу домена
 	*/
 	Search *string
+
+	/* Status.
+
+	   Фильтр по статусу
+	*/
+	Status *string
 
 	/* To.
 
@@ -144,13 +158,15 @@ func (o *GetAPIV1SessionsParams) WithDefaults() *GetAPIV1SessionsParams {
 // All values with no default are reset to their zero value.
 func (o *GetAPIV1SessionsParams) SetDefaults() {
 	var (
-		countDefault = int64(25)
+		countDefault = int64(10)
 
 		fromDefault = string("now-10m")
 
 		orderByDefault = string("datetime_utc")
 
 		orderDirDefault = string("desc")
+
+		pageDefault = int64(1)
 
 		toDefault = string("now")
 	)
@@ -160,6 +176,7 @@ func (o *GetAPIV1SessionsParams) SetDefaults() {
 		From:     &fromDefault,
 		OrderBy:  &orderByDefault,
 		OrderDir: &orderDirDefault,
+		Page:     &pageDefault,
 		To:       &toDefault,
 	}
 
@@ -268,6 +285,17 @@ func (o *GetAPIV1SessionsParams) SetOrderDir(orderDir *string) {
 	o.OrderDir = orderDir
 }
 
+// WithPage adds the page to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) WithPage(page *int64) *GetAPIV1SessionsParams {
+	o.SetPage(page)
+	return o
+}
+
+// SetPage adds the page to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) SetPage(page *int64) {
+	o.Page = page
+}
+
 // WithSearch adds the search to the get API v1 sessions params
 func (o *GetAPIV1SessionsParams) WithSearch(search *string) *GetAPIV1SessionsParams {
 	o.SetSearch(search)
@@ -277,6 +305,17 @@ func (o *GetAPIV1SessionsParams) WithSearch(search *string) *GetAPIV1SessionsPar
 // SetSearch adds the search to the get API v1 sessions params
 func (o *GetAPIV1SessionsParams) SetSearch(search *string) {
 	o.Search = search
+}
+
+// WithStatus adds the status to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) WithStatus(status *string) *GetAPIV1SessionsParams {
+	o.SetStatus(status)
+	return o
+}
+
+// SetStatus adds the status to the get API v1 sessions params
+func (o *GetAPIV1SessionsParams) SetStatus(status *string) {
+	o.Status = status
 }
 
 // WithTo adds the to to the get API v1 sessions params
@@ -411,6 +450,23 @@ func (o *GetAPIV1SessionsParams) WriteToRequest(r runtime.ClientRequest, reg str
 		}
 	}
 
+	if o.Page != nil {
+
+		// query param page
+		var qrPage int64
+
+		if o.Page != nil {
+			qrPage = *o.Page
+		}
+		qPage := swag.FormatInt64(qrPage)
+		if qPage != "" {
+
+			if err := r.SetQueryParam("page", qPage); err != nil {
+				return err
+			}
+		}
+	}
+
 	if o.Search != nil {
 
 		// query param search
@@ -423,6 +479,23 @@ func (o *GetAPIV1SessionsParams) WriteToRequest(r runtime.ClientRequest, reg str
 		if qSearch != "" {
 
 			if err := r.SetQueryParam("search", qSearch); err != nil {
+				return err
+			}
+		}
+	}
+
+	if o.Status != nil {
+
+		// query param status
+		var qrStatus string
+
+		if o.Status != nil {
+			qrStatus = *o.Status
+		}
+		qStatus := qrStatus
+		if qStatus != "" {
+
+			if err := r.SetQueryParam("status", qStatus); err != nil {
 				return err
 			}
 		}

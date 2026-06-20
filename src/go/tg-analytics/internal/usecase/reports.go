@@ -181,12 +181,16 @@ func (u *Usecase) CreateReport(ctx context.Context, userMeta *models.UserMeta, t
 	newValue := make(map[string]any)
 	newValue["from"] = tr.From
 	newValue["to"] = tr.To
+	newValue["hostname"] = "all"
+
+	oldValue := make(map[string]any)
 
 	record := pkg.DtoBusinessLog{
-		Description: "Создание сводного отчета по всем устройствам",
-		Entity:      "Report",
-		EntityID:    "",
+		Description: "создание сводного отчета по всем устройствам",
+		Entity:      values.ReportEntity,
+		EntityID:    "-",
 		NewValue:    newValue,
+		OldValue:    oldValue,
 		EventType:   "CREATE",
 		Context:     userMeta.ContextID,
 		UserName:    userMeta.Username,
@@ -259,8 +263,8 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.Us
 			},
 			AnomalyBlockStat: models.AnomalyBlockStat{},
 		},
-		AnomaliesListPage: models.TopAnomaliesPage{
-			DeviceAnomaly: []models.DeviceAnomalyAnalytics{},
+		AnomaliesListPage: models.DevicesAnomaliesListPage{
+			Anomalies: []models.DeviceAnomaly{},
 		},
 		CategoriesPage: models.TopCategoriesPage{
 			Categories: []models.TopCategory{},
@@ -385,25 +389,18 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.Us
 		}
 	}
 
-	// Получаем данные для второй страницы (TopAnomaliesPage)
+	// Получаем данные для второй страницы (AnomaliesListPage)
 	start = time.Now()
-	topAnomalies, err := u.db.GetTopAnomalies(ctx, tr)
-	logDBTime("GetTopAnomalies", start, err)
+	res, err := u.db.GetAnomaliesList(ctx, tr, hostname)
+	logDBTime("GetAnomaliesList", start, err)
 	if err != nil {
-		err = fmt.Errorf("%s: failed to get top anomalies: %w", method, err)
+		err = fmt.Errorf("%s: failed to get anomalies list for third page: %w", method, err)
 		u.l.ErrorContext(ctx, "Database operation failed",
 			wsl.String("method", method),
 			wsl.String("error", err.Error()),
 		)
 	} else {
-		// Фильтруем топ аномалии для текущего устройства
-		deviceTopAnomalies := make([]models.DeviceAnomalyAnalytics, 0)
-		for _, anomaly := range topAnomalies {
-			if anomaly.HostName == hostname {
-				deviceTopAnomalies = append(deviceTopAnomalies, anomaly)
-			}
-		}
-		report.AnomaliesListPage.DeviceAnomaly = deviceTopAnomalies
+		report.AnomaliesListPage.Anomalies = res
 	}
 
 	// Получаем данные для третьей страницы (CategoriesPage)
@@ -428,11 +425,14 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.Us
 	newValue["to"] = tr.To
 	newValue["hostname"] = hostname
 
+	oldValue := make(map[string]any)
+
 	record := pkg.DtoBusinessLog{
-		Description: "Создание отчета по устройству",
-		Entity:      "Report",
-		EntityID:    "",
+		Description: fmt.Sprintf("cоздание отчета по устройству %s", hostname),
+		Entity:      values.ReportEntity,
+		EntityID:    hostname,
 		NewValue:    newValue,
+		OldValue:    oldValue,
 		EventType:   "CREATE",
 		Context:     userMeta.ContextID,
 		UserName:    userMeta.Username,
@@ -460,7 +460,7 @@ func (u *Usecase) CreateReportForDevice(ctx context.Context, userMeta *models.Us
 		slog.String("method", method),
 		slog.String("hostname", hostname),
 		slog.Int("categories_count", len(report.CategoriesPage.Categories)),
-		slog.Int("anomalies_count", len(report.AnomaliesListPage.DeviceAnomaly)),
+		slog.Int("anomalies_count", len(report.AnomaliesListPage.Anomalies)),
 	)
 	return report, nil
 }

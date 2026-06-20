@@ -10,7 +10,7 @@ import (
 )
 
 // GetSessions возвращает список сессий с пагинацией и фильтрацией
-func (r *RepoPG) GetSessions(ctx context.Context, tr *trparser.TimeRange, f models.SessionFilter, search string, count uint, s models.Sorting) ([]dto.Session, int64, error) {
+func (r *RepoPG) GetSessions(ctx context.Context, tr *trparser.TimeRange, f models.SessionFilter, p models.Pagination, search string, s models.Sorting) ([]dto.Session, int64, error) {
 	var sessions []dto.Session
 	var total int64
 
@@ -53,6 +53,9 @@ func (r *RepoPG) GetSessions(ctx context.Context, tr *trparser.TimeRange, f mode
 	if f.Type != "" {
 		query = query.Where("sessions.type = ?", f.Type)
 	}
+	if f.Status != "" {
+		query = query.Where("sessions.status = ?", f.Status)
+	}
 
 	// Применяем пользовательский поиск
 	if search != "" {
@@ -82,8 +85,14 @@ func (r *RepoPG) GetSessions(ctx context.Context, tr *trparser.TimeRange, f mode
 		query = query.Order("sessions.datetime_utc DESC")
 	}
 
-	// Уменьшаем число сессий до значения count
-	query = query.Limit(int(count))
+	// Применяем пагинацию
+	if p.Limit > 0 {
+		offset := (p.Page - 1) * p.Limit
+		if offset < 0 {
+			offset = 0
+		}
+		query = query.Offset(offset).Limit(p.Limit)
+	}
 
 	// Выполняем запрос
 	if err := query.Find(&sessions).Error; err != nil {

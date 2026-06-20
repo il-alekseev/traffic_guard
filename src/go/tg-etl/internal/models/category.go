@@ -26,13 +26,6 @@ func (t CategoryType) String() string {
 	}
 }
 
-// Category представляет категорию в базе данных
-type Category struct {
-	ID   uint         `gorm:"primaryKey;autoIncrement" json:"id"`
-	Name string       `gorm:"type:varchar(255);not null;uniqueIndex" json:"name"`
-	Type CategoryType `gorm:"type:varchar(20);not null;default:'neutral'" json:"type"`
-}
-
 // Предопределенные категории с уникальными ID
 var (
 	Unknown                   = Category{ID: 1, Name: "Неизвестный класс", Type: CategoryTypeNeutral}
@@ -64,6 +57,7 @@ var (
 	DepressiveContentSuicide  = Category{ID: 27, Name: "Депрессивный контент", Type: CategoryTypeNegative}
 	AlcoholTobacco            = Category{ID: 28, Name: "Алкоголь и табак", Type: CategoryTypeNegative}
 	PositiveCategory          = Category{ID: 29, Name: "Положительная категория", Type: CategoryTypePositive}
+	AllowedCategory           = Category{ID: 30, Name: "Разрешенный ресурс", Type: CategoryTypePositive}
 )
 
 // Все категории для удобного доступа
@@ -97,6 +91,7 @@ var PredefinedCategories = []Category{
 	DepressiveContentSuicide,
 	AlcoholTobacco,
 	PositiveCategory,
+	AllowedCategory,
 }
 
 // String возвращает строковое представление категории

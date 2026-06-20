@@ -93,7 +93,7 @@
 import {definePageMeta} from '#imports';
 import type { Session, SessionOrderType, SessionStatus, SessionTable } from '~/types/session';
 import { useSessionsStore } from '~/stores/session';
-import { getBadgeClassByStatus, getNgfwBadgeClass, getCurrentDateWithOffset, isCategory, isSessionStatus, isSessionTypes, isValidDateString } from '~/helpers/index';
+import { getBadgeClassByStatus, getCurrentDateWithOffset, isCategory, isSessionStatus, isSessionTypes, isValidDateString, normalizeEndDate, normalizeStartDate } from '~/helpers/index';
 import DatePicker from '~/components/ui/DatePicker.vue';
 import BaseSearch from '~/components/ui/BaseSearch.vue';
 import FilterButton from '~/components/ui/FilterButton.vue';
@@ -123,8 +123,8 @@ const router = useRouter();
 const sessionsStore = useSessionsStore();
 
 const dateRange = ref<{ from: Date | null; to: Date | null }>({
-  from: getCurrentDateWithOffset(-1, 'd'),
-  to: getCurrentDateWithOffset()
+  from: normalizeStartDate(getCurrentDateWithOffset(-1, 'd')),
+  to: normalizeEndDate(getCurrentDateWithOffset())
 })
 
 const loading = ref(true);
@@ -143,12 +143,9 @@ const columns = [
 ];
 const currentPage = ref(1);
 const itemsPerPage = ref(11);
-const tableMetaData = ref<{ total: number; pages: number } | null>(null);
-const totalSessions = computed(() =>
-  tableMetaData.value ? tableMetaData.value.total : sessions.value.length
-);
-const totalPages = computed(() =>
-  tableMetaData.value ? tableMetaData.value.pages : 1
+const totalSessions = ref(0);
+const totalPages = computed(() => 
+  Math.ceil((totalSessions.value || 0) / (itemsPerPage.value || 1))
 );
 
 const fetchSessions = async () => {
@@ -172,7 +169,7 @@ const fetchSessions = async () => {
 
     if (result) {
       sessions.value = result.data;
-      tableMetaData.value = result.meta;
+      totalSessions.value = result.total || 0;
     } else {
       sessions.value = [];
     }
@@ -245,11 +242,11 @@ const initFiltersFromUrl = () => {
   
   dateRange.value.from = isValidDateString(fromStr)
     ? new Date(fromStr!)
-    : getCurrentDateWithOffset(-1, 'd');
+    : normalizeStartDate(getCurrentDateWithOffset(-1, 'd'));
 
   dateRange.value.to = isValidDateString(toStr)
     ? new Date(toStr!)
-    : getCurrentDateWithOffset();
+    : normalizeEndDate(getCurrentDateWithOffset());
 };
 
 const updateUrlParams = () => {

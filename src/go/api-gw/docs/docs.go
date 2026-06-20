@@ -623,6 +623,17 @@ const docTemplate = `{
                     },
                     {
                         "enum": [
+                            "Рекомендуется_блокировка",
+                            "Требуется_проверка",
+                            "Заблокирован"
+                        ],
+                        "type": "string",
+                        "description": "Фильтр по статусу выявления",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
                             "Агрессия",
                             "расизм",
                             "терроризм",
@@ -916,6 +927,181 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/analytics/detections_v2": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Возвращает расширенный список выявлений с детальной статистикой по категориям за указанный временной период с пагинацией и фильтрацией",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "detections"
+                ],
+                "summary": "Получение списка выявлений (версия 2)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "now-10m",
+                        "description": "Начало временного диапазона (формат: now-10m, 2023-12-01T10:00:00Z)",
+                        "name": "from",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "now",
+                        "description": "Конец временного диапазона (формат: now, 2023-12-01T11:00:00Z)",
+                        "name": "to",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Фильтр по имени хоста",
+                        "name": "hostname",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "Рекомендуется_блокировка",
+                            "Требуется_проверка",
+                            "Заблокирован"
+                        ],
+                        "type": "string",
+                        "description": "Фильтр по статусу выявления",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "Агрессия",
+                            "расизм",
+                            "терроризм",
+                            "Ботнеты",
+                            "Веб-почта",
+                            "Досуг и развлечения",
+                            "Интернет-магазины",
+                            "Компьютерные игры",
+                            "Криптомайнинг",
+                            "Наркотики",
+                            "Порнография и секс",
+                            "Прокси и анонимайзеры",
+                            "Реестр запрещенных сайтов",
+                            "Сайты для взрослых",
+                            "Сайты распространяющие вирусы",
+                            "Социальные сети",
+                            "Торренты и Р2Р-сети",
+                            "Файловые архивы",
+                            "Фильмы и видео онлайн",
+                            "Фишинг",
+                            "Чаты и мессенджеры",
+                            "Дополнительно",
+                            "Криптоджекинг",
+                            "Реклама",
+                            "Онлайн-игры",
+                            "Игровые платформы",
+                            "Вредоносное ПО",
+                            "Азартные игры",
+                            "Депресивный контент и суицид",
+                            "Алкоголь",
+                            "табак"
+                        ],
+                        "type": "string",
+                        "description": "Фильтр по категории",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "Разрешено",
+                            "Заблокировано",
+                            "Не решено"
+                        ],
+                        "type": "string",
+                        "description": "Действие пользователя",
+                        "name": "action",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Количество записей на странице",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Поиск по URL или IP адресу домена",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "domain",
+                            "request_count",
+                            "categorized_at"
+                        ],
+                        "type": "string",
+                        "default": "categorized_at",
+                        "description": "Поле для сортировки",
+                        "name": "order_by",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "asc",
+                            "desc"
+                        ],
+                        "type": "string",
+                        "default": "desc",
+                        "description": "Направление сортировки (asc/desc)",
+                        "name": "order_dir",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoGetDetectionsResponseV2"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат параметров",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Недостаточно прав для доступа к выявлениям",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "$ref": "#/definitions/models.DtoErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/analytics/devices": {
             "get": {
                 "security": [
@@ -1180,17 +1366,37 @@ const docTemplate = `{
                         "in": "query"
                     },
                     {
+                        "enum": [
+                            "Разрешен",
+                            "Запрещен",
+                            "Ожидает",
+                            "Аномалия"
+                        ],
+                        "type": "string",
+                        "description": "Фильтр по статусу",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "description": "Поиск по URL, IP адресу пользователя или IP адресу домена",
                         "name": "search",
                         "in": "query"
                     },
                     {
-                        "maximum": 500,
                         "minimum": 1,
                         "type": "integer",
-                        "default": 25,
-                        "description": "Количество возвращаемых сессий",
+                        "default": 1,
+                        "description": "Номер страницы",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Количество записей на странице",
                         "name": "count",
                         "in": "query"
                     },
@@ -1438,7 +1644,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.DtoDtoBusinessLog"
+                            "$ref": "#/definitions/models.DtoBusinessLog"
                         }
                     }
                 ],
@@ -2441,6 +2647,45 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "models.DtoBusinessLog": {
+            "type": "object",
+            "properties": {
+                "context": {
+                    "description": "context",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "description",
+                    "type": "string"
+                },
+                "entity": {
+                    "description": "user, context",
+                    "type": "string"
+                },
+                "entity_id": {
+                    "description": "userID or ContextID",
+                    "type": "string"
+                },
+                "event_type": {
+                    "description": "CREATE, UPDATE, DELETE",
+                    "type": "string"
+                },
+                "new_value": {
+                    "description": "new value"
+                },
+                "old_value": {
+                    "description": "old value"
+                },
+                "user_name": {
+                    "description": "user name",
+                    "type": "string"
+                },
+                "user_role": {
+                    "description": "SA, CA",
+                    "type": "string"
+                }
+            }
+        },
         "models.DtoCategory": {
             "type": "object",
             "properties": {
@@ -2451,6 +2696,19 @@ const docTemplate = `{
                 "name": {
                     "description": "name",
                     "type": "string"
+                }
+            }
+        },
+        "models.DtoCategoryStat": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "name",
+                    "type": "string"
+                },
+                "rate": {
+                    "description": "rate",
+                    "type": "number"
                 }
             }
         },
@@ -2515,6 +2773,10 @@ const docTemplate = `{
                     "description": "location",
                     "type": "string"
                 },
+                "neg_rate": {
+                    "description": "neg rate",
+                    "type": "number"
+                },
                 "port": {
                     "description": "port",
                     "type": "integer"
@@ -2559,6 +2821,62 @@ const docTemplate = `{
                 }
             }
         },
+        "models.DtoDetectionV2": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "description": "action",
+                    "type": "string"
+                },
+                "categories": {
+                    "description": "categories",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DtoCategoryStat"
+                    }
+                },
+                "categorized_at": {
+                    "description": "categorized at",
+                    "type": "string"
+                },
+                "category": {
+                    "description": "category",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "description",
+                    "type": "string"
+                },
+                "domain": {
+                    "description": "domain",
+                    "type": "string"
+                },
+                "hostname": {
+                    "description": "hostname",
+                    "type": "string"
+                },
+                "ip": {
+                    "description": "ip",
+                    "type": "string"
+                },
+                "location": {
+                    "description": "location",
+                    "type": "string"
+                },
+                "neg_rate": {
+                    "description": "neg rate",
+                    "type": "number"
+                },
+                "port": {
+                    "description": "port",
+                    "type": "integer"
+                },
+                "request_count": {
+                    "description": "request count",
+                    "type": "integer"
+                }
+            }
+        },
         "models.DtoDeviceStatResponse": {
             "type": "object",
             "properties": {
@@ -2579,59 +2897,6 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
-                }
-            }
-        },
-        "models.DtoDtoBusinessLog": {
-            "type": "object",
-            "properties": {
-                "context": {
-                    "description": "context",
-                    "type": "string"
-                },
-                "context_str": {
-                    "description": "context str",
-                    "type": "string"
-                },
-                "description": {
-                    "description": "description",
-                    "type": "string"
-                },
-                "entity": {
-                    "description": "user, context",
-                    "type": "string"
-                },
-                "entity_id": {
-                    "description": "userID or ContextID",
-                    "type": "string"
-                },
-                "event_type": {
-                    "description": "Timestamp   time.Time ` + "`" + `json:\"timestamp,omitzero\" gorm:\"column:timestamp;type:timestamp with time zone;not null\"` + "`" + `",
-                    "type": "string"
-                },
-                "new_value": {
-                    "description": "new value",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.DtoValue"
-                        }
-                    ]
-                },
-                "old_value": {
-                    "description": "old value",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.DtoValue"
-                        }
-                    ]
-                },
-                "user_name": {
-                    "description": "user name",
-                    "type": "string"
-                },
-                "user_role": {
-                    "description": "SA, CA",
-                    "type": "string"
                 }
             }
         },
@@ -2698,6 +2963,26 @@ const docTemplate = `{
                 }
             }
         },
+        "models.DtoGetDetectionsResponseV2": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "data",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DtoDetectionV2"
+                    }
+                },
+                "meta": {
+                    "description": "meta",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.DtoPaginationMeta"
+                        }
+                    ]
+                }
+            }
+        },
         "models.DtoGetProhActivityResponse": {
             "type": "object",
             "properties": {
@@ -2722,7 +3007,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "count": {
-                    "description": "Число сессий в ответе",
+                    "description": "Meta PaginationMeta ` + "`" + `json:\"meta\"` + "`" + ` // Метаданные пагинации // TODO: Костыль ниже! потом эту строчку расскоментировать, а нижние убрать",
                     "type": "integer"
                 },
                 "data": {
@@ -2732,8 +3017,12 @@ const docTemplate = `{
                         "$ref": "#/definitions/models.DtoSession"
                     }
                 },
+                "pages": {
+                    "description": "Общее количество страниц",
+                    "type": "integer"
+                },
                 "total": {
-                    "description": "Общее количество сессийы",
+                    "description": "Общее количество сессий",
                     "type": "integer"
                 }
             }
@@ -3030,39 +3319,6 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.DtoPaginationMeta"
                         }
                     ]
-                }
-            }
-        },
-        "models.DtoValue": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "description": "email",
-                    "type": "string"
-                },
-                "first_name": {
-                    "description": "first name",
-                    "type": "string"
-                },
-                "last_name": {
-                    "description": "last name",
-                    "type": "string"
-                },
-                "login": {
-                    "description": "login",
-                    "type": "string"
-                },
-                "patronymic": {
-                    "description": "patronymic",
-                    "type": "string"
-                },
-                "role": {
-                    "description": "role",
-                    "type": "string"
-                },
-                "user_id": {
-                    "description": "user id",
-                    "type": "string"
                 }
             }
         },
@@ -3532,7 +3788,7 @@ const docTemplate = `{
                     "description": "anomalies list page",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/models.ModelsTopAnomaliesPage"
+                            "$ref": "#/definitions/models.ModelsDevicesAnomaliesListPage"
                         }
                     ]
                 },
@@ -3868,8 +4124,6 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
-	//LeftDelim:        "{{",
-	//RightDelim:       "}}",
 }
 
 func init() {

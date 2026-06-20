@@ -202,13 +202,13 @@ const fetchUsers = async () => {
 };
 
 const toggleLockBodyScroll = (isLock: boolean) => {
-  window.scrollTo({
+  const scroller = document.querySelector<HTMLElement>('.dashboard__content')
+  if (!scroller) return
+  scroller.scrollTo({
     top: 0,
     behavior: "smooth"
   })
-  isLock 
-    ? document.body.classList.add('no-scroll')
-    : document.body.classList.remove('no-scroll')
+  scroller.style.overflow = isLock ? 'hidden' : ''
 }
 
 const openCreateUserModal = () => {

@@ -128,6 +128,7 @@ import AnalyticsByDevice from '~/components/report/AnalyticsByDevice.vue'
 import AnomaliesTableByDevice from '~/components/report/AnomaliesTableByDevice.vue';
 import AnomaliesRating from '~/components/report/AnomaliesRating.vue';
 import CategoriesRating from '~/components/report/CategoriesRating.vue';
+import { normalizeEndDate, normalizeStartDate } from '~/helpers';
 
 
 definePageMeta({
@@ -197,7 +198,7 @@ const getReport = async (formData: ReportFormData) => {
 
   if (formData.deviceSelection === 'specific' && formData.selectedDevice) {
     try {
-      const reportDataResponse = await reportStore.fetchReportByDevice(new Date(formData.dateFrom)?.toISOString(), new Date(formData.dateTo)?.toISOString(), formData.selectedDevice);
+      const reportDataResponse = await reportStore.fetchReportByDevice(normalizeStartDate(new Date(formData.dateFrom)).toISOString(), normalizeEndDate(new Date(formData.dateTo)).toISOString(), formData.selectedDevice);
       reportDataByDevice.value = reportDataResponse;
       reportDataDeviceName.value = formData.selectedDevice;
       setReportConfig(reportDataByDevice.value.from, reportDataByDevice.value.to, reportDataByDevice.value.hostname);
@@ -212,7 +213,7 @@ const getReport = async (formData: ReportFormData) => {
     }
   } else {
     try {
-      const reportDataResponse = await reportStore.fetchReportAllDevices(new Date(formData.dateFrom)?.toISOString(), new Date(formData.dateTo)?.toISOString());
+      const reportDataResponse = await reportStore.fetchReportAllDevices(normalizeStartDate(new Date(formData.dateFrom)).toISOString(), normalizeEndDate(new Date(formData.dateTo)).toISOString());
       reportData.value = reportDataResponse;
       setReportConfig(reportData.value.from, reportData.value.to);
       formSucces.value = true;
@@ -275,6 +276,10 @@ const downloadReport = async () => {
         scale: 2,
         useCORS: true,
         logging: false,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: page.ref.scrollWidth,
+        windowHeight: page.ref.scrollHeight,
       })
 
       const imgData = canvas.toDataURL('image/png')
@@ -296,7 +301,11 @@ const downloadReport = async () => {
       
     }
 
-    const fileName = `report_${new Date().toISOString().split('T')[0]}.pdf`
+
+    let fileName = `report_${new Date().toISOString().split('T')[0]}.pdf`
+    if (reportDataDeviceName.value) {
+      fileName = `report_${reportDataDeviceName.value.toLowerCase()}_${new Date().toISOString().split('T')[0]}.pdf`
+    }
     pdf.save(fileName)
     
   } catch (error) {

@@ -74,9 +74,27 @@ func (u *Usecase) Act(ctx context.Context, userMeta *models.UserMeta, action, pa
 	newValue["action"] = action
 	newValue["domain"] = path
 
+	// Формируем информативную строку описания
+	act_type, err := models.ParseActionType(action)
+	if err != nil {
+		err = fmt.Errorf("%s: failed parse act type: %s", method, action)
+		u.l.ErrorContext(ctx, "Database operation failed",
+			wsl.String("method", method),
+			wsl.String("error", err.Error()),
+		)
+		return err
+	}
+
+	act_str := ""
+	if act_type == models.ActionTypeAllow {
+		act_str = "положительное"
+	} else {
+		act_str = "отрицательное"
+	}
+
 	record := pkg.DtoBusinessLog{
-		Description: "Решение по домену",
-		Entity:      "Domain",
+		Description: fmt.Sprintf("%s решение по домену %s", act_str, path),
+		Entity:      values.DomainEntity,
 		EntityID:    path,
 		NewValue:    newValue,
 		OldValue:    oldValue,
